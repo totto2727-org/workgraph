@@ -22,9 +22,8 @@ Run commands from the repository root:
 ```bash
 moon update
 moon info
-just check
-just test
-just package-list
+moon check
+moon test
 ```
 
 Publishing is selected only by a push to `main`, and the shared `publish-moonbit` action handles future publication. It declares no deployment gate and has no `workflow_dispatch` trigger. This migration supplies no credentials and performs no registry mutation. See [RELEASING.md](RELEASING.md) for the split-repository dependency contract and six-module publication order.
