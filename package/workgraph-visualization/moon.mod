@@ -12,6 +12,10 @@ keywords = [ "graph", "mermaid", "moonbit", "visualization" ]
 
 description = "Runtime-independent workgraph visualization"
 
+preferred_target = "wasm"
+
+supported_targets = "js+native+wasm"
+
 import {
   "moonbitlang/async@0.20.3",
   "totto2727/workgraph-core@0.1.3",

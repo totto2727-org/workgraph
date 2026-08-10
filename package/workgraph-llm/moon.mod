@@ -12,6 +12,10 @@ keywords = [ "agent", "graph", "llm", "moonbit" ]
 
 description = "Runtime-independent typed LLM nodes for workgraph"
 
+preferred_target = "js"
+
+supported_targets = "js+native"
+
 import {
   "mizchi/llm@0.3.1",
   "moonbitlang/async@0.20.3",

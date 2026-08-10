@@ -12,6 +12,10 @@ keywords = [ "agent", "coding-agent", "graph", "moonbit" ]
 
 description = "Coding-agent nodes for workgraph"
 
+preferred_target = "wasm"
+
+supported_targets = "js+native+wasm"
+
 import {
   "Yoorkin/any@0.2.1",
   "moonbitlang/async@0.20.3",

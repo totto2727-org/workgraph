@@ -6,7 +6,7 @@ This document records the current architecture of the Workgraph module family.
 
 The implementation baseline uses `mizchi/llm@0.3.1` for typed LLM messages, tools, provider results, and test providers. Codex and OpenCode remain native SDK integrations.
 
-The core runtime, coding-agent, LLM node, and visualization modules use the default Wasm GC backend without target restrictions. Codex and OpenCode CLI integrations remain native-only because their SDK dependencies currently declare native-only support.
+The core runtime, coding-agent, and visualization modules prefer Wasm/WASI and support JavaScript, native, and Wasm/WASI. The LLM module prefers JavaScript and supports JavaScript and native because its `mizchi/llm` dependency uses aborting stubs on Wasm. Codex and OpenCode CLI integrations remain native-only because their SDK dependencies currently declare native-only support.
 
 ## Implementation Status
 
@@ -30,7 +30,7 @@ Node categories are based on execution semantics rather than transport.
 
 The original design direction is retained with the following corrections.
 
-1. The core, coding-agent, LLM, and visualization modules declare no preferred or supported targets; Codex and OpenCode CLI integrations remain native-only until their SDK dependencies support portable backends.
+1. The core, coding-agent, and visualization modules support JavaScript, native, and Wasm/WASI; the LLM module supports JavaScript and native; Codex and OpenCode CLI integrations remain native-only until their SDK dependencies support portable backends.
 2. All asynchronous work uses `moonbitlang/async` structured concurrency.
 3. Each graph invocation owns one task group, and every subprocess or background task created for that invocation belongs to that group.
 4. Cancellation uses task cancellation from `moonbitlang/async`; the MVP does not introduce a second cancellation-token abstraction.

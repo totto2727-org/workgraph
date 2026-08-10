@@ -12,6 +12,10 @@ keywords = [ "agent", "graph", "runtime", "moonbit" ]
 
 description = "Runtime-independent asynchronous graph compiler and runtime"
 
+preferred_target = "wasm"
+
+supported_targets = "js+native+wasm"
+
 import {
   "Yoorkin/any@0.2.1",
   "moonbitlang/async@0.20.3",

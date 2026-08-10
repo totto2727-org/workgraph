@@ -10,7 +10,7 @@ import {
 }
 ```
 
-The module uses MoonBit's default Wasm GC target and does not restrict supported targets.
+The module prefers the Wasm/WASI target and supports JavaScript, native, and Wasm/WASI targets. Wasm GC is excluded because `moonbitlang/async` does not support it.
 
 ## Example
 

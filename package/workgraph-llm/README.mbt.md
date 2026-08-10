@@ -10,7 +10,7 @@ import {
 }
 ```
 
-The module uses MoonBit's default Wasm GC target and does not restrict supported targets.
+The module prefers JavaScript and supports JavaScript and native targets. Wasm targets are excluded because `mizchi/llm` exposes aborting Wasm stubs for required runtime operations.
 
 ## Example
 

@@ -30,7 +30,7 @@ Core owns identifiers, graph construction and compilation, runtime state reducti
 
 ## Target Policy
 
-- `workgraph-core`, `workgraph-agent-cli`, `workgraph-llm`, and `workgraph-visualization` declare no preferred or supported targets and therefore use the default Wasm GC backend without restricting compatibility.
+- `workgraph-core`, `workgraph-agent-cli`, and `workgraph-visualization` prefer Wasm/WASI and support JavaScript, native, and Wasm/WASI. `workgraph-llm` prefers JavaScript and supports JavaScript and native because `mizchi/llm` uses aborting Wasm stubs for runtime operations.
 - `workgraph-codex-cli` and `workgraph-opencode-cli` prefer and support native because their published SDK dependencies are native-only.
 
 ## Test Ownership
