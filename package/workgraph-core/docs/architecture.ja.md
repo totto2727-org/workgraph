@@ -6,7 +6,7 @@
 
 実装ベースラインでは、型付きLLMメッセージ、ツール、プロバイダー結果、テストプロバイダーに `mizchi/llm@0.3.1` を使用します。CodexとOpenCodeは引き続きnative SDK統合です。
 
-core runtime、LLM node、visualizationモジュールはnativeとJavaScript targetをサポートします。coding-agentとCLI integrationモジュールはnativeのみです。
+core runtime、coding-agent、LLM node、visualizationモジュールはtargetを制限せず、既定のWasm GC backendを使用します。CodexとOpenCodeのCLI integrationモジュールはSDK依存によりnative専用です。
 
 ## 実装状況
 
@@ -30,7 +30,7 @@ MVP は次の3つの実行セマンティクスをサポートします。
 
 元の設計方針は、以下の修正を加えて維持されます。
 
-1. core、coding-agent、LLM、visualizationモジュールはnativeとJavaScriptをサポートしつつJavaScriptを優先し、CodexとOpenCodeのCLI統合はSDK依存がJavaScriptをサポートするまでnative専用のままとします。
+1. core、coding-agent、LLM、visualizationモジュールはpreferred targetとsupported targetを宣言せず、CodexとOpenCodeのCLI統合はSDK依存がportableなbackendをサポートするまでnative専用のままとします。
 2. すべての非同期処理は `moonbitlang/async` の構造化並行処理を使用します。
 3. 各グラフ呼び出しは1つのタスクグループを所有し、その呼び出しのために生成されたすべてのサブプロセスまたはバックグラウンドタスクはそのグループに属します。
 4. キャンセルは `moonbitlang/async` のタスクキャンセルを使用します。MVP は2つ目のキャンセルトークンの抽象化を導入しません。

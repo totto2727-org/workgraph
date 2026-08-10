@@ -9,7 +9,7 @@ The snippets record the implemented and verified public contract for the asynchr
 The implementation uses current MoonBit conventions:
 
 - `moon.mod` and `moon.pkg` are the configuration formats.
-- Core and coding-agent libraries prefer JavaScript and support native and JavaScript targets; Codex and OpenCode CLI integrations remain native-only until their SDK dependencies support JavaScript.
+- Core and coding-agent libraries declare no preferred or supported targets and use the default Wasm GC backend; Codex and OpenCode CLI integrations remain native-only until their SDK dependencies support portable backends.
 - Public identifier wrappers derive `Eq`, `Hash`, and `Debug`.
 - Synchronous validation and routing use explicit `raise` annotations.
 - Async functions raise implicitly.
@@ -741,7 +741,7 @@ The adapter uses `totto2727/opencode-sdk` as a CLI SDK and does not import the s
 
 ## Fixed MVP Decisions
 
-1. Core, coding-agent, LLM, and visualization execution supports native and JavaScript; Codex and OpenCode CLI integrations remain native-only until their SDK dependencies support JavaScript.
+1. Core, coding-agent, LLM, and visualization execution uses the default Wasm GC backend without target restrictions; Codex and OpenCode CLI integrations remain native-only until their SDK dependencies support portable backends.
 2. Graph execution is sequential.
 3. Cycles are allowed and bounded by `max_steps`.
 4. Each node has exactly one router.

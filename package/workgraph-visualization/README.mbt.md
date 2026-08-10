@@ -10,7 +10,7 @@ import {
 }
 ```
 
-The module supports native and JavaScript targets and prefers JavaScript builds.
+The module uses MoonBit's default Wasm GC target and does not restrict supported targets.
 
 ## Example
 

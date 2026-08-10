@@ -9,5 +9,3 @@ import {
 import {
   "Yoorkin/any",
 } for "test"
-
-supported_targets = "+native+js"

@@ -9,7 +9,7 @@
 実装は現在のMoonBitの規約に従います：
 
 - `moon.mod` と `moon.pkg` が設定フォーマットです。
-- coreとcoding-agentライブラリはJavaScriptを優先してnativeとJavaScriptをサポートし、CodexとOpenCodeのCLI統合はSDK依存がJavaScriptをサポートするまでnative専用のままとします。
+- coreとcoding-agentライブラリはpreferred targetとsupported targetを宣言せず既定のWasm GC backendを使用し、CodexとOpenCodeのCLI統合はSDK依存がportableなbackendをサポートするまでnative専用のままとします。
 - パブリックな識別子ラッパーは `Eq`、`Hash`、`Debug` を導出します。
 - 同期バリデーションとルーティングは明示的な `raise` アノテーションを使用します。
 - 非同期関数は暗黙的に raise します。
@@ -741,7 +741,7 @@ adapterは`totto2727/opencode-sdk`をCLI SDKとして使用し、別途管理さ
 
 ## 確定したMVPの設計判断
 
-1. core、coding-agent、LLM、visualizationの実行はnativeとJavaScriptをサポートし、CodexとOpenCodeのCLI integrationはSDK依存がJavaScriptをサポートするまでnative専用です。
+1. core、coding-agent、LLM、visualizationの実行はtargetを制限せず既定のWasm GC backendを使用し、CodexとOpenCodeのCLI integrationはSDK依存がportableなbackendをサポートするまでnative専用です。
 2. グラフの実行は逐次的です。
 3. サイクルは許可され、`max_steps` によって制限されます。
 4. 各ノードには正確に1つのルーターがあります。

@@ -6,7 +6,7 @@ This document records the current architecture of the Workgraph module family.
 
 The implementation baseline uses `mizchi/llm@0.3.1` for typed LLM messages, tools, provider results, and test providers. Codex and OpenCode remain native SDK integrations.
 
-The core runtime, coding-agent, LLM node, and visualization modules support native and JavaScript targets. Codex and OpenCode CLI integrations remain native-only because their SDK dependencies currently declare native-only support.
+The core runtime, coding-agent, LLM node, and visualization modules use the default Wasm GC backend without target restrictions. Codex and OpenCode CLI integrations remain native-only because their SDK dependencies currently declare native-only support.
 
 ## Implementation Status
 
@@ -30,7 +30,7 @@ Node categories are based on execution semantics rather than transport.
 
 The original design direction is retained with the following corrections.
 
-1. The core, coding-agent, LLM, and visualization modules prefer JavaScript while supporting native and JavaScript targets; Codex and OpenCode CLI integrations remain native-only until their SDK dependencies support JavaScript.
+1. The core, coding-agent, LLM, and visualization modules declare no preferred or supported targets; Codex and OpenCode CLI integrations remain native-only until their SDK dependencies support portable backends.
 2. All asynchronous work uses `moonbitlang/async` structured concurrency.
 3. Each graph invocation owns one task group, and every subprocess or background task created for that invocation belongs to that group.
 4. Cancellation uses task cancellation from `moonbitlang/async`; the MVP does not introduce a second cancellation-token abstraction.
@@ -333,7 +333,7 @@ The MVP excludes:
 - [MoonBit async programming and structured concurrency](https://docs.moonbitlang.com/en/latest/language/async-experimental.html)
 - [MoonBit error handling](https://docs.moonbitlang.com/en/latest/language/error-handling.html)
 - [MoonBit methods, traits, and trait objects](https://docs.moonbitlang.com/en/latest/language/methods.html)
-- [MoonBit module configuration and native target declarations](https://docs.moonbitlang.com/en/latest/toolchain/moon/module.html)
+- [MoonBit module configuration and target declarations](https://docs.moonbitlang.com/en/latest/toolchain/moon/module.html)
 - [MoonBit package configuration](https://docs.moonbitlang.com/en/latest/toolchain/moon/package.html)
 - [moonbitlang/async package documentation](https://mooncakes.io/docs/moonbitlang/async)
 - [mizchi/llm package](https://mooncakes.io/docs/mizchi/llm@0.3.1)

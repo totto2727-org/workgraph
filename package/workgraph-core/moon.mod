@@ -18,8 +18,4 @@ import {
   "totto2727/any-collection@0.2.0",
 }
 
-preferred_target = "js"
-
-supported_targets = "+native+js"
-
 source = "src"

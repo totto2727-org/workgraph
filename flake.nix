@@ -30,7 +30,6 @@
           default = pkgs.mkShell {
             packages = [
               pkgs.moonbit-bin.moonbit.latest
-              pkgs.nodejs_24
             ];
           };
         });

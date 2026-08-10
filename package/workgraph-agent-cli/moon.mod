@@ -20,8 +20,4 @@ import {
   "totto2727/workgraph-core@0.1.3",
 }
 
-preferred_target = "js"
-
-supported_targets = "+native+js"
-
 source = "src"
