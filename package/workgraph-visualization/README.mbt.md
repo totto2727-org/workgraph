@@ -10,10 +10,10 @@ import {
 }
 ```
 
-The module supports native and JavaScript targets and prefers native builds.
+The module supports native and JavaScript targets and prefers JavaScript builds.
 
 ## Example
 
 ```bash
-moon run --target native package/workgraph-visualization/src/examples/basic
+moon run package/workgraph-visualization/src/examples/basic
 ```

@@ -51,7 +51,7 @@ Unit tests remain beside their implementation files. LLM provider, Codex CLI, an
 vp run mbt:check
 vp run mbt:build
 vp run mbt:test
-moon run --target native package/workgraph-llm/src/examples/basic
+moon run package/workgraph-llm/src/examples/basic
 moon run --target native package/workgraph-codex-cli/src/examples/basic
 moon run --target native package/workgraph-opencode-cli/src/examples/basic
 ```

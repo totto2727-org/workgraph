@@ -2,14 +2,14 @@
 
 ## ステータスと規約
 
-このドキュメントは、ネイティブ非同期MVPのレビュー済み公開契約を定義します。
+このドキュメントは、非同期MVPのレビュー済み公開契約を定義します。
 
-スニペットは、ネイティブ非同期MVPの実装済みかつ検証済みの公開契約を記録しています。
+スニペットは、非同期MVPの実装済みかつ検証済みの公開契約を記録しています。
 
 実装は現在のMoonBitの規約に従います：
 
 - `moon.mod` と `moon.pkg` が設定フォーマットです。
-- `preferred_target = "native"` と `supported_targets = "native"` は必須です。
+- coreとcoding-agentライブラリはJavaScriptを優先してnativeとJavaScriptをサポートし、CodexとOpenCodeのCLI統合はSDK依存がJavaScriptをサポートするまでnative専用のままとします。
 - パブリックな識別子ラッパーは `Eq`、`Hash`、`Debug` を導出します。
 - 同期バリデーションとルーティングは明示的な `raise` アノテーションを使用します。
 - 非同期関数は暗黙的に raise します。
@@ -741,7 +741,7 @@ adapterは`totto2727/opencode-sdk`をCLI SDKとして使用し、別途管理さ
 
 ## 確定したMVPの設計判断
 
-1. core、LLM、visualizationの実行はnativeとJavaScriptをサポートし、coding-agentとCLI integrationはnative専用です。
+1. core、coding-agent、LLM、visualizationの実行はnativeとJavaScriptをサポートし、CodexとOpenCodeのCLI integrationはSDK依存がJavaScriptをサポートするまでnative専用です。
 2. グラフの実行は逐次的です。
 3. サイクルは許可され、`max_steps` によって制限されます。
 4. 各ノードには正確に1つのルーターがあります。

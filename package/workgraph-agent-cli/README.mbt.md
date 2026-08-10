@@ -12,4 +12,4 @@ import {
 }
 ```
 
-The module supports the native target and prefers native builds.
+The module supports native and JavaScript targets and prefers JavaScript builds.

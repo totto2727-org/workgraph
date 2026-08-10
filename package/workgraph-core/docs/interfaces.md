@@ -2,14 +2,14 @@
 
 ## Status and Conventions
 
-This document defines the reviewed public contract for the native asynchronous MVP.
+This document defines the reviewed public contract for the asynchronous MVP.
 
-The snippets record the implemented and verified public contract for the native asynchronous MVP.
+The snippets record the implemented and verified public contract for the asynchronous MVP.
 
 The implementation uses current MoonBit conventions:
 
 - `moon.mod` and `moon.pkg` are the configuration formats.
-- `preferred_target = "native"` and `supported_targets = "native"` are mandatory.
+- Core and coding-agent libraries prefer JavaScript and support native and JavaScript targets; Codex and OpenCode CLI integrations remain native-only until their SDK dependencies support JavaScript.
 - Public identifier wrappers derive `Eq`, `Hash`, and `Debug`.
 - Synchronous validation and routing use explicit `raise` annotations.
 - Async functions raise implicitly.
@@ -741,7 +741,7 @@ The adapter uses `totto2727/opencode-sdk` as a CLI SDK and does not import the s
 
 ## Fixed MVP Decisions
 
-1. Core, LLM, and visualization execution supports native and JavaScript; coding-agent and CLI integrations are native-only.
+1. Core, coding-agent, LLM, and visualization execution supports native and JavaScript; Codex and OpenCode CLI integrations remain native-only until their SDK dependencies support JavaScript.
 2. Graph execution is sequential.
 3. Cycles are allowed and bounded by `max_steps`.
 4. Each node has exactly one router.

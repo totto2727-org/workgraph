@@ -10,7 +10,7 @@ license = "MIT"
 
 keywords = [ "agent", "coding-agent", "graph", "moonbit" ]
 
-description = "Native coding-agent nodes for workgraph"
+description = "Coding-agent nodes for workgraph"
 
 import {
   "Yoorkin/any@0.2.1",
@@ -20,8 +20,8 @@ import {
   "totto2727/workgraph-core@0.1.3",
 }
 
-preferred_target = "native"
+preferred_target = "js"
 
-supported_targets = "native"
+supported_targets = "+native+js"
 
 source = "src"

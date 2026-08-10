@@ -8,4 +8,4 @@ import {
   "totto2727/workgraph-core" @core,
 }
 
-supported_targets = "native"
+supported_targets = "+native+js"

@@ -7,7 +7,7 @@ Workgraph is a standalone MoonBit workspace for asynchronous typed graphs, LLM n
 | Module | Purpose | Targets |
 | --- | --- | --- |
 | [`totto2727/workgraph-core`](package/workgraph-core/README.md) | Graph compiler, runtime, state, events, and resources | native, js |
-| [`totto2727/workgraph-agent-cli`](package/workgraph-agent-cli/README.md) | Coding-agent contracts and session lifecycle | native |
+| [`totto2727/workgraph-agent-cli`](package/workgraph-agent-cli/README.md) | Coding-agent contracts and session lifecycle | native, js |
 | [`totto2727/workgraph-llm`](package/workgraph-llm/README.md) | Provider-neutral LLM nodes | native, js |
 | [`totto2727/workgraph-visualization`](package/workgraph-visualization/README.md) | Mermaid rendering | native, js |
 | [`totto2727/workgraph-codex-cli`](package/workgraph-codex-cli/README.md) | Codex CLI adapter | native |

@@ -10,7 +10,7 @@ core runtime、LLM node、visualizationモジュールはnativeとJavaScript tar
 
 ## 実装状況
 
-実装はランタイム非依存のcore、LLM、visualizationモジュールと、nativeのcoding-agentおよびCLI integrationモジュールに分割されています。各モジュールが自身のテストとexampleを所有します。
+実装はランタイム非依存のcore、coding-agent、LLM、visualizationモジュールと、nativeのCodexおよびOpenCode CLI integrationモジュールに分割されています。各モジュールが自身のテストとexampleを所有します。
 
 先送りされた作業には、並列ノードスケジューリング、永続的チェックポイントまたは耐久性のある実行、人間による承認の一時停止、サブグラフ、分散ワーカー、プロバイダー完全な権限マッピング、および実際のクレデンシャルを持つプロバイダーによるエンドツーエンドテストが含まれます。
 
@@ -30,7 +30,7 @@ MVP は次の3つの実行セマンティクスをサポートします。
 
 元の設計方針は、以下の修正を加えて維持されます。
 
-1. モジュールは `preferred_target = "native"` と `supported_targets = "native"` の両方を宣言します。
+1. core、coding-agent、LLM、visualizationモジュールはnativeとJavaScriptをサポートしつつJavaScriptを優先し、CodexとOpenCodeのCLI統合はSDK依存がJavaScriptをサポートするまでnative専用のままとします。
 2. すべての非同期処理は `moonbitlang/async` の構造化並行処理を使用します。
 3. 各グラフ呼び出しは1つのタスクグループを所有し、その呼び出しのために生成されたすべてのサブプロセスまたはバックグラウンドタスクはそのグループに属します。
 4. キャンセルは `moonbitlang/async` のタスクキャンセルを使用します。MVP は2つ目のキャンセルトークンの抽象化を導入しません。

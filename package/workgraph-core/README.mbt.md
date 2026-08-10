@@ -34,11 +34,11 @@ Each module owns its unit and integration tests. The previous shared `testing`, 
 Run commands from the repository root.
 
 ```bash
-moon run --target native package/workgraph-core/src/examples/basic
-moon run --target native package/workgraph-llm/src/examples/basic
-moon run --target native package/workgraph-visualization/src/examples/basic
-moon run --target native package/workgraph-codex-cli/src/examples/basic
-moon run --target native package/workgraph-opencode-cli/src/examples/basic
+moon run package/workgraph-core/src/examples/basic
+moon run package/workgraph-llm/src/examples/basic
+moon run package/workgraph-visualization/src/examples/basic
+moon run package/workgraph-codex-cli/src/examples/basic
+moon run package/workgraph-opencode-cli/src/examples/basic
 ```
 
 The LLM example uses `mizchi/llm.MockProvider` and requires no credentials. The Codex and OpenCode examples use the corresponding installed CLI and local authentication. `workgraph-agent-cli` has no standalone example because the two CLI examples demonstrate its concrete use.
