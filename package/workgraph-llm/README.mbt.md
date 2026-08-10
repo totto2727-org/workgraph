@@ -10,11 +10,10 @@ import {
 }
 ```
 
-The module supports native and JavaScript targets and has no preferred target.
+The module prefers JavaScript and supports JavaScript and native targets. Wasm targets are excluded because `mizchi/llm` exposes aborting Wasm stubs for required runtime operations.
 
 ## Example
 
 ```bash
-moon run --target native mbt/package/workgraph-llm/src/examples/basic
-moon run --target js mbt/package/workgraph-llm/src/examples/basic
+moon run package/workgraph-llm/src/examples/basic
 ```

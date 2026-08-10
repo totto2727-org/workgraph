@@ -1,17 +1,17 @@
 ///|
 pub struct NodeId {
   value : String
-} derive(Eq, Hash, Debug)
+} derive(Eq, Hash)
 
 ///|
 pub struct RunId {
   value : String
-} derive(Eq, Hash, Debug)
+} derive(Eq, Hash)
 
 ///|
 pub struct ResourceKey {
   value : String
-} derive(Eq, Hash, Debug)
+} derive(Eq, Hash)
 
 ///|
 pub suberror IdError {
@@ -52,4 +52,19 @@ pub fn ResourceKey::ResourceKey(value : String) -> ResourceKey raise IdError {
 ///|
 pub fn ResourceKey::to_string(self : ResourceKey) -> String {
   self.value
+}
+
+///|
+pub impl Debug for NodeId with fn to_repr(self) {
+  @debug.Repr::ctor("NodeId", [(None, @debug.Repr::string(self.value))])
+}
+
+///|
+pub impl Debug for RunId with fn to_repr(self) {
+  @debug.Repr::ctor("RunId", [(None, @debug.Repr::string(self.value))])
+}
+
+///|
+pub impl Debug for ResourceKey with fn to_repr(self) {
+  @debug.Repr::ctor("ResourceKey", [(None, @debug.Repr::string(self.value))])
 }

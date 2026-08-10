@@ -3,5 +3,3 @@ import {
   "moonbitlang/async",
   "totto2727/workgraph-core" @core,
 }
-
-supported_targets = "+native+js"

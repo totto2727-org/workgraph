@@ -17,5 +17,5 @@ The module supports and prefers the native target.
 The example uses the local OpenCode CLI configuration and runs a read-only prompt in the current workspace.
 
 ```bash
-moon run --target native mbt/package/workgraph-opencode-cli/src/examples/basic
+moon run --target native package/workgraph-opencode-cli/src/examples/basic
 ```

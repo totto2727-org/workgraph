@@ -6,11 +6,11 @@ This document records the current architecture of the Workgraph module family.
 
 The implementation baseline uses `mizchi/llm@0.3.1` for typed LLM messages, tools, provider results, and test providers. Codex and OpenCode remain native SDK integrations.
 
-The core runtime, LLM node, and visualization modules support native and JavaScript targets. Coding-agent and CLI integration modules remain native-only.
+The core runtime, coding-agent, and visualization modules prefer Wasm/WASI and support JavaScript, native, and Wasm/WASI. The LLM module prefers JavaScript and supports JavaScript and native because its `mizchi/llm` dependency uses aborting stubs on Wasm. Codex and OpenCode CLI integrations remain native-only because their SDK dependencies currently declare native-only support.
 
 ## Implementation Status
 
-The implementation is split into runtime-independent core, LLM, and visualization modules plus native coding-agent and CLI integration modules. Each module owns its tests and examples.
+The implementation is split into runtime-independent core, coding-agent, LLM, and visualization modules plus native Codex and OpenCode CLI integration modules. Each module owns its tests and examples.
 
 Deferred work includes parallel node scheduling, persistent checkpoints or durable execution, human approval suspension, subgraphs, distributed workers, provider-complete permission mapping, and real credentialed provider end-to-end tests.
 
@@ -30,7 +30,7 @@ Node categories are based on execution semantics rather than transport.
 
 The original design direction is retained with the following corrections.
 
-1. The module declares both `preferred_target = "native"` and `supported_targets = "native"`.
+1. The core, coding-agent, and visualization modules support JavaScript, native, and Wasm/WASI; the LLM module supports JavaScript and native; Codex and OpenCode CLI integrations remain native-only until their SDK dependencies support portable backends.
 2. All asynchronous work uses `moonbitlang/async` structured concurrency.
 3. Each graph invocation owns one task group, and every subprocess or background task created for that invocation belongs to that group.
 4. Cancellation uses task cancellation from `moonbitlang/async`; the MVP does not introduce a second cancellation-token abstraction.
@@ -280,7 +280,7 @@ Session close is logical because no persistent subprocess belongs to an idle thr
 The implementation consists of six acyclic MoonBit modules.
 
 ```text
-mbt/package/
+package/
 ├── workgraph-core/
 ├── workgraph-agent-cli/
 ├── workgraph-llm/
@@ -333,7 +333,7 @@ The MVP excludes:
 - [MoonBit async programming and structured concurrency](https://docs.moonbitlang.com/en/latest/language/async-experimental.html)
 - [MoonBit error handling](https://docs.moonbitlang.com/en/latest/language/error-handling.html)
 - [MoonBit methods, traits, and trait objects](https://docs.moonbitlang.com/en/latest/language/methods.html)
-- [MoonBit module configuration and native target declarations](https://docs.moonbitlang.com/en/latest/toolchain/moon/module.html)
+- [MoonBit module configuration and target declarations](https://docs.moonbitlang.com/en/latest/toolchain/moon/module.html)
 - [MoonBit package configuration](https://docs.moonbitlang.com/en/latest/toolchain/moon/package.html)
 - [moonbitlang/async package documentation](https://mooncakes.io/docs/moonbitlang/async)
 - [mizchi/llm package](https://mooncakes.io/docs/mizchi/llm@0.3.1)

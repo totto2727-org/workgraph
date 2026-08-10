@@ -5,6 +5,4 @@ import {
   "totto2727/workgraph-llm" @workgraph_llm,
 }
 
-supported_targets = "+native+js"
-
 pkgtype(kind: "executable")

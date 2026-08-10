@@ -7,7 +7,7 @@
 ## パッケージ境界
 
 ```text
-mbt/package/
+package/
 ├── workgraph-core/
 │   └── src/examples/basic/
 ├── workgraph-agent-cli/
@@ -30,8 +30,8 @@ coreは識別子、グラフ構築とコンパイル、ランタイムのstate r
 
 ## Targetポリシー
 
-- `workgraph-core`、`workgraph-llm`、`workgraph-visualization`はpreferred targetを持たず、nativeとJavaScriptをサポートします。
-- `workgraph-agent-cli`、`workgraph-codex-cli`、`workgraph-opencode-cli`はnativeをpreferred targetおよびsupported targetとします。
+- `workgraph-core`、`workgraph-agent-cli`、`workgraph-visualization`はWasm/WASIを優先し、JavaScript、native、Wasm/WASIをサポートします。`workgraph-llm`は`mizchi/llm`のruntime操作がWasmでabortするstubのため、JavaScriptを優先し、JavaScriptとnativeをサポートします。
+- `workgraph-codex-cli`と`workgraph-opencode-cli`は、公開済みSDK依存がnative専用のため、nativeをpreferred targetおよびsupported targetとします。
 
 ## テストの所有
 
@@ -51,8 +51,7 @@ unit testは実装ファイルの隣に置きます。LLM provider、Codex CLI�
 vp run mbt:check
 vp run mbt:build
 vp run mbt:test
-moon run --target native mbt/package/workgraph-llm/src/examples/basic
-moon run --target js mbt/package/workgraph-llm/src/examples/basic
-moon run --target native mbt/package/workgraph-codex-cli/src/examples/basic
-moon run --target native mbt/package/workgraph-opencode-cli/src/examples/basic
+moon run package/workgraph-llm/src/examples/basic
+moon run --target native package/workgraph-codex-cli/src/examples/basic
+moon run --target native package/workgraph-opencode-cli/src/examples/basic
 ```

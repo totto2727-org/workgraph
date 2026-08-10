@@ -10,11 +10,10 @@ import {
 }
 ```
 
-The module supports native and JavaScript targets and has no preferred target.
+The module prefers the Wasm/WASI target and supports JavaScript, native, and Wasm/WASI targets. Wasm GC is excluded because `moonbitlang/async` does not support it.
 
 ## Example
 
 ```bash
-moon run --target native mbt/package/workgraph-visualization/src/examples/basic
-moon run --target js mbt/package/workgraph-visualization/src/examples/basic
+moon run package/workgraph-visualization/src/examples/basic
 ```

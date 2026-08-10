@@ -6,10 +6,10 @@
 
 | モジュール                | テスト                                                        | Targets    |
 | ------------------------- | ------------------------------------------------------------- | ---------- |
-| `workgraph-core`          | グラフコンパイル、runtime、state、resource、event、identifier | native, js |
-| `workgraph-agent-cli`     | coding-agent session scope、lifecycle、error、cancellation    | native     |
-| `workgraph-llm`           | provider実行と公開`mizchi/llm.MockProvider` integration       | native, js |
-| `workgraph-visualization` | 決定的なMermaid rendering                                     | native, js |
+| `workgraph-core`          | グラフコンパイル、runtime、state、resource、event、identifier | wasm（`js`、`native`、`wasm`） |
+| `workgraph-agent-cli`     | coding-agent session scope、lifecycle、error、cancellation    | wasm（`js`、`native`、`wasm`） |
+| `workgraph-llm`           | provider実行と公開`mizchi/llm.MockProvider` integration       | js（`js`、`native`） |
+| `workgraph-visualization` | 決定的なMermaid rendering                                     | wasm（`js`、`native`、`wasm`） |
 | `workgraph-codex-cli`     | adapter mappingとfake native Codex process integration        | native     |
 | `workgraph-opencode-cli`  | adapter mappingとfake native OpenCode process integration     | native     |
 
@@ -18,19 +18,15 @@
 ## 個別コマンド
 
 ```bash
-moon test --target native mbt/package/workgraph-core/src
-moon test --target js mbt/package/workgraph-core/src
-moon test --target native mbt/package/workgraph-agent-cli/src
-moon test --target native mbt/package/workgraph-llm/src
-moon test --target js mbt/package/workgraph-llm/src
-moon test --target native mbt/package/workgraph-llm/src/test
-moon test --target js mbt/package/workgraph-llm/src/test
-moon test --target native mbt/package/workgraph-visualization/src
-moon test --target js mbt/package/workgraph-visualization/src
-moon test --target native mbt/package/workgraph-codex-cli/src
-moon test --target native mbt/package/workgraph-codex-cli/src/test
-moon test --target native mbt/package/workgraph-opencode-cli/src
-moon test --target native mbt/package/workgraph-opencode-cli/src/test
+moon test package/workgraph-core/src
+moon test package/workgraph-agent-cli/src
+moon test package/workgraph-llm/src
+moon test package/workgraph-llm/src/test
+moon test package/workgraph-visualization/src
+moon test package/workgraph-codex-cli/src
+moon test package/workgraph-codex-cli/src/test
+moon test package/workgraph-opencode-cli/src
+moon test package/workgraph-opencode-cli/src/test
 ```
 
 ## リポジトリgate

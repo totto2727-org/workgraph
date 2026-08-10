@@ -7,7 +7,7 @@ The former monolithic graph module is split into six independently targeted Moon
 ## Package Boundaries
 
 ```text
-mbt/package/
+package/
 ├── workgraph-core/
 │   └── src/examples/basic/
 ├── workgraph-agent-cli/
@@ -30,8 +30,8 @@ Core owns identifiers, graph construction and compilation, runtime state reducti
 
 ## Target Policy
 
-- `workgraph-core`, `workgraph-llm`, and `workgraph-visualization` have no preferred target and support native and JavaScript.
-- `workgraph-agent-cli`, `workgraph-codex-cli`, and `workgraph-opencode-cli` prefer and support native.
+- `workgraph-core`, `workgraph-agent-cli`, and `workgraph-visualization` prefer Wasm/WASI and support JavaScript, native, and Wasm/WASI. `workgraph-llm` prefers JavaScript and supports JavaScript and native because `mizchi/llm` uses aborting Wasm stubs for runtime operations.
+- `workgraph-codex-cli` and `workgraph-opencode-cli` prefer and support native because their published SDK dependencies are native-only.
 
 ## Test Ownership
 
@@ -51,8 +51,7 @@ Unit tests remain beside their implementation files. LLM provider, Codex CLI, an
 vp run mbt:check
 vp run mbt:build
 vp run mbt:test
-moon run --target native mbt/package/workgraph-llm/src/examples/basic
-moon run --target js mbt/package/workgraph-llm/src/examples/basic
-moon run --target native mbt/package/workgraph-codex-cli/src/examples/basic
-moon run --target native mbt/package/workgraph-opencode-cli/src/examples/basic
+moon run package/workgraph-llm/src/examples/basic
+moon run --target native package/workgraph-codex-cli/src/examples/basic
+moon run --target native package/workgraph-opencode-cli/src/examples/basic
 ```
