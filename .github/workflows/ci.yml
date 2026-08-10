@@ -26,16 +26,9 @@ jobs:
       - name: Verify Workgraph
         shell: bash
         run: |
-          eval "$(nix print-dev-env \"$GITHUB_WORKSPACE#default\")"
+          eval "$(nix print-dev-env "$GITHUB_WORKSPACE#default")"
           moon update
           moon info
-          moon check --target native
-          moon test --target native
-          moon check --target js
-          moon test --target js
-          moon check --target all
-          moon test --target all
-          for module in package/workgraph-core package/workgraph-agent-cli package/workgraph-llm package/workgraph-visualization package/workgraph-codex-cli package/workgraph-opencode-cli; do
-            (cd "$module" && moon package --list)
-          done
-          nix flake check --system "${{ matrix.system }}"
+          just check
+          just test
+          just package-list

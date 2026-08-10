@@ -35,11 +35,8 @@ Run commands from the repository root.
 
 ```bash
 moon run --target native package/workgraph-core/src/examples/basic
-moon run --target js package/workgraph-core/src/examples/basic
 moon run --target native package/workgraph-llm/src/examples/basic
-moon run --target js package/workgraph-llm/src/examples/basic
 moon run --target native package/workgraph-visualization/src/examples/basic
-moon run --target js package/workgraph-visualization/src/examples/basic
 moon run --target native package/workgraph-codex-cli/src/examples/basic
 moon run --target native package/workgraph-opencode-cli/src/examples/basic
 ```
@@ -49,8 +46,8 @@ The LLM example uses `mizchi/llm.MockProvider` and requires no credentials. The 
 ## Development
 
 ```bash
-moon check --target all
-moon test --target all
+moon check
+moon test
 ```
 
 See the [architecture](docs/architecture.md), [core guide](docs/core-guide.md), [interfaces](docs/interfaces.md), and [testing guide](docs/testing.md).

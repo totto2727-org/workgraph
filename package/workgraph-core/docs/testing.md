@@ -19,14 +19,10 @@ The deleted cross-module E2E workflow and shared testing package are not part of
 
 ```bash
 moon test --target native package/workgraph-core/src
-moon test --target js package/workgraph-core/src
 moon test --target native package/workgraph-agent-cli/src
 moon test --target native package/workgraph-llm/src
-moon test --target js package/workgraph-llm/src
 moon test --target native package/workgraph-llm/src/test
-moon test --target js package/workgraph-llm/src/test
 moon test --target native package/workgraph-visualization/src
-moon test --target js package/workgraph-visualization/src
 moon test --target native package/workgraph-codex-cli/src
 moon test --target native package/workgraph-codex-cli/src/test
 moon test --target native package/workgraph-opencode-cli/src

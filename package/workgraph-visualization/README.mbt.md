@@ -16,5 +16,4 @@ The module supports native and JavaScript targets and prefers native builds.
 
 ```bash
 moon run --target native package/workgraph-visualization/src/examples/basic
-moon run --target js package/workgraph-visualization/src/examples/basic
 ```
