@@ -6,13 +6,30 @@ struct CodexIntegrationFixture {
 }
 
 ///|
+async fn write_codex_integration_executable(
+  path : @path.Path,
+  content : String,
+) -> Unit {
+  let (code, _, stderr) = @process.collect_output("/bin/sh", [
+    "-c",
+    "printf '%s' \"$1\" > \"$2\" && chmod 755 \"$2\"",
+    "fixture-writer",
+    content,
+    path.to_string(),
+  ])
+  if code != 0 {
+    abort("failed to create Codex fixture executable: \{stderr.text()}")
+  }
+}
+
+///|
 async fn codex_integration_fixture() -> CodexIntegrationFixture {
   let root = @fs.tmpdir(prefix="moon-agent-codex-integration-")
   let executable = @path.Path("\{root}/codex")
   let records = "\{root}/records"
   @fs.mkdir(records, recursive=true)
-  @fs.write_file(
-    executable.to_string(),
+  write_codex_integration_executable(
+    executable,
     (
       #|#!/bin/sh
       #|set -eu
@@ -50,9 +67,7 @@ async fn codex_integration_fixture() -> CodexIntegrationFixture {
       #|esac
       #|
     ),
-    create_mode=CreateOrTruncate,
   )
-  @fs.chmod(executable.to_string(), 0o755)
   { root, executable, records }
 }
 

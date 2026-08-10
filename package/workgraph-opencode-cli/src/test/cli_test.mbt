@@ -6,6 +6,23 @@ struct OpenCodeCliFixture {
 }
 
 ///|
+async fn write_opencode_cli_executable(
+  path : @path.Path,
+  content : String,
+) -> Unit {
+  let (code, _, stderr) = @process.collect_output("/bin/sh", [
+    "-c",
+    "printf '%s' \"$1\" > \"$2\" && chmod 755 \"$2\"",
+    "fixture-writer",
+    content,
+    path.to_string(),
+  ])
+  if code != 0 {
+    abort("failed to create OpenCode fixture executable: \{stderr.text()}")
+  }
+}
+
+///|
 async fn create_opencode_cli_fixture() -> OpenCodeCliFixture {
   let root = @fs.tmpdir(prefix="moon-agent-opencode-cli-")
   let executable = @path.Path(root).join(@path.Path("opencode"))
@@ -13,12 +30,7 @@ async fn create_opencode_cli_fixture() -> OpenCodeCliFixture {
     .join(@path.Path("records"))
     .to_string()
   @fs.mkdir(record_directory, recursive=true)
-  @fs.write_file(
-    executable.to_string(),
-    opencode_cli_fixture_script(),
-    create_mode=CreateOrTruncate,
-  )
-  @fs.chmod(executable.to_string(), 0o755)
+  write_opencode_cli_executable(executable, opencode_cli_fixture_script())
   { root, executable, record_directory }
 }
 
@@ -217,7 +229,6 @@ async test "opencode_agent 2 - merges adapter and caller environment through the
       )
       |> ignore
       let recorded_env = fixture.recorded_lines("env", 1)
-      assert_true(recorded_env.contains("ADAPTER=enabled"))
       assert_true(recorded_env.contains("ADAPTER=enabled"))
       assert_true(recorded_env.contains("CALLER=active"))
       assert_true(recorded_env.contains("SHARED=caller"))

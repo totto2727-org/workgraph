@@ -43,8 +43,16 @@ async fn with_fake_codex(
     #|/bin/cat > "$FAKE_CODEX_INPUT"
     #|printf '%s\n' "$FAKE_CODEX_EVENTS"
     #|
-  @fs.write_file(executable.to_string(), script, create_mode=CreateOrTruncate)
-  @fs.chmod(executable.to_string(), 0o755)
+  let (code, _, stderr) = @process.collect_output("/bin/sh", [
+    "-c",
+    "printf '%s' \"$1\" > \"$2\" && chmod 755 \"$2\"",
+    "fixture-writer",
+    script,
+    executable.to_string(),
+  ])
+  if code != 0 {
+    abort("failed to create Codex fixture executable: \{stderr.text()}")
+  }
   let environment = {
     "PATH": "/usr/bin:/bin",
     "FAKE_CODEX_EVENTS": events,
