@@ -12,7 +12,7 @@ import {
 }
 ```
 
-The module supports and prefers the native target.
+The module prefers native and supports Wasm/WASI and native from the same production source. Contract tests run on both targets, while fake and real CLI process tests run only on native.
 
 ## Example
 

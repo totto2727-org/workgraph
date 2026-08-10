@@ -10,7 +10,7 @@ license = "MIT"
 
 keywords = [ "agent", "graph", "moonbit", "opencode" ]
 
-description = "Native OpenCode CLI integration for workgraph"
+description = "OpenCode CLI integration for workgraph"
 
 import {
   "moonbitlang/async@0.20.3",
@@ -23,6 +23,6 @@ import {
 
 preferred_target = "native"
 
-supported_targets = "native"
+supported_targets = "+wasm+native"
 
 source = "src"

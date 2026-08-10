@@ -8,4 +8,4 @@ import {
   "totto2727/opencode-sdk/cli" @sdk,
 }
 
-supported_targets = "native"
+supported_targets = "+wasm+native"

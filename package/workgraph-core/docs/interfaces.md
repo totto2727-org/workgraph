@@ -9,7 +9,7 @@ The snippets record the implemented and verified public contract for the asynchr
 The implementation uses current MoonBit conventions:
 
 - `moon.mod` and `moon.pkg` are the configuration formats.
-- Core and coding-agent libraries prefer Wasm/WASI and support JavaScript, native, and Wasm/WASI; the LLM library prefers JavaScript and supports JavaScript and native; Codex and OpenCode CLI integrations remain native-only until their SDK dependencies support portable backends.
+- Core and coding-agent libraries prefer Wasm/WASI and support JavaScript, native, and Wasm/WASI; the LLM library prefers JavaScript and supports JavaScript and native; Codex and OpenCode CLI integrations prefer native and support Wasm/WASI and native from the same production source.
 - Public identifier wrappers derive `Eq`, `Hash`, and `Debug`.
 - Synchronous validation and routing use explicit `raise` annotations.
 - Async functions raise implicitly.
@@ -741,7 +741,7 @@ The adapter creates an agent-sdk CLI session through `agent-sdk/cli/opencode`, u
 
 ## Fixed MVP Decisions
 
-1. Core, coding-agent, and visualization execution supports JavaScript, native, and Wasm/WASI; LLM execution supports JavaScript and native; Codex and OpenCode CLI integrations remain native-only until their SDK dependencies support portable backends.
+1. Core, coding-agent, and visualization execution supports JavaScript, native, and Wasm/WASI; LLM execution supports JavaScript and native; Codex and OpenCode CLI integrations support Wasm/WASI and native from the same production source.
 2. Graph execution is sequential.
 3. Cycles are allowed and bounded by `max_steps`.
 4. Each node has exactly one router.

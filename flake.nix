@@ -1,5 +1,5 @@
 {
-  description = "Source-only six-module MoonBit Workgraph workspace";
+  description = "Source-only MoonBit Workgraph workspace with same-source wasm/native CLI adapters";
 
   inputs = {
     nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
@@ -29,7 +29,9 @@
         {
           default = pkgs.mkShell {
             packages = [
+              # One MoonBit toolchain checks and builds both declared CLI adapter targets.
               pkgs.moonbit-bin.moonbit.latest
+              # Retained for the workspace modules that also declare JavaScript support.
               pkgs.nodejs_24
             ];
           };

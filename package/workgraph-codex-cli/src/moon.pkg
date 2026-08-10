@@ -7,11 +7,4 @@ import {
   "moonbitlang/x/path",
 }
 
-import {
-  "moonbitlang/async/fs",
-  "moonbitlang/async/process",
-  "moonbitlang/core/immut/hashmap" @immut_hashmap,
-  "totto2727/workgraph-core" @core,
-} for "test"
-
-supported_targets = "native"
+supported_targets = "+wasm+native"

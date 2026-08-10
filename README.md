@@ -1,6 +1,6 @@
 # Workgraph
 
-Workgraph is a standalone MoonBit workspace for asynchronous typed graphs, LLM nodes, coding-agent nodes, native CLI adapters, and Mermaid visualization.
+Workgraph is a standalone MoonBit workspace for asynchronous typed graphs, LLM nodes, coding-agent nodes, same-source wasm/native CLI adapters, and Mermaid visualization.
 
 ## Modules
 
@@ -10,10 +10,10 @@ Workgraph is a standalone MoonBit workspace for asynchronous typed graphs, LLM n
 | [`totto2727/workgraph-agent-cli`](package/workgraph-agent-cli/README.md) | Coding-agent contracts and session lifecycle | wasm (`js`, `native`, `wasm`) |
 | [`totto2727/workgraph-llm`](package/workgraph-llm/README.md) | Provider-neutral LLM nodes | js (`js`, `native`) |
 | [`totto2727/workgraph-visualization`](package/workgraph-visualization/README.md) | Mermaid rendering | wasm (`js`, `native`, `wasm`) |
-| [`totto2727/workgraph-codex-cli`](package/workgraph-codex-cli/README.md) | Codex CLI adapter | native |
-| [`totto2727/workgraph-opencode-cli`](package/workgraph-opencode-cli/README.md) | OpenCode CLI adapter | native |
+| [`totto2727/workgraph-codex-cli`](package/workgraph-codex-cli/README.md) | Codex CLI adapter | native (`wasm`, `native`) |
+| [`totto2727/workgraph-opencode-cli`](package/workgraph-opencode-cli/README.md) | OpenCode CLI adapter | native (`wasm`, `native`) |
 
-The native provider integrations compose `totto2727/agent-sdk/cli` with its Codex or OpenCode adapter. Provider SDK imports are retained only for the provider-native option types exposed by each Workgraph composition root. See the [Agent CLI SDK migration note](docs/migrations/tot-175-agent-sdk-cli.md) for the dependency boundary and pre-publication overlay.
+The provider integrations compile the same production source for Wasm/WASI and native while composing `totto2727/agent-sdk/cli` with its Codex or OpenCode adapter. Provider SDK imports are retained only for provider-native option types exposed by each Workgraph composition root. Process-backed fake and real CLI smoke tests run only on native. See the [Agent CLI SDK migration note](docs/migrations/tot-175-agent-sdk-cli.md) for the dependency boundary and pre-publication overlay.
 
 ## Development
 

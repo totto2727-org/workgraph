@@ -10,10 +10,12 @@
 | `workgraph-agent-cli`     | coding-agent session scope、lifecycle、error、cancellation    | wasm（`js`、`native`、`wasm`） |
 | `workgraph-llm`           | provider実行と公開`mizchi/llm.MockProvider` integration       | js（`js`、`native`） |
 | `workgraph-visualization` | 決定的なMermaid rendering                                     | wasm（`js`、`native`、`wasm`） |
-| `workgraph-codex-cli`     | adapter mappingとfake native Codex process integration        | native     |
-| `workgraph-opencode-cli`  | adapter mappingとfake native OpenCode process integration     | native     |
+| `workgraph-codex-cli`     | portable option contractとnative fake Codex process integration    | wasm、native |
+| `workgraph-opencode-cli`  | portable option contractとnative fake OpenCode process integration | wasm、native |
 
 削除したモジュール横断E2E workflowと共有testingパッケージは、現在のsuiteに含まれません。通常テストは認証情報を必要としないため、remote provider呼び出しはmanual checkとして残します。
+
+adapterの`src`パッケージは、processを使わないcontract testをWasm/WASIとnativeで実行します。native専用のfake executableとprocess lifecycle testは既存の`src/test`パッケージに置きます。実CLI smoke testもnativeだけで実行します。
 
 ## 個別コマンド
 

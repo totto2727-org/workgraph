@@ -4,13 +4,13 @@
 
 このドキュメントは、Workgraphモジュール群の現在のアーキテクチャを記録します。
 
-実装ベースラインでは、型付きLLMメッセージ、ツール、プロバイダー結果、テストプロバイダーに `mizchi/llm@0.3.1` を使用します。CodexとOpenCodeは引き続きnative SDK統合です。
+実装ベースラインでは、型付きLLMメッセージ、ツール、プロバイダー結果、テストプロバイダーに `mizchi/llm@0.3.1` を使用します。CodexとOpenCodeはWasm/WASIとnativeで同じsourceのCLI SDK統合を使用し、process smoke testはnativeに限定します。
 
-core runtime、coding-agent、visualizationモジュールはWasm/WASIを優先し、JavaScript、native、Wasm/WASIをサポートします。LLMモジュールは`mizchi/llm`のWasm実装がabortするstubのため、JavaScriptを優先し、JavaScriptとnativeをサポートします。CodexとOpenCodeのCLI integrationモジュールはSDK依存によりnative専用です。
+core runtime、coding-agent、visualizationモジュールはWasm/WASIを優先し、JavaScript、native、Wasm/WASIをサポートします。LLMモジュールは`mizchi/llm`のWasm実装がabortするstubのため、JavaScriptを優先し、JavaScriptとnativeをサポートします。CodexとOpenCodeのCLI integrationモジュールはnativeを優先し、同じproduction sourceでWasm/WASIとnativeをサポートします。
 
 ## 実装状況
 
-実装はランタイム非依存のcore、coding-agent、LLM、visualizationモジュールと、nativeのCodexおよびOpenCode CLI integrationモジュールに分割されています。各モジュールが自身のテストとexampleを所有します。
+実装はランタイム非依存のcore、coding-agent、LLM、visualizationモジュールと、同じsourceを使うCodexおよびOpenCode CLI integrationモジュールに分割されています。各モジュールが自身のテストとexampleを所有します。
 
 先送りされた作業には、並列ノードスケジューリング、永続的チェックポイントまたは耐久性のある実行、人間による承認の一時停止、サブグラフ、分散ワーカー、プロバイダー完全な権限マッピング、および実際のクレデンシャルを持つプロバイダーによるエンドツーエンドテストが含まれます。
 
@@ -30,7 +30,7 @@ MVP は次の3つの実行セマンティクスをサポートします。
 
 元の設計方針は、以下の修正を加えて維持されます。
 
-1. core、coding-agent、visualizationモジュールはJavaScript、native、Wasm/WASIをサポートし、LLMモジュールはJavaScriptとnativeをサポートします。CodexとOpenCodeのCLI統合はSDK依存がportableなbackendをサポートするまでnative専用のままとします。
+1. core、coding-agent、visualizationモジュールはJavaScript、native、Wasm/WASIをサポートし、LLMモジュールはJavaScriptとnativeをサポートします。CodexとOpenCodeのCLI統合は同じproduction sourceでWasm/WASIとnativeをサポートします。
 2. すべての非同期処理は `moonbitlang/async` の構造化並行処理を使用します。
 3. 各グラフ呼び出しは1つのタスクグループを所有し、その呼び出しのために生成されたすべてのサブプロセスまたはバックグラウンドタスクはそのグループに属します。
 4. キャンセルは `moonbitlang/async` のタスクキャンセルを使用します。MVP は2つ目のキャンセルトークンの抽象化を導入しません。
