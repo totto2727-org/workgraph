@@ -1,6 +1,8 @@
 # workgraph-opencode-cli
 
-`workgraph-opencode-cli` implements the `workgraph-core` coding-agent contract with the native OpenCode CLI SDK.
+`workgraph-opencode-cli` implements the `workgraph-core` coding-agent contract through `totto2727/agent-sdk/cli/opencode`. Its public `OpenCodeAgentOptions` and `opencode_agent` constructor remain the composition root for OpenCode-native option types from `totto2727/opencode-sdk/cli`.
+
+Relative context-file paths are resolved against the Workgraph workspace before they enter the common prompt. Responses preserve the provider session ID, while the Workgraph session still serializes execution, rejects execution after `close`, and propagates provider errors unchanged.
 
 ## Package
 

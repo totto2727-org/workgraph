@@ -1,6 +1,8 @@
 # workgraph-codex-cli
 
-`workgraph-codex-cli` implements the `workgraph-core` coding-agent contract with the native Codex CLI SDK.
+`workgraph-codex-cli` implements the `workgraph-core` coding-agent contract through `totto2727/agent-sdk/cli/codex`. Its public `CodexAgentOptions` and `codex_agent` constructor remain the composition root for Codex-native option types from `totto2727/codex-sdk/cli`.
+
+Requests keep the caller-ordered textual context-file list. Responses preserve the provider session ID and completed patch paths reported by the common CLI adapter. The Workgraph session still serializes execution, rejects execution after `close`, and propagates provider errors unchanged.
 
 ## Package
 

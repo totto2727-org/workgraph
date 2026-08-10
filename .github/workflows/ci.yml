@@ -14,11 +14,35 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          repository: totto2727-org/agent-core-sdk
+          ref: 127a11e9c4b0bf0067e3082a55af0a44e69c5fe0
+          path: .sdk-overlay/agent-core-sdk
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          repository: totto2727-org/codex-sdk
+          ref: ea482e00842baf40f1a6103a21ca58ef0382acfa
+          path: .sdk-overlay/codex-sdk
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          repository: totto2727-org/opencode-sdk
+          ref: c86e8946c1e02b977ea0ae17e305b76aab6d7140
+          path: .sdk-overlay/opencode-sdk
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          repository: totto2727-org/agent-sdk
+          ref: c6ce792f813d1be91a9e6e4fef13380d308d7e3d
+          path: .sdk-overlay/agent-sdk
       - uses: totto2727-org/monorepo/.github/actions/setup-nix@main
-      - name: Verify Workgraph
+      - name: Verify Workgraph with exact SDK overlay
         shell: bash
         run: |
           eval "$(nix print-dev-env "$GITHUB_WORKSPACE#default")"
+          cp moon.work "$RUNNER_TEMP/moon.work"
+          trap 'cp "$RUNNER_TEMP/moon.work" moon.work' EXIT
+          sed -i '$d' moon.work
+          printf '%s\n' '  ".sdk-overlay/agent-core-sdk",' '  ".sdk-overlay/codex-sdk",' '  ".sdk-overlay/opencode-sdk",' '  ".sdk-overlay/agent-sdk",' ']' >> moon.work
           moon update
           moon info
           moon check

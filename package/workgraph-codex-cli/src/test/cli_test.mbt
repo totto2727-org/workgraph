@@ -30,7 +30,7 @@ async fn codex_integration_fixture() -> CodexIntegrationFixture {
       #|: > "$records/started.$call"
       #|case "${FAKE_CODEX_MODE-success}" in
       #|  success)
-      #|    printf '%s\n' '{"type":"thread.started","thread_id":"thread-1"}'
+      #|    printf '{"type":"thread.started","thread_id":"%s"}\n' "${FAKE_CODEX_THREAD_ID-thread-1}"
       #|    printf '%s\n' '{"type":"turn.started"}'
       #|    printf '%s\n' '{"type":"item.completed","item":{"id":"patch-1","type":"file_change","changes":[{"path":"src/success.mbt","kind":"update"}],"status":"completed"}}'
       #|    printf '%s\n' "{\"type\":\"item.completed\",\"item\":{\"id\":\"message-$call\",\"type\":\"agent_message\",\"text\":\"summary-$call\"}}"
@@ -92,6 +92,7 @@ fn codex_integration_context(
   fixture : CodexIntegrationFixture,
   group : @async.TaskGroup[Unit],
   mode : String,
+  thread_id? : String = "thread-1",
 ) -> @coding_agent.CodingAgentOpenContext {
   @coding_agent.CodingAgentOpenContext::CodingAgentOpenContext(
     run_id=@core.RunId::RunId("codex-integration-run") catch {
@@ -108,6 +109,7 @@ fn codex_integration_context(
       ("PATH", "/usr/bin:/bin"),
       ("FAKE_CODEX_RECORDS", fixture.records),
       ("FAKE_CODEX_MODE", mode),
+      ("FAKE_CODEX_THREAD_ID", thread_id),
       ("MAPPED_ENV", "present"),
     ]),
     events=@core.EventSink::discard(),
@@ -117,6 +119,7 @@ fn codex_integration_context(
 ///|
 fn codex_integration_agent(
   fixture : CodexIntegrationFixture,
+  resume_thread_id? : String,
 ) -> @coding_agent.CodingAgent {
   @codex.codex_agent(
     @coding_agent.CodingAgentId::CodingAgentId("codex-integration") catch {
@@ -125,6 +128,7 @@ fn codex_integration_agent(
     @codex.CodexAgentOptions::CodexAgentOptions(
       codex_path_override=fixture.executable,
       api_key="test-key",
+      resume_thread_id?,
       model="codex-test",
       sandbox=@codex_sdk.WorkspaceWrite,
       skip_git=true,
@@ -192,7 +196,41 @@ async test "codex_agent integration 1 - starts then resumes with mapped CLI opti
 }
 
 ///|
-async test "codex_agent integration 2 - propagates turn.failed without waiting for the fake process" {
+async test "codex_agent integration 2 - resumes a configured thread" {
+  let root = with_codex_integration_fixture(async fn(fixture) {
+    @async.with_task_group() <| group => {
+      let session = (codex_integration_agent(
+        fixture,
+        resume_thread_id="thread-existing",
+      ).open)(
+        codex_integration_context(
+          fixture,
+          group,
+          "success",
+          thread_id="thread-existing",
+        ),
+      )
+      assert_eq(session.id().map(id => id.to_string()), Some("thread-existing"))
+      let response = session.execute(
+        @coding_agent.CodingAgentRequest::CodingAgentRequest("continue", []),
+      )
+      debug_inspect(
+        response.continuation_id,
+        content="Some(\"thread-existing\")",
+      )
+      assert_true(
+        codex_integration_text("\{fixture.records}/args.1").contains(
+          "\nresume\nthread-existing\n",
+        ),
+      )
+      session.close()
+    }
+  })
+  assert_false(@fs.exists(root))
+}
+
+///|
+async test "codex_agent integration 3 - propagates turn.failed without waiting for the fake process" {
   let root = with_codex_integration_fixture(async fn(fixture) {
     @async.with_task_group() <| group => {
       let session = (codex_integration_agent(fixture).open)(
@@ -219,7 +257,7 @@ async test "codex_agent integration 2 - propagates turn.failed without waiting f
 }
 
 ///|
-async test "codex_agent integration 3 - caller cancellation kills the started subprocess and leaves no finish marker" {
+async test "codex_agent integration 4 - caller cancellation kills the started subprocess and leaves no finish marker" {
   let root = with_codex_integration_fixture(async fn(fixture) {
     @async.with_task_group() <| group => {
       let node_id = @core.NodeId::NodeId("codex-cancel")

@@ -46,33 +46,31 @@ pub suberror OpenCodeAdapterError {
 
 ///|
 priv struct OpenCodeAgentSession {
-  thread : @sdk.Thread
+  session : &@agent_cli.CliSession
   workspace_root : @path.Path
   mutex : @async.Mutex
   mut closed : Bool
 }
 
 ///|
-fn request_input(
+fn request_prompt(
   workspace_root : @path.Path,
   request : @coding.CodingAgentRequest,
-) -> @sdk.Input {
-  if request.context_files.is_empty() {
-    return @sdk.Prompt(request.instruction)
-  }
-  let inputs : Array[@sdk.UserInput] = [@sdk.Text(request.instruction)]
+) -> @agent_cli.Prompt {
+  let context_files : Array[@path.Path] = []
   for path in request.context_files {
-    inputs.push(
-      @sdk.LocalFile(
-        if path.is_absolute() {
-          path
-        } else {
-          workspace_root.join(path)
-        },
-      ),
+    context_files.push(
+      if path.is_absolute() {
+        path
+      } else {
+        workspace_root.join(path)
+      },
     )
   }
-  @sdk.UserInputs(inputs)
+  @agent_cli.Prompt::Prompt(
+    request.instruction,
+    context_files=ReadOnlyArray::from_array(context_files),
+  )
 }
 
 ///|
@@ -93,7 +91,7 @@ fn merged_environment(
 
 ///|
 impl @coding.CodingAgentSession for OpenCodeAgentSession with fn id(self) {
-  match self.thread.id() {
+  match self.session.id() {
     Some(id) =>
       Some(@coding.SessionId::SessionId(id) catch { _ => return None })
     None => None
@@ -110,19 +108,21 @@ impl @coding.CodingAgentSession for OpenCodeAgentSession with fn execute(
     self.mutex.release()
     raise OpenCodeAdapterError::SessionClosed
   }
-  let result = Ok(self.thread.run(request_input(self.workspace_root, request))) catch {
+  let result = Ok(
+    self.session.prompt(request_prompt(self.workspace_root, request)),
+  ) catch {
     error => Err(error)
   }
   self.mutex.release()
-  let turn = match result {
-    Ok(turn) => turn
+  let response = match result {
+    Ok(response) => response
     Err(error) => raise error
   }
   @coding.CodingAgentResponse::CodingAgentResponse(
     status=@coding.Succeeded,
-    summary=Some(turn.final_response),
-    continuation_id=self.thread.id(),
-    changed_files=[],
+    summary=Some(response.text),
+    continuation_id=response.session_id,
+    changed_files=response.changed_files,
   )
 }
 
@@ -141,27 +141,24 @@ pub fn opencode_agent(
 ) -> @coding.CodingAgent {
   @coding.CodingAgent::CodingAgent(id, async fn(context) {
     @async.pause()
-    let client = @sdk.OpenCode::OpenCode(
+    let cli = @opencode_adapter.opencode_cli(
       options=@sdk.OpenCodeOptions::OpenCodeOptions(
         opencode_path_override?=options.opencode_path_override,
         config?=options.config,
         env=merged_environment(options, context),
       ),
+      thread_options=@sdk.ThreadOptions::ThreadOptions(
+        model?=options.model,
+        agent?=options.agent,
+        working_directory=context.workspace.root,
+        variant?=options.variant,
+        title?=options.title,
+        thinking=options.thinking,
+      ),
+      resume_thread_id?=options.resume_thread_id,
     )
-    let thread_options = @sdk.ThreadOptions::ThreadOptions(
-      model?=options.model,
-      agent?=options.agent,
-      working_directory=context.workspace.root,
-      variant?=options.variant,
-      title?=options.title,
-      thinking=options.thinking,
-    )
-    let thread = match options.resume_thread_id {
-      Some(thread_id) => client.resume_thread(thread_id, options=thread_options)
-      None => client.start_thread(options=thread_options)
-    }
     let session = OpenCodeAgentSession::{
-      thread,
+      session: cli.start(),
       workspace_root: context.workspace.root,
       mutex: @async.Mutex::Mutex(),
       closed: false,

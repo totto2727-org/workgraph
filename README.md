@@ -13,7 +13,7 @@ Workgraph is a standalone MoonBit workspace for asynchronous typed graphs, LLM n
 | [`totto2727/workgraph-codex-cli`](package/workgraph-codex-cli/README.md) | Codex CLI adapter | native |
 | [`totto2727/workgraph-opencode-cli`](package/workgraph-opencode-cli/README.md) | OpenCode CLI adapter | native |
 
-The Codex and OpenCode SDK implementations are external registry dependencies and are not part of this repository.
+The native provider integrations compose `totto2727/agent-sdk/cli` with its Codex or OpenCode adapter. Provider SDK imports are retained only for the provider-native option types exposed by each Workgraph composition root. See the [Agent CLI SDK migration note](docs/migrations/tot-175-agent-sdk-cli.md) for the dependency boundary and pre-publication overlay.
 
 ## Development
 
