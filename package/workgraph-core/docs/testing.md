@@ -6,10 +6,10 @@ Each module owns its tests.
 
 | Module                    | Tests                                                               | Targets    |
 | ------------------------- | ------------------------------------------------------------------- | ---------- |
-| `workgraph-core`          | Graph compilation, runtime, state, resources, events, identifiers   | native, js |
-| `workgraph-agent-cli`     | Coding-agent session scope, lifecycle, errors, cancellation         | native     |
-| `workgraph-llm`           | Provider execution and public `mizchi/llm.MockProvider` integration | native, js |
-| `workgraph-visualization` | Deterministic Mermaid rendering                                     | native, js |
+| `workgraph-core`          | Graph compilation, runtime, state, resources, events, identifiers   | default (Wasm GC) |
+| `workgraph-agent-cli`     | Coding-agent session scope, lifecycle, errors, cancellation         | default (Wasm GC) |
+| `workgraph-llm`           | Provider execution and public `mizchi/llm.MockProvider` integration | default (Wasm GC) |
+| `workgraph-visualization` | Deterministic Mermaid rendering                                     | default (Wasm GC) |
 | `workgraph-codex-cli`     | Adapter mapping and fake native Codex process integration           | native     |
 | `workgraph-opencode-cli`  | Adapter mapping and fake native OpenCode process integration        | native     |
 

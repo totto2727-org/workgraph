@@ -6,10 +6,10 @@
 
 | モジュール                | テスト                                                        | Targets    |
 | ------------------------- | ------------------------------------------------------------- | ---------- |
-| `workgraph-core`          | グラフコンパイル、runtime、state、resource、event、identifier | native, js |
-| `workgraph-agent-cli`     | coding-agent session scope、lifecycle、error、cancellation    | native     |
-| `workgraph-llm`           | provider実行と公開`mizchi/llm.MockProvider` integration       | native, js |
-| `workgraph-visualization` | 決定的なMermaid rendering                                     | native, js |
+| `workgraph-core`          | グラフコンパイル、runtime、state、resource、event、identifier | default (Wasm GC) |
+| `workgraph-agent-cli`     | coding-agent session scope、lifecycle、error、cancellation    | default (Wasm GC) |
+| `workgraph-llm`           | provider実行と公開`mizchi/llm.MockProvider` integration       | default (Wasm GC) |
+| `workgraph-visualization` | 決定的なMermaid rendering                                     | default (Wasm GC) |
 | `workgraph-codex-cli`     | adapter mappingとfake native Codex process integration        | native     |
 | `workgraph-opencode-cli`  | adapter mappingとfake native OpenCode process integration     | native     |
 
