@@ -115,7 +115,7 @@ fn opencode_cli_fixture_script() -> String {
     #|if [ -n "${FAKE_OPENCODE_STDERR-}" ]; then
     #|  printf '%s' "$FAKE_OPENCODE_STDERR" >&2
     #|fi
-    #|if [ "${FAKE_OPENCODE_PAUSE-}" = "1" ]; then /bin/sleep 30; fi
+    #|if [ "${FAKE_OPENCODE_PAUSE-}" = "1" ]; then exec /bin/sleep 30; fi
     #|exit "${FAKE_OPENCODE_EXIT_CODE-0}"
     #|
   script

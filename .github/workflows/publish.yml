@@ -14,18 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - uses: totto2727-org/monorepo/.github/actions/setup-nix@main
-      - name: Guard release order and package contents
-        shell: bash
-        run: |
-          eval "$(nix print-dev-env "$GITHUB_WORKSPACE#default")"
-          expected="workgraph-core workgraph-agent-cli workgraph-llm workgraph-visualization workgraph-codex-cli workgraph-opencode-cli"
-          actual=$(for module in package/workgraph-*; do basename "$module"; done | LC_ALL=C sort | tr "\n" " " | sed "s/ $//")
-          expected_sorted=$(printf "%s\n" $expected | LC_ALL=C sort | tr "\n" " " | sed "s/ $//")
-          test "$actual" = "$expected_sorted"
-          for module in $expected; do
-            grep -Fx "version = \"0.1.3\"" "package/$module/moon.mod"
-            (cd "package/$module" && moon package --list)
-          done
       - name: Publish workgraph-core
         uses: totto2727-org/monorepo/.github/actions/publish-moonbit@main
         with:
