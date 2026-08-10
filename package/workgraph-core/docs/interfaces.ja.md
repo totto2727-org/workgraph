@@ -698,7 +698,7 @@ pub fn codex_agent(
 ) -> CodingAgent
 ```
 
-adapterはcontext environment、workspace root、追加のwritable root、approval、network、および指定されたoptionをagent-sdkのCodex CLI sessionへmapします。`FinalResponse.final_output`を`summary`、response session ID（ない場合は`CliSession.id`）を`continuation_id`、`FinalResponse.changed_files`を`changed_files`として返します。sessionをcloseすると、以降の実行は`CodexAdapterError::SessionClosed`をraiseします。
+adapterはcontext environment、workspace root、追加のwritable root、approval、network、および指定されたoptionをagent-sdkのCodex CLI sessionへmapします。`FinalResponse.text`を`summary`、`FinalResponse.session_id`を`continuation_id`、`FinalResponse.changed_files`を`changed_files`として返します。sessionをcloseすると、以降の実行は`CodexAdapterError::SessionClosed`をraiseします。
 
 ## OpenCodeアダプター
 
@@ -737,7 +737,7 @@ pub fn opencode_agent(
 ) -> CodingAgent
 ```
 
-adapterは`totto2727/opencode-sdk/cli` adapterを通じてagent-sdk CLI sessionを作成し、別途管理される`opencode-server-sdk`をimportしません。相対context fileをworkspace rootに対して解決してから共通promptへ転送します。継承されたprocess environmentは保持され、adapter entryが次に適用され、callerのcontext entryが優先されます。正常なturnは`FinalResponse.final_output`を`summary`、response session ID（ない場合は`CliSession.id`）を`continuation_id`、`FinalResponse.changed_files`を`changed_files`として返します。cancellationとCLI errorはagent-sdkを通じて伝播します。論理sessionのcloseはidempotentであり、以降の実行は`OpenCodeAdapterError::SessionClosed`をraiseします。
+adapterは`agent-sdk/cli/opencode`を通じてagent-sdk CLI sessionを作成し、provider-native option typeに限って`totto2727/opencode-sdk/cli`を使用します。別途管理される`opencode-server-sdk`はimportしません。相対context fileをworkspace rootに対して解決してから共通promptへ転送します。継承されたprocess environmentは保持され、adapter entryが次に適用され、callerのcontext entryが優先されます。正常なturnは`FinalResponse.text`を`summary`、`FinalResponse.session_id`を`continuation_id`、`FinalResponse.changed_files`を`changed_files`として返します。cancellationとCLI errorはagent-sdkを通じて伝播します。論理sessionのcloseはidempotentであり、以降の実行は`OpenCodeAdapterError::SessionClosed`をraiseします。
 
 ## 確定したMVPの設計判断
 

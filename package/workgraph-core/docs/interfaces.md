@@ -698,7 +698,7 @@ pub fn codex_agent(
 ) -> CodingAgent
 ```
 
-The adapter maps context environment, workspace root, additional writable roots, approval, network, and supplied options to an agent-sdk Codex CLI session. It returns `FinalResponse.final_output` as `summary`, the response session ID (falling back to `CliSession.id`) as `continuation_id`, and `FinalResponse.changed_files` as `changed_files`. Closing a session makes later execution raise `CodexAdapterError::SessionClosed`.
+The adapter maps context environment, workspace root, additional writable roots, approval, network, and supplied options to an agent-sdk Codex CLI session. It returns `FinalResponse.text` as `summary`, `FinalResponse.session_id` as `continuation_id`, and `FinalResponse.changed_files` as `changed_files`. Closing a session makes later execution raise `CodexAdapterError::SessionClosed`.
 
 ## OpenCode Adapter
 
@@ -737,7 +737,7 @@ pub fn opencode_agent(
 ) -> CodingAgent
 ```
 
-The adapter creates an agent-sdk CLI session through the `totto2727/opencode-sdk/cli` adapter and does not import the separately maintained `opencode-server-sdk`. It resolves relative context files against the workspace root before forwarding them in a common prompt. The inherited process environment is retained, adapter entries are applied next, and caller context entries take precedence. Successful turns return `FinalResponse.final_output` as `summary`, the response session ID (falling back to `CliSession.id`) as `continuation_id`, and `FinalResponse.changed_files` as `changed_files`. Cancellation and CLI errors propagate through agent-sdk. Closing the logical session is idempotent and later execution raises `OpenCodeAdapterError::SessionClosed`.
+The adapter creates an agent-sdk CLI session through `agent-sdk/cli/opencode`, using `totto2727/opencode-sdk/cli` only for provider-native option types, and does not import the separately maintained `opencode-server-sdk`. It resolves relative context files against the workspace root before forwarding them in a common prompt. The inherited process environment is retained, adapter entries are applied next, and caller context entries take precedence. Successful turns return `FinalResponse.text` as `summary`, `FinalResponse.session_id` as `continuation_id`, and `FinalResponse.changed_files` as `changed_files`. Cancellation and CLI errors propagate through agent-sdk. Closing the logical session is idempotent and later execution raises `OpenCodeAdapterError::SessionClosed`.
 
 ## Fixed MVP Decisions
 
