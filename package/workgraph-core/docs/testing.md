@@ -18,15 +18,15 @@ The deleted cross-module E2E workflow and shared testing package are not part of
 ## Focused Commands
 
 ```bash
-moon test --target native package/workgraph-core/src
-moon test --target native package/workgraph-agent-cli/src
-moon test --target native package/workgraph-llm/src
-moon test --target native package/workgraph-llm/src/test
-moon test --target native package/workgraph-visualization/src
-moon test --target native package/workgraph-codex-cli/src
-moon test --target native package/workgraph-codex-cli/src/test
-moon test --target native package/workgraph-opencode-cli/src
-moon test --target native package/workgraph-opencode-cli/src/test
+moon test package/workgraph-core/src
+moon test package/workgraph-agent-cli/src
+moon test package/workgraph-llm/src
+moon test package/workgraph-llm/src/test
+moon test package/workgraph-visualization/src
+moon test package/workgraph-codex-cli/src
+moon test package/workgraph-codex-cli/src/test
+moon test package/workgraph-opencode-cli/src
+moon test package/workgraph-opencode-cli/src/test
 ```
 
 ## Repository Gate
