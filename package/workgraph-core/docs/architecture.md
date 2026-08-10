@@ -244,36 +244,27 @@ Codex and OpenCode share session semantics but keep SDK-specific options inside 
 
 ## Codex Adapter
 
-The Codex adapter maps a common request to the repository's `totto2727/codex-sdk`.
+The Codex adapter maps a common request to `totto2727/agent-sdk/cli`, using `totto2727/codex-sdk/cli` only for provider-native options.
 
-A Codex session owns one `Thread`.
-
-`Thread::run` and `Thread::run_streamed` start and clean up their native subprocesses per turn.
+A Codex session owns one common `CliSession` created by the Codex CLI adapter.
 
 Task cancellation is the native equivalent of the upstream abort signal.
 
-Codex thread continuation uses `Thread::id`.
-
-The adapter must not promise stdout, stderr, or changed-file data unless the current SDK event model actually exposes that data.
+Codex continuation and response metadata use `CliSession.id`, `FinalResponse.session_id`, and `FinalResponse.changed_files`.
 
 ## OpenCode Adapter
 
-The OpenCode adapter owns:
-
-- One repository `@opencode_sdk.Thread`.
-- The working directory and thread options applied to each turn.
-- The logical OpenCode session ID learned from JSONL events or supplied for resume.
-- A session mutex and logical closed state.
+The OpenCode adapter owns one common `CliSession`, the provider-native options used to create it, a session mutex, and logical closed state.
 
 The repository's `totto2727/opencode-sdk` is the OpenCode CLI SDK. It invokes `opencode run --format json`, while `totto2727/opencode-server-sdk` separately owns optional `opencode serve` lifecycle and is not imported by Workgraph.
 
-The adapter creates or resumes a CLI thread at open time. Each `execute` invokes `Thread::run`, which starts one native subprocess, parses typed JSONL events, captures the final text, and persists the emitted session ID for the next turn.
+The adapter creates or resumes an agent-sdk CLI session at open time. Each `execute` sends a common `Prompt` and maps the resulting `FinalResponse` into the Workgraph response.
 
-Relative context files are resolved against the workspace root and passed as typed local-file inputs, so the SDK emits repeated `--file` flags. The instruction remains the CLI prompt instead of embedding file paths in text.
+Relative context files are resolved against the workspace root before being passed in the common prompt.
 
 The adapter snapshots the inherited process environment, applies configured adapter variables, then applies the open context environment with caller values taking precedence. It maps executable path, typed config, resume ID, model, agent, working directory, variant, title, and thinking options to the CLI SDK.
 
-Session close is logical because no persistent subprocess belongs to an idle thread. In-flight execution owns its child inside `agent-cli-sdk`; cancellation hard-stops and awaits that child, while CLI exit, JSONL, and turn failures retain the concrete `OpenCodeSdkError`. A closed session raises `OpenCodeAdapterError::SessionClosed`.
+Session close delegates to the common CLI session. Cancellation, CLI failures, and response errors propagate through agent-sdk, while a closed Workgraph session raises `OpenCodeAdapterError::SessionClosed`.
 
 ## Package Layout
 

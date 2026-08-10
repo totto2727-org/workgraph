@@ -244,36 +244,27 @@ Codex と OpenCode はセッションセマンティクスを共有しますが�
 
 ## Codex アダプター
 
-Codex アダプターは、共通リクエストをリポジトリの `totto2727/codex-sdk` にマッピングします。
+Codex アダプターは、共通リクエストを `totto2727/agent-sdk/cli` にマッピングし、provider-native option に限って `totto2727/codex-sdk/cli` を使用します。
 
-Codex セッションは1つの `Thread` を所有します。
-
-`Thread::run` および `Thread::run_streamed` は、ターンごとにネイティブサブプロセスを開始およびクリーンアップします。
+Codex セッションは、Codex CLI アダプターが作成した共通の `CliSession` を1つ所有します。
 
 タスクキャンセルは、上流のアボートシグナルに相当するネイティブのものです。
 
-Codex スレッドの継続は `Thread::id` を使用します。
-
-現在の SDK イベントモデルが実際にそのデータを公開しない限り、アダプターは stdout、stderr、または変更されたファイルデータを約束してはいけません。
+Codex の継続とレスポンスメタデータには、`CliSession.id`、`FinalResponse.session_id`、`FinalResponse.changed_files` を使用します。
 
 ## OpenCode アダプター
 
-OpenCode アダプターは以下を所有します。
-
-- 1つのリポジトリ `@opencode_sdk.Thread`。
-- 各ターンに適用されるワーキングディレクトリとスレッドオプション。
-- JSONL イベントから学習された、または再開用に提供された論理的な OpenCode セッション ID。
-- セッションミューテックスと論理的なクローズ状態。
+OpenCode アダプターは、共通の `CliSession` を1つ、その作成に用いる provider-native option、セッションミューテックス、および論理的なクローズ状態を所有します。
 
 リポジトリの `totto2727/opencode-sdk` は OpenCode CLI SDK です。これは `opencode run --format json` を呼び出します。一方、`totto2727/opencode-server-sdk` はオプションの `opencode serve` ライフサイクルを別途所有し、Workgraph によってインポートされることはありません。
 
-アダプターは、オープン時に CLI スレッドを作成または再開します。各 `execute` は `Thread::run` を呼び出し、これは1つのネイティブサブプロセスを開始し、型付き JSONL イベントを解析し、最終テキストをキャプチャし、次のターン用に出力されたセッション ID を保持します。
+アダプターは、オープン時に agent-sdk CLI セッションを作成または再開します。各 `execute` は共通の `Prompt` を送り、得られた `FinalResponse` を Workgraph のレスポンスへマッピングします。
 
-相対コンテキストファイルはワークスペースルートに対して解決され、型付きローカルファイル入力として渡されるため、SDK は繰り返し `--file` フラグを出力します。指示はファイルパスをテキストに埋め込む代わりに、CLI プロンプトのまま残ります。
+相対コンテキストファイルは、共通プロンプトへ渡す前にワークスペースルートに対して解決します。
 
 アダプターは継承されたプロセス環境をスナップショットし、設定されたアダプター変数を適用し、次にオープンコンテキスト環境を適用して、呼び出し元の値を優先します。実行可能パス、型付き設定、再開 ID、モデル、エージェント、ワーキングディレクトリ、バリアント、タイトル、および思考オプションを CLI SDK にマッピングします。
 
-アイドルスレッドに属する永続的なサブプロセスがないため、セッションクローズは論理的です。実行中の処理は `agent-cli-sdk` 内でその子プロセスを所有します。キャンセルはその子プロセスをハードストップして待機します。一方、CLI の終了、JSONL、およびターンの失敗は、具象の `OpenCodeSdkError` を保持します。クローズされたセッションは `OpenCodeAdapterError::SessionClosed` を発生させます。
+セッションクローズは共通 CLI セッションへ委譲します。キャンセル、CLI の失敗、およびレスポンスエラーは agent-sdk を通じて伝播し、クローズされた Workgraph セッションは `OpenCodeAdapterError::SessionClosed` を発生させます。
 
 ## パッケージレイアウト
 

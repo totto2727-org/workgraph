@@ -698,7 +698,7 @@ pub fn codex_agent(
 ) -> CodingAgent
 ```
 
-adapterはcontext environment、workspace root、追加のwritable root、approval、network、および指定されたoptionを固定されたCodex SDKへmapします。threadの最終responseを`summary`、SDK thread IDを`continuation_id`、検出された完了patch pathを`changed_files`として返します。sessionをcloseすると、以降の実行は`CodexAdapterError::SessionClosed`をraiseします。
+adapterはcontext environment、workspace root、追加のwritable root、approval、network、および指定されたoptionをagent-sdkのCodex CLI sessionへmapします。`FinalResponse.final_output`を`summary`、response session ID（ない場合は`CliSession.id`）を`continuation_id`、`FinalResponse.changed_files`を`changed_files`として返します。sessionをcloseすると、以降の実行は`CodexAdapterError::SessionClosed`をraiseします。
 
 ## OpenCodeアダプター
 
@@ -737,7 +737,7 @@ pub fn opencode_agent(
 ) -> CodingAgent
 ```
 
-adapterは`totto2727/opencode-sdk`をCLI SDKとして使用し、別途管理される`opencode-server-sdk`をimportしません。SDK threadを開始または再開し、各instructionを`opencode run --format json`で実行し、相対context fileをworkspace rootに対して解決して繰り返しのCLI file inputとして転送します。継承されたprocess environmentは保持され、adapter entryが次に適用され、callerのcontext entryが優先されます。正常なturnは最終textを`summary`、SDK thread IDを`continuation_id`として返し、現在のOpenCode event modelが信頼できる変更setを公開しないため`changed_files`は空です。各turnは独自のsubprocessを所有し、cancellationと具体的な`OpenCodeSdkError`はCLI SDKから伝播されます。論理sessionのcloseはidempotentであり、以降の実行は`OpenCodeAdapterError::SessionClosed`をraiseします。
+adapterは`totto2727/opencode-sdk/cli` adapterを通じてagent-sdk CLI sessionを作成し、別途管理される`opencode-server-sdk`をimportしません。相対context fileをworkspace rootに対して解決してから共通promptへ転送します。継承されたprocess environmentは保持され、adapter entryが次に適用され、callerのcontext entryが優先されます。正常なturnは`FinalResponse.final_output`を`summary`、response session ID（ない場合は`CliSession.id`）を`continuation_id`、`FinalResponse.changed_files`を`changed_files`として返します。cancellationとCLI errorはagent-sdkを通じて伝播します。論理sessionのcloseはidempotentであり、以降の実行は`OpenCodeAdapterError::SessionClosed`をraiseします。
 
 ## 確定したMVPの設計判断
 
