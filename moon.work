@@ -1,0 +1,8 @@
+members = [
+  "package/workgraph-core",
+  "package/workgraph-agent-cli",
+  "package/workgraph-llm",
+  "package/workgraph-visualization",
+  "package/workgraph-codex-cli",
+  "package/workgraph-opencode-cli",
+]

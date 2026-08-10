@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14
+            system: aarch64-darwin
+          - runner: ubuntu-latest
+            system: x86_64-linux
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: totto2727-org/monorepo/.github/actions/setup-nix@main
+      - name: Verify Workgraph
+        shell: bash
+        run: |
+          eval "$(nix print-dev-env \"$GITHUB_WORKSPACE#default\")"
+          moon update
+          moon info
+          moon check --target native
+          moon test --target native
+          moon check --target js
+          moon test --target js
+          moon check --target all
+          moon test --target all
+          for module in package/workgraph-core package/workgraph-agent-cli package/workgraph-llm package/workgraph-visualization package/workgraph-codex-cli package/workgraph-opencode-cli; do
+            (cd "$module" && moon package --list)
+          done
+          nix flake check --system "${{ matrix.system }}"

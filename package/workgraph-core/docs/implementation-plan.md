@@ -7,7 +7,7 @@ The former monolithic graph module is split into six independently targeted Moon
 ## Package Boundaries
 
 ```text
-mbt/package/
+package/
 ├── workgraph-core/
 │   └── src/examples/basic/
 ├── workgraph-agent-cli/
@@ -51,8 +51,8 @@ Unit tests remain beside their implementation files. LLM provider, Codex CLI, an
 vp run mbt:check
 vp run mbt:build
 vp run mbt:test
-moon run --target native mbt/package/workgraph-llm/src/examples/basic
-moon run --target js mbt/package/workgraph-llm/src/examples/basic
-moon run --target native mbt/package/workgraph-codex-cli/src/examples/basic
-moon run --target native mbt/package/workgraph-opencode-cli/src/examples/basic
+moon run --target native package/workgraph-llm/src/examples/basic
+moon run --target js package/workgraph-llm/src/examples/basic
+moon run --target native package/workgraph-codex-cli/src/examples/basic
+moon run --target native package/workgraph-opencode-cli/src/examples/basic
 ```

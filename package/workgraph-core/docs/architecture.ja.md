@@ -280,7 +280,7 @@ OpenCode アダプターは以下を所有します。
 実装は6つの非循環MoonBitモジュールで構成されます。
 
 ```text
-mbt/package/
+package/
 ├── workgraph-core/
 ├── workgraph-agent-cli/
 ├── workgraph-llm/

@@ -280,7 +280,7 @@ Session close is logical because no persistent subprocess belongs to an idle thr
 The implementation consists of six acyclic MoonBit modules.
 
 ```text
-mbt/package/
+package/
 ├── workgraph-core/
 ├── workgraph-agent-cli/
 ├── workgraph-llm/

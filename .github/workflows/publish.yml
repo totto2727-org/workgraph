@@ -1,0 +1,65 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type PUBLISH to confirm the authenticated six-module release.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: inputs.confirm == 'PUBLISH'
+    runs-on: ubuntu-latest
+    environment: release
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: totto2727-org/monorepo/.github/actions/setup-nix@main
+      - name: Guard release order and package contents
+        shell: bash
+        run: |
+          eval "$(nix print-dev-env \"$GITHUB_WORKSPACE#default\")"
+          test "${{ inputs.confirm }}" = PUBLISH
+          expected="workgraph-core workgraph-agent-cli workgraph-llm workgraph-visualization workgraph-codex-cli workgraph-opencode-cli"
+          actual=$(for module in package/workgraph-*; do basename "$module"; done | LC_ALL=C sort | tr "\n" " " | sed "s/ $//")
+          expected_sorted=$(printf "%s\n" $expected | LC_ALL=C sort | tr "\n" " " | sed "s/ $//")
+          test "$actual" = "$expected_sorted"
+          for module in $expected; do
+            grep -Fx "version = \"0.1.3\"" "package/$module/moon.mod"
+            (cd "package/$module" && moon package --list)
+          done
+      - name: Publish workgraph-core
+        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@main
+        with:
+          token: ${{ secrets.MOONCAKES_TOKEN }}
+          package-path: package/workgraph-core
+      - name: Publish workgraph-agent-cli
+        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@main
+        with:
+          token: ${{ secrets.MOONCAKES_TOKEN }}
+          package-path: package/workgraph-agent-cli
+      - name: Publish workgraph-llm
+        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@main
+        with:
+          token: ${{ secrets.MOONCAKES_TOKEN }}
+          package-path: package/workgraph-llm
+      - name: Publish workgraph-visualization
+        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@main
+        with:
+          token: ${{ secrets.MOONCAKES_TOKEN }}
+          package-path: package/workgraph-visualization
+      - name: Publish workgraph-codex-cli
+        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@main
+        with:
+          token: ${{ secrets.MOONCAKES_TOKEN }}
+          package-path: package/workgraph-codex-cli
+      - name: Publish workgraph-opencode-cli
+        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@main
+        with:
+          token: ${{ secrets.MOONCAKES_TOKEN }}
+          package-path: package/workgraph-opencode-cli
