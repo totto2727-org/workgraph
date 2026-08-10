@@ -47,4 +47,15 @@ jobs:
           moon info
           moon check
           moon build
-          moon test
+          moon test package/workgraph-core/src
+          moon test package/workgraph-agent-cli/src
+          moon test package/workgraph-llm/src
+          moon test package/workgraph-llm/src/test
+          moon test package/workgraph-visualization/src
+          moon test package/workgraph-codex-cli/src
+          moon test package/workgraph-codex-cli/src/test
+          moon test package/workgraph-opencode-cli/src
+          moon test package/workgraph-opencode-cli/src/test
+          for module in package/workgraph-core package/workgraph-agent-cli package/workgraph-llm package/workgraph-visualization package/workgraph-codex-cli package/workgraph-opencode-cli; do
+            moon -C "$module" package --list >/dev/null
+          done
