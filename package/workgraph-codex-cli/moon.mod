@@ -15,7 +15,7 @@ description = "Codex CLI integration for workgraph"
 import {
   "moonbitlang/async@0.20.3",
   "moonbitlang/x@0.4.47",
-  "totto2727/agent-sdk@0.1.0",
+  "totto2727/agent-sdk@0.1.1",
   "totto2727/codex-sdk@0.2.0",
   "totto2727/workgraph-agent-cli@0.1.3",
   "totto2727/workgraph-core@0.1.3",
