@@ -12,7 +12,7 @@ import {
 }
 ```
 
-The module prefers native and supports Wasm/WASI and native from the same production source. The shared CI check follows the preferred target and loads the Codex CLI from the repository's `ci` Nix dev shell; contract tests can also run explicitly on Wasm/WASI. Fake and real CLI process tests run only on native.
+The module prefers Wasm/WASI and also supports native from the same production source. The shared CI check follows the Wasm/WASI preferred target and loads the Codex CLI from the repository's `ci` Nix dev shell. Fake and real CLI process tests run only on the supported native target.
 
 ## Example
 

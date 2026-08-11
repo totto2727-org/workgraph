@@ -13,7 +13,7 @@ The intended public versions are `totto2727/agent-sdk@0.1.0`, `totto2727/codex-s
 
 Codex forwards the caller-ordered context-file paths to the common prompt, whose Codex adapter preserves the existing textual list format. OpenCode resolves relative paths against the workspace before constructing the common prompt. Workgraph maps `CliSession.id`, `FinalResponse.session_id`, and `FinalResponse.changed_files` back to its existing response contract and passes the initial resume identifier to the adapter constructor.
 
-No Server dependency, source, interface, or transport changes are part of this migration. The TOT-163 follow-up keeps the same production source, adds Wasm/WASI alongside native in CLI target metadata, and retains process-backed tests and examples as native-only packages.
+No Server dependency, source, interface, or transport changes are part of this migration. The TOT-163 follow-up keeps the same production source, prefers Wasm/WASI while retaining native support in CLI target metadata, and retains process-backed tests and examples as native-only packages.
 
 ## References
 

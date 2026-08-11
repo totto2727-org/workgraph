@@ -6,7 +6,7 @@
 
 実装ベースラインでは、型付きLLMメッセージ、ツール、プロバイダー結果、テストプロバイダーに `mizchi/llm@0.3.1` を使用します。CodexとOpenCodeはWasm/WASIとnativeで同じsourceのCLI SDK統合を使用し、process smoke testはnativeに限定します。
 
-core runtime、coding-agent、visualizationモジュールはWasm/WASIを優先し、JavaScript、native、Wasm/WASIをサポートします。LLMモジュールは`mizchi/llm`のWasm実装がabortするstubのため、JavaScriptを優先し、JavaScriptとnativeをサポートします。CodexとOpenCodeのCLI integrationモジュールはnativeを優先し、同じproduction sourceでWasm/WASIとnativeをサポートします。
+core runtime、coding-agent、visualization、Codex CLI、OpenCode CLIモジュールはWasm/WASIを優先します。最初の3モジュールはJavaScript、native、Wasm/WASIをサポートし、CLI integrationは同じproduction sourceでWasm/WASIとnativeをサポートします。LLMモジュールは`mizchi/llm`のWasm実装がabortするstubのため、JavaScriptを優先し、JavaScriptとnativeをサポートします。
 
 ## 実装状況
 

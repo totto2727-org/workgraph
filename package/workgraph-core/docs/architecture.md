@@ -6,7 +6,7 @@ This document records the current architecture of the Workgraph module family.
 
 The implementation baseline uses `mizchi/llm@0.3.1` for typed LLM messages, tools, provider results, and test providers. Codex and OpenCode use same-source CLI SDK integrations for Wasm/WASI and native, with process smoke tests restricted to native.
 
-The core runtime, coding-agent, and visualization modules prefer Wasm/WASI and support JavaScript, native, and Wasm/WASI. The LLM module prefers JavaScript and supports JavaScript and native because its `mizchi/llm` dependency uses aborting stubs on Wasm. Codex and OpenCode CLI integrations prefer native and support Wasm/WASI and native from the same production source.
+The core runtime, coding-agent, visualization, Codex CLI, and OpenCode CLI modules prefer Wasm/WASI. The first three support JavaScript, native, and Wasm/WASI, while the CLI integrations support Wasm/WASI and native from the same production source. The LLM module prefers JavaScript and supports JavaScript and native because its `mizchi/llm` dependency uses aborting stubs on Wasm.
 
 ## Implementation Status
 

@@ -31,7 +31,7 @@ coreは識別子、グラフ構築とコンパイル、ランタイムのstate r
 ## Targetポリシー
 
 - `workgraph-core`、`workgraph-agent-cli`、`workgraph-visualization`はWasm/WASIを優先し、JavaScript、native、Wasm/WASIをサポートします。`workgraph-llm`は`mizchi/llm`のruntime操作がWasmでabortするstubのため、JavaScriptを優先し、JavaScriptとnativeをサポートします。
-- `workgraph-codex-cli`と`workgraph-opencode-cli`はnativeをpreferred targetとし、同じproduction sourceでWasm/WASIとnativeをサポートします。process integration testと実CLI exampleはnative専用です。
+- `workgraph-codex-cli`と`workgraph-opencode-cli`はWasm/WASIをpreferred targetとし、同じproduction sourceでWasm/WASIとnativeをサポートします。process integration testと実CLI exampleはnative専用です。
 
 ## テストの所有
 

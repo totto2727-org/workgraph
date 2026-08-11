@@ -21,7 +21,7 @@ import {
   "totto2727/workgraph-core@0.1.3",
 }
 
-preferred_target = "native"
+preferred_target = "wasm"
 
 supported_targets = "+wasm+native"
 

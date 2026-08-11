@@ -10,8 +10,8 @@ Each module owns its tests.
 | `workgraph-agent-cli`     | Coding-agent session scope, lifecycle, errors, cancellation         | wasm (`js`, `native`, `wasm`) |
 | `workgraph-llm`           | Provider execution and public `mizchi/llm.MockProvider` integration | js (`js`, `native`) |
 | `workgraph-visualization` | Deterministic Mermaid rendering                                     | wasm (`js`, `native`, `wasm`) |
-| `workgraph-codex-cli`     | Portable option contract; native fake Codex process integration     | wasm, native |
-| `workgraph-opencode-cli`  | Portable option contract; native fake OpenCode process integration  | wasm, native |
+| `workgraph-codex-cli`     | Portable option contract; native fake Codex process integration     | wasm (`wasm`, `native`) |
+| `workgraph-opencode-cli`  | Portable option contract; native fake OpenCode process integration  | wasm (`wasm`, `native`) |
 
 The deleted cross-module E2E workflow and shared testing package are not part of the current suite. Remote provider calls remain manual because normal tests require no credentials.
 
