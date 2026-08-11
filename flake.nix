@@ -7,9 +7,14 @@
       url = "github:totto2727/moonbit-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    codex.url = "github:sadjow/codex-cli-nix";
+    opencode = {
+      url = "github:anomalyco/opencode";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { nixpkgs, moonbit-overlay, ... }:
+  outputs = { nixpkgs, moonbit-overlay, codex, opencode, ... }:
     let
       supportedSystems = [
         "aarch64-darwin"
@@ -18,7 +23,11 @@
       forEachSystem = nixpkgs.lib.genAttrs supportedSystems;
       mkPkgs = system: import nixpkgs {
         inherit system;
-        overlays = [ moonbit-overlay.overlays.default ];
+        overlays = [
+          moonbit-overlay.overlays.default
+          codex.overlays.default
+          opencode.overlays.default
+        ];
       };
     in
     {
@@ -26,13 +35,20 @@
         let
           pkgs = mkPkgs system;
         in
-        {
+        rec {
           default = pkgs.mkShell {
             packages = [
               # One MoonBit toolchain checks and builds both declared CLI adapter targets.
               pkgs.moonbit-bin.moonbit.latest
               # Retained for the workspace modules that also declare JavaScript support.
               pkgs.nodejs_24
+            ];
+          };
+          ci = pkgs.mkShell {
+            inputsFrom = [ default ];
+            packages = [
+              pkgs.codex
+              pkgs.opencode
             ];
           };
         });

@@ -14,48 +14,10 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: totto2727-org/monorepo/.github/actions/setup-nix@380f76bdd0f0ccc307c15ac9f48d7a7d851d1409
+      - uses: totto2727-org/monorepo/.github/actions/setup-moonbit@380f76bdd0f0ccc307c15ac9f48d7a7d851d1409
         with:
-          repository: totto2727-org/agent-core-sdk
-          ref: 127a11e9c4b0bf0067e3082a55af0a44e69c5fe0
-          path: .sdk-overlay/agent-core-sdk
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+          dev-shell: ci
+      - uses: totto2727-org/monorepo/.github/actions/check-moonbit@380f76bdd0f0ccc307c15ac9f48d7a7d851d1409
         with:
-          repository: totto2727-org/codex-sdk
-          ref: 15577d304a2b5888d4032de406176254754ccb57
-          path: .sdk-overlay/codex-sdk
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-        with:
-          repository: totto2727-org/opencode-sdk
-          ref: 03660eca982c7867155ff17dff0aced279a22902
-          path: .sdk-overlay/opencode-sdk
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-        with:
-          repository: totto2727-org/agent-sdk
-          ref: e7c0d59d63074979082496ab422d5de695d4d90f
-          path: .sdk-overlay/agent-sdk
-      - uses: totto2727-org/monorepo/.github/actions/setup-nix@main
-      - name: Verify Workgraph with exact SDK overlay
-        shell: bash
-        run: |
-          eval "$(nix print-dev-env "$GITHUB_WORKSPACE#default")"
-          cp moon.work "$RUNNER_TEMP/moon.work"
-          trap 'cp "$RUNNER_TEMP/moon.work" moon.work' EXIT
-          sed -i '$d' moon.work
-          printf '%s\n' '  ".sdk-overlay/agent-core-sdk",' '  ".sdk-overlay/codex-sdk",' '  ".sdk-overlay/opencode-sdk",' '  ".sdk-overlay/agent-sdk",' ']' >> moon.work
-          moon update
-          moon info
-          moon check
-          moon build
-          moon test package/workgraph-core/src
-          moon test package/workgraph-agent-cli/src
-          moon test package/workgraph-llm/src
-          moon test package/workgraph-llm/src/test
-          moon test package/workgraph-visualization/src
-          moon test package/workgraph-codex-cli/src
-          moon test package/workgraph-codex-cli/src/test
-          moon test package/workgraph-opencode-cli/src
-          moon test package/workgraph-opencode-cli/src/test
-          for module in package/workgraph-core package/workgraph-agent-cli package/workgraph-llm package/workgraph-visualization package/workgraph-codex-cli package/workgraph-opencode-cli; do
-            moon -C "$module" package --list >/dev/null
-          done
+          dev-shell: ci

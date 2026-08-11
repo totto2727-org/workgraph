@@ -12,7 +12,7 @@ import {
 }
 ```
 
-The module prefers native and supports Wasm/WASI and native from the same production source. CI follows the preferred target; contract tests can also run explicitly on Wasm/WASI. Fake and real CLI process tests run only on native.
+The module prefers native and supports Wasm/WASI and native from the same production source. The shared CI check follows the preferred target and loads the OpenCode CLI from the repository's `ci` Nix dev shell; contract tests can also run explicitly on Wasm/WASI. Fake and real CLI process tests run only on native.
 
 ## Example
 

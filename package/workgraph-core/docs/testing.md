@@ -15,7 +15,7 @@ Each module owns its tests.
 
 The deleted cross-module E2E workflow and shared testing package are not part of the current suite. Remote provider calls remain manual because normal tests require no credentials.
 
-The adapter `src` packages support non-process contract tests on Wasm/WASI and native. CI uses target-unspecified commands and therefore follows each module's preferred target; non-preferred targets can be validated explicitly when needed. Native-only fake executable and process lifecycle tests stay in the existing `src/test` packages. Real CLI smoke tests also run only on native.
+The adapter `src` packages support non-process contract tests on Wasm/WASI and native. CI delegates target-unspecified formatting, checking, building, and testing to the shared MoonBit actions and therefore follows each module's preferred target. The `ci` Nix dev shell extends the default development shell with both provider CLIs. Native-only fake executable and process lifecycle tests stay in the existing `src/test` packages. Real CLI smoke tests also run only on native.
 
 ## Focused Commands
 
