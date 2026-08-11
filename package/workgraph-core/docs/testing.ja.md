@@ -15,7 +15,7 @@
 
 削除したモジュール横断E2E workflowと共有testingパッケージは、現在のsuiteに含まれません。通常テストは認証情報を必要としないため、remote provider呼び出しはmanual checkとして残します。
 
-adapterの`src`パッケージは、processを使わないcontract testをWasm/WASIとnativeで実行します。native専用のfake executableとprocess lifecycle testは既存の`src/test`パッケージに置きます。実CLI smoke testもnativeだけで実行します。
+adapterの`src`パッケージは、processを使わないcontract testをWasm/WASIとnativeでサポートします。CIはtargetを指定しないcommandを使い、各moduleのpreferred targetに従います。必要な場合はnon-preferred targetを明示的に検証できます。native専用のfake executableとprocess lifecycle testは既存の`src/test`パッケージに置きます。実CLI smoke testもnativeだけで実行します。
 
 ## 個別コマンド
 

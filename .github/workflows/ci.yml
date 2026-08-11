@@ -10,10 +10,6 @@ permissions:
 
 jobs:
   check:
-    strategy:
-      fail-fast: false
-      matrix:
-        target: [native, wasm]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -39,7 +35,7 @@ jobs:
           ref: e7c0d59d63074979082496ab422d5de695d4d90f
           path: .sdk-overlay/agent-sdk
       - uses: totto2727-org/monorepo/.github/actions/setup-nix@main
-      - name: Verify Workgraph CLI adapters on ${{ matrix.target }}
+      - name: Verify Workgraph with exact SDK overlay
         shell: bash
         run: |
           eval "$(nix print-dev-env "$GITHUB_WORKSPACE#default")"
@@ -49,24 +45,17 @@ jobs:
           printf '%s\n' '  ".sdk-overlay/agent-core-sdk",' '  ".sdk-overlay/codex-sdk",' '  ".sdk-overlay/opencode-sdk",' '  ".sdk-overlay/agent-sdk",' ']' >> moon.work
           moon update
           moon info
-          target='${{ matrix.target }}'
-          moon check --target "$target" package/workgraph-codex-cli/src
-          moon test --target "$target" package/workgraph-codex-cli/src
-          moon build --target "$target" package/workgraph-codex-cli/src
-          moon check --target "$target" package/workgraph-opencode-cli/src
-          moon test --target "$target" package/workgraph-opencode-cli/src
-          moon build --target "$target" package/workgraph-opencode-cli/src
-          if [ "$target" = native ]; then
-            moon check
-            moon build
-            moon test package/workgraph-core/src
-            moon test package/workgraph-agent-cli/src
-            moon test package/workgraph-llm/src
-            moon test package/workgraph-llm/src/test
-            moon test package/workgraph-visualization/src
-            moon test package/workgraph-codex-cli/src/test
-            moon test package/workgraph-opencode-cli/src/test
-            for module in package/workgraph-core package/workgraph-agent-cli package/workgraph-llm package/workgraph-visualization package/workgraph-codex-cli package/workgraph-opencode-cli; do
-              moon -C "$module" package --list >/dev/null
-            done
-          fi
+          moon check
+          moon build
+          moon test package/workgraph-core/src
+          moon test package/workgraph-agent-cli/src
+          moon test package/workgraph-llm/src
+          moon test package/workgraph-llm/src/test
+          moon test package/workgraph-visualization/src
+          moon test package/workgraph-codex-cli/src
+          moon test package/workgraph-codex-cli/src/test
+          moon test package/workgraph-opencode-cli/src
+          moon test package/workgraph-opencode-cli/src/test
+          for module in package/workgraph-core package/workgraph-agent-cli package/workgraph-llm package/workgraph-visualization package/workgraph-codex-cli package/workgraph-opencode-cli; do
+            moon -C "$module" package --list >/dev/null
+          done

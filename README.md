@@ -13,7 +13,7 @@ Workgraph is a standalone MoonBit workspace for asynchronous typed graphs, LLM n
 | [`totto2727/workgraph-codex-cli`](package/workgraph-codex-cli/README.md) | Codex CLI adapter | native (`wasm`, `native`) |
 | [`totto2727/workgraph-opencode-cli`](package/workgraph-opencode-cli/README.md) | OpenCode CLI adapter | native (`wasm`, `native`) |
 
-The provider integrations compile the same production source for Wasm/WASI and native while composing `totto2727/agent-sdk/cli` with its Codex or OpenCode adapter. Provider SDK imports are retained only for provider-native option types exposed by each Workgraph composition root. Process-backed fake and real CLI smoke tests run only on native. See the [Agent CLI SDK migration note](docs/migrations/tot-175-agent-sdk-cli.md) for the dependency boundary and pre-publication overlay.
+The provider integrations support Wasm/WASI and native from the same production source while composing `totto2727/agent-sdk/cli` with its Codex or OpenCode adapter. CI uses target-unspecified commands so each module's preferred target governs validation; explicit non-preferred target validation remains available locally. Provider SDK imports are retained only for provider-native option types exposed by each Workgraph composition root. Process-backed fake and real CLI smoke tests run only on native. See the [Agent CLI SDK migration note](docs/migrations/tot-175-agent-sdk-cli.md) for the dependency boundary and pre-publication overlay.
 
 ## Development
 

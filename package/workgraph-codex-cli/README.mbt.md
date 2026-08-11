@@ -12,7 +12,7 @@ import {
 }
 ```
 
-The module prefers native and supports Wasm/WASI and native from the same production source. Contract tests run on both targets, while fake and real CLI process tests run only on native.
+The module prefers native and supports Wasm/WASI and native from the same production source. CI follows the preferred target; contract tests can also run explicitly on Wasm/WASI. Fake and real CLI process tests run only on native.
 
 ## Example
 
