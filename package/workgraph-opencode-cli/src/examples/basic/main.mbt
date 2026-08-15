@@ -53,7 +53,7 @@ async fn main {
         @agent_cli.Prompt::Prompt(state.instruction)
       },
       select_continuation=fn(_context, _state) { None },
-      decode_response=fn(_state, response) {
+      decode_response=fn(_state, response, _continuation) {
         let summary = response.text
         @core.NodeOutput::NodeOutput(
           Some(OpenCodeExamplePatch::{ summary, }),

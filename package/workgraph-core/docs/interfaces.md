@@ -538,6 +538,12 @@ pub(all) struct CodingAgent {
   id : CodingAgentId
   open : async (CodingAgentOpenContext) -> @cli.Cli
 }
+
+pub struct CodingAgentContinuation
+
+pub suberror CodingAgentContinuationError {
+  AgentMismatch(expected~ : CodingAgentId, actual~ : CodingAgentId)
+} derive(Debug)
 ```
 
 `CodingAgent.open` returns a configured `Cli`; it does not open, close, or wrap a Workgraph session. The node starts or resumes one `CliSession` when acquiring its scoped resource. The resource finalizer is a no-op because agent-sdk has no idle session close operation. The cancellable `CliSession.prompt` call owns provider cleanup and re-raises cancellation after that cleanup.
@@ -622,8 +628,8 @@ pub(all) struct CodingAgentNodeSpec[S, P] {
   resource_scope : ResourceScope
   open_context : (NodeContext, S) -> CodingAgentOpenContext raise
   build_prompt : (NodeContext, S) -> @cli.Prompt raise
-  select_continuation : (NodeContext, S) -> @cli.Continuation? raise
-  decode_response : (S, @cli.FinalResponse) -> NodeOutput[P] raise
+  select_continuation : (NodeContext, S) -> CodingAgentContinuation? raise
+  decode_response : (S, @cli.FinalResponse, CodingAgentContinuation?) -> NodeOutput[P] raise
 }
 
 pub fn[S, P] coding_agent_node(
@@ -633,7 +639,7 @@ pub fn[S, P] coding_agent_node(
 ) -> Node[S, P]
 ```
 
-The internal resource reference combines `resource_key` with `agent.id`, so a caller-visible key cannot cause different agents to share a session. Node scope opens a session for one node attempt; run scope reuses one session within an invocation. `None` starts a fresh session and `Some(Continuation)` resumes one. The node owns a mutex around each prompt, releases it after success, failure, or cancellation, and keeps continuation values in-process only. Graph runtime execution remains sequential, so multiple agent nodes compose in order while retaining isolated sessions, state slots, and continuations.
+The internal resource reference combines `resource_key` with `agent.id`, so a caller-visible key cannot cause different agents to share a session. Node scope opens a session for one node attempt; run scope reuses one session within an invocation. The node creates an opaque `CodingAgentContinuation` from each successful response and binds it to the configured `CodingAgentId`; selecting a token owned by another agent raises `CodingAgentContinuationError::AgentMismatch` before opening either provider. The node also resolves relative prompt context files against `CodingAgentOpenContext.workspace.root` while leaving absolute `Path` values unchanged. The node owns a mutex around each prompt, releases it after success, failure, or cancellation, and keeps continuation values in-process only. Graph runtime execution remains sequential, so multiple agent nodes compose in order while retaining isolated sessions, state slots, and continuations.
 
 ## Codex Adapter
 
@@ -642,7 +648,7 @@ pub(all) struct CodexAgentOptions {
   codex_path_override : @path.Path?
   base_url : String?
   api_key : String?
-  config : @codex_sdk.CodexConfigObject?
+  config : @codex_sdk.ConfigObject?
   resume_thread_id : String?
   model : String?
   sandbox : @codex_sdk.SandboxMode?
@@ -655,7 +661,7 @@ pub fn CodexAgentOptions::CodexAgentOptions(
   codex_path_override? : @path.Path,
   base_url? : String,
   api_key? : String,
-  config? : @codex_sdk.CodexConfigObject,
+  config? : @codex_sdk.ConfigObject,
   resume_thread_id? : String,
   model? : String,
   sandbox? : @codex_sdk.SandboxMode,
@@ -677,7 +683,7 @@ The adapter maps context environment, workspace root, additional writable roots,
 ```moonbit
 pub(all) struct OpenCodeAgentOptions {
   opencode_path_override : @path.Path?
-  config : @opencode_sdk.OpenCodeConfigObject?
+  config : @opencode_sdk.ConfigObject?
   resume_thread_id : String?
   model : String?
   agent : String?
@@ -689,7 +695,7 @@ pub(all) struct OpenCodeAgentOptions {
 
 pub fn OpenCodeAgentOptions::OpenCodeAgentOptions(
   opencode_path_override? : @path.Path,
-  config? : @opencode_sdk.OpenCodeConfigObject,
+  config? : @opencode_sdk.ConfigObject,
   resume_thread_id? : String,
   model? : String,
   agent? : String,

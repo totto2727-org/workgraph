@@ -479,8 +479,8 @@ pub(all) struct CodingAgentNodeSpec[S, P] {
   resource_scope : ResourceScope
   open_context : (NodeContext, S) -> CodingAgentOpenContext raise
   build_prompt : (NodeContext, S) -> @cli.Prompt raise
-  select_continuation : (NodeContext, S) -> @cli.Continuation? raise
-  decode_response : (S, @cli.FinalResponse) -> NodeOutput[P] raise
+  select_continuation : (NodeContext, S) -> CodingAgentContinuation? raise
+  decode_response : (S, @cli.FinalResponse, CodingAgentContinuation?) -> NodeOutput[P] raise
 }
 ```
 
@@ -488,7 +488,7 @@ pub(all) struct CodingAgentNodeSpec[S, P] {
 
 provider adapterは設定済み`Cli`を返します。共有nodeはagent IDとresource scopeごとに1つの`CliSession`を取得し、正確に1回開始または再開し、node所有のmutexで`prompt`を直列化して、`FinalResponse`をdecodeします。agent-sdkにはidle close操作がないためfinalizerはno-opです。provider cleanupはcancellableなprompt呼び出しが所有するため、cleanup後にcancellationを再raiseします。
 
-`Continuation`はopaqueでプロセス内だけの値です。checkpointとしてserializeできず、agent identityをまたげません。graph runtimeは逐次的なため、複数のCodex、OpenCode、custom agent nodeは順番に構成され、resource key、session、state slot、continuationを分離して保持します。削除されたWorkgraph mirror typeは`SessionId`、`CodingAgentRequest`、`CodingAgentStatus`、`CodingAgentResponse`、`CodingAgentSession`です。
+`CodingAgentContinuation`はopaqueでプロセス内だけの値であり、生成元の`CodingAgentId`にbindされます。checkpointとしてserializeできず、公開constructorからforgeできず、別agentからresumeできません。相対prompt context fileは、どちらのproviderへ渡す場合も設定済みworkspace rootに対して解決されます。graph runtimeは逐次的なため、複数のCodex、OpenCode、custom agent nodeは順番に構成され、resource key、session、state slot、continuationを分離して保持します。削除されたWorkgraph mirror typeは`SessionId`、`CodingAgentRequest`、`CodingAgentStatus`、`CodingAgentResponse`、`CodingAgentSession`です。
 
 これはパッケージ境界での依存性逆転です。`workgraph-agent-cli`がnode契約を所有し、provider integrationパッケージが`Cli`を設定し、coreはcoding-agentの詳細を認識しません。
 

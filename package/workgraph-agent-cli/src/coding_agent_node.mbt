@@ -5,8 +5,10 @@ pub struct CodingAgentNodeSpec[S, P] {
   resource_scope : @core.ResourceScope
   open_context : (@core.NodeContext, S) -> CodingAgentOpenContext raise
   build_prompt : (@core.NodeContext, S) -> @cli.Prompt raise
-  select_continuation : (@core.NodeContext, S) -> @cli.Continuation? raise
-  decode_response : (S, @cli.FinalResponse) -> @core.NodeOutput[P] raise
+  select_continuation : (@core.NodeContext, S) -> CodingAgentContinuation? raise
+  decode_response : (S, @cli.FinalResponse, CodingAgentContinuation?) -> @core.NodeOutput[
+    P,
+  ] raise
 }
 
 ///|
@@ -17,8 +19,10 @@ pub fn[S, P] CodingAgentNodeSpec::CodingAgentNodeSpec(
   resource_scope~ : @core.ResourceScope,
   open_context~ : (@core.NodeContext, S) -> CodingAgentOpenContext raise,
   build_prompt~ : (@core.NodeContext, S) -> @cli.Prompt raise,
-  select_continuation~ : (@core.NodeContext, S) -> @cli.Continuation? raise,
-  decode_response~ : (S, @cli.FinalResponse) -> @core.NodeOutput[P] raise,
+  select_continuation~ : (@core.NodeContext, S) -> CodingAgentContinuation? raise,
+  decode_response~ : (S, @cli.FinalResponse, CodingAgentContinuation?) -> @core.NodeOutput[
+    P,
+  ] raise,
 ) -> CodingAgentNodeSpec[S, P] {
   CodingAgentNodeSpec::{
     agent,
@@ -29,6 +33,23 @@ pub fn[S, P] CodingAgentNodeSpec::CodingAgentNodeSpec(
     select_continuation,
     decode_response,
   }
+}
+
+///|
+fn resolve_prompt_context_files(
+  workspace_root : @path.Path,
+  prompt : @cli.Prompt,
+) -> @cli.Prompt {
+  @cli.Prompt::Prompt(
+    prompt.text,
+    context_files=prompt.context_files.map(path => {
+      if path.is_absolute() {
+        path
+      } else {
+        workspace_root |> @path.Path::join(path)
+      }
+    }),
+  )
 }
 
 ///|
@@ -83,12 +104,18 @@ pub fn[S, P] coding_agent_node(
   spec : CodingAgentNodeSpec[S, P],
 ) -> @core.Node[S, P] {
   @core.Node::Node(id, metadata, async fn(context, state) {
+    let selected_continuation = (spec.select_continuation)(context, state)
+    match selected_continuation {
+      Some(continuation) if continuation.owner != spec.agent.id =>
+        raise AgentMismatch(expected=spec.agent.id, actual=continuation.owner)
+      _ => ()
+    }
     let open_context = (spec.open_context)(context, state)
     let reference = coding_agent_resource_ref(spec.resource_key, spec.agent.id)
     let open_resource = async fn() {
       let cli = (spec.agent.open)(open_context)
-      let session = match (spec.select_continuation)(context, state) {
-        Some(continuation) => cli.continue_session(continuation)
+      let session = match selected_continuation {
+        Some(continuation) => cli.continue_session(continuation.raw)
         None => cli.start()
       }
       CodingAgentResource::{ session, mutex: @async.Mutex::Mutex() }
@@ -110,10 +137,16 @@ pub fn[S, P] coding_agent_node(
           fn(_resource) { () },
         )
     }
-    let prompt = (spec.build_prompt)(context, state)
+    let prompt = resolve_prompt_context_files(
+      open_context.workspace.root,
+      (spec.build_prompt)(context, state),
+    )
     resource.mutex.acquire()
     defer resource.mutex.release()
     let response = resource.session.prompt(prompt)
-    (spec.decode_response)(state, response)
+    let continuation = response.continuation.map(raw => {
+      CodingAgentContinuation::CodingAgentContinuation(spec.agent.id, raw)
+    })
+    (spec.decode_response)(state, response, continuation)
   })
 }

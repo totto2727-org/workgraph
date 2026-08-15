@@ -74,3 +74,26 @@ pub fn CodingAgent::CodingAgent(
 ) -> CodingAgent {
   CodingAgent::{ id, open }
 }
+
+///|
+/// In-process continuation bound to the coding agent that produced it.
+///
+/// Only a coding-agent node can create this value from a successful response.
+pub struct CodingAgentContinuation {
+  priv owner : CodingAgentId
+  priv raw : @cli.Continuation
+}
+
+///|
+fn CodingAgentContinuation::CodingAgentContinuation(
+  owner : CodingAgentId,
+  raw : @cli.Continuation,
+) -> CodingAgentContinuation {
+  CodingAgentContinuation::{ owner, raw }
+}
+
+///|
+/// Raised when a continuation is supplied to a different coding agent.
+pub suberror CodingAgentContinuationError {
+  AgentMismatch(expected~ : CodingAgentId, actual~ : CodingAgentId)
+} derive(Debug)

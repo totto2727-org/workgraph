@@ -538,6 +538,12 @@ pub(all) struct CodingAgent {
   id : CodingAgentId
   open : async (CodingAgentOpenContext) -> @cli.Cli
 }
+
+pub struct CodingAgentContinuation
+
+pub suberror CodingAgentContinuationError {
+  AgentMismatch(expected~ : CodingAgentId, actual~ : CodingAgentId)
+} derive(Debug)
 ```
 
 `CodingAgent.open`は設定済み`Cli`を返し、Workgraph sessionをopen、close、wrapしません。nodeはscoped resourceを取得するときに1つの`CliSession`を開始または再開します。agent-sdkにidle session close操作がないためresource finalizerはno-opです。cancellableな`CliSession.prompt`がprovider cleanupを所有し、そのcleanup後にcancellationを再raiseします。
@@ -622,8 +628,8 @@ pub(all) struct CodingAgentNodeSpec[S, P] {
   resource_scope : ResourceScope
   open_context : (NodeContext, S) -> CodingAgentOpenContext raise
   build_prompt : (NodeContext, S) -> @cli.Prompt raise
-  select_continuation : (NodeContext, S) -> @cli.Continuation? raise
-  decode_response : (S, @cli.FinalResponse) -> NodeOutput[P] raise
+  select_continuation : (NodeContext, S) -> CodingAgentContinuation? raise
+  decode_response : (S, @cli.FinalResponse, CodingAgentContinuation?) -> NodeOutput[P] raise
 }
 
 pub fn[S, P] coding_agent_node(
@@ -633,7 +639,7 @@ pub fn[S, P] coding_agent_node(
 ) -> Node[S, P]
 ```
 
-内部resource referenceは`resource_key`と`agent.id`を組み合わせるため、呼び出し側に見えるkeyによって異なるagentがsessionを共有することはありません。Node scopeはnode試行ごとにsessionを開き、Run scopeは呼び出し内で1つのsessionを再利用します。`None`は新しいsessionを開始し、`Some(Continuation)`はsessionを再開します。nodeは各promptの周囲にmutexを所有し、成功、failure、cancellation後にそれをreleaseします。continuation値はプロセス内だけに保持されます。graph runtimeは逐次的に実行されるため、複数agent nodeは順番に構成され、session、state slot、continuationを分離して保持します。
+内部resource referenceは`resource_key`と`agent.id`を組み合わせるため、呼び出し側に見えるkeyによって異なるagentがsessionを共有することはありません。Node scopeはnode試行ごとにsessionを開き、Run scopeは呼び出し内で1つのsessionを再利用します。nodeは成功レスポンスごとにopaqueな`CodingAgentContinuation`を作成して設定済み`CodingAgentId`へbindし、別agentが所有するtokenを選択した場合はproviderを開く前に`CodingAgentContinuationError::AgentMismatch`をraiseします。また、相対prompt context fileを`CodingAgentOpenContext.workspace.root`に対して解決し、絶対`Path`は変更しません。nodeは各promptの周囲にmutexを所有し、成功、failure、cancellation後にそれをreleaseします。continuation値はプロセス内だけに保持されます。graph runtimeは逐次的に実行されるため、複数agent nodeは順番に構成され、session、state slot、continuationを分離して保持します。
 
 ## Codexアダプター
 
@@ -642,7 +648,7 @@ pub(all) struct CodexAgentOptions {
   codex_path_override : @path.Path?
   base_url : String?
   api_key : String?
-  config : @codex_sdk.CodexConfigObject?
+  config : @codex_sdk.ConfigObject?
   resume_thread_id : String?
   model : String?
   sandbox : @codex_sdk.SandboxMode?
@@ -655,7 +661,7 @@ pub fn CodexAgentOptions::CodexAgentOptions(
   codex_path_override? : @path.Path,
   base_url? : String,
   api_key? : String,
-  config? : @codex_sdk.CodexConfigObject,
+  config? : @codex_sdk.ConfigObject,
   resume_thread_id? : String,
   model? : String,
   sandbox? : @codex_sdk.SandboxMode,
@@ -677,7 +683,7 @@ adapterはcontext environment、workspace root、追加のwritable root、approv
 ```moonbit
 pub(all) struct OpenCodeAgentOptions {
   opencode_path_override : @path.Path?
-  config : @opencode_sdk.OpenCodeConfigObject?
+  config : @opencode_sdk.ConfigObject?
   resume_thread_id : String?
   model : String?
   agent : String?
@@ -689,7 +695,7 @@ pub(all) struct OpenCodeAgentOptions {
 
 pub fn OpenCodeAgentOptions::OpenCodeAgentOptions(
   opencode_path_override? : @path.Path,
-  config? : @opencode_sdk.OpenCodeConfigObject,
+  config? : @opencode_sdk.ConfigObject,
   resume_thread_id? : String,
   model? : String,
   agent? : String,

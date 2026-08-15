@@ -192,7 +192,7 @@ fn lifecycle_runtime(
           @cli.Prompt::Prompt("state=\{state}")
         },
         select_continuation=fn(_context, _state) { None },
-        decode_response=fn(_state, response) {
+        decode_response=fn(_state, response, _continuation) {
           calls.push("decode:\{response.text}")
           @core.NodeOutput::NodeOutput(
             Some(1),
@@ -247,6 +247,7 @@ async test "coding_agent_node lifecycle 2 - run scope reuses one session and iso
 async test "coding_agent_node continuation 1 - selects start or opaque continuation on acquisition" {
   @async.with_task_group() <| group => {
     let calls : Array[String] = []
+    let mut selected_continuation : CodingAgentContinuation? = None
     let resources = @core.ResourceStore::ResourceStore()
     let resumed_session = CodingAgentNodeFakeSession::{
       label: "resumed",
@@ -281,7 +282,7 @@ async test "coding_agent_node continuation 1 - selects start or opaque continuat
     )
     let make_node = fn(
       node_id : @core.NodeId,
-      selected : @cli.Continuation?,
+      select : () -> CodingAgentContinuation?,
       prompt_text : String,
     ) -> @core.Node[Int, Int] raise {
       coding_agent_node(
@@ -293,8 +294,9 @@ async test "coding_agent_node continuation 1 - selects start or opaque continuat
           resource_scope=@core.Node,
           open_context=fn(_context, _state) { coding_agent_open_context(group) },
           build_prompt=fn(_context, _state) { @cli.Prompt::Prompt(prompt_text) },
-          select_continuation=fn(_context, _state) { selected },
-          decode_response=fn(_state, response) {
+          select_continuation=fn(_context, _state) { select() },
+          decode_response=fn(_state, response, continuation) {
+            selected_continuation = continuation
             @core.NodeOutput::NodeOutput(
               None,
               Some(Json::string(response.text)),
@@ -304,12 +306,12 @@ async test "coding_agent_node continuation 1 - selects start or opaque continuat
       )
     }
     let first_id = @core.NodeId::NodeId("continuation-start")
-    let first = make_node(first_id, None, "first")
+    let first = make_node(first_id, fn() { None }, "first")
     (first.execute)(coding_agent_node_context(group, first_id, resources), 0)
     |> ignore
     resources.release_node(first_id)
     let second_id = @core.NodeId::NodeId("continuation-resume")
-    let second = make_node(second_id, Some(continuation), "second")
+    let second = make_node(second_id, fn() { selected_continuation }, "second")
     (second.execute)(coding_agent_node_context(group, second_id, resources), 0)
     |> ignore
     resources.release_node(second_id)
@@ -356,7 +358,7 @@ async test "coding_agent_node isolation 1 - different agents cannot share a call
           open_context=fn(_context, _state) { coding_agent_open_context(group) },
           build_prompt=fn(_context, _state) { @cli.Prompt::Prompt("work") },
           select_continuation=fn(_context, _state) { None },
-          decode_response=fn(_state, response) {
+          decode_response=fn(_state, response, _continuation) {
             @core.NodeOutput::NodeOutput(
               None,
               Some(Json::string(response.text)),
@@ -420,7 +422,7 @@ async test "coding_agent_node isolation 2 - sequential graph keeps configured ag
         },
         build_prompt=fn(_context, _state) { @cli.Prompt::Prompt(prompt_text) },
         select_continuation=fn(_context, _state) { None },
-        decode_response=fn(_state, response) {
+        decode_response=fn(_state, response, _continuation) {
           responses.push(
             "\{response.text}:\{response.session_id.unwrap_or("missing")}",
           )
@@ -484,7 +486,7 @@ async test "coding_agent_node isolation 2 - sequential graph keeps configured ag
 ///|
 async test "coding_agent_node continuation 2 - selected opaque continuation resumes only its configured agent" {
   let calls : Array[String] = []
-  let mut selected_continuation : @cli.Continuation? = None
+  let mut selected_continuation : CodingAgentContinuation? = None
   let resumed_session = CodingAgentNodeFakeSession::{
     label: "session-a-resumed",
     calls,
@@ -540,7 +542,7 @@ async test "coding_agent_node continuation 2 - selected opaque continuation resu
     node_id : @core.NodeId,
     agent : CodingAgent,
     prompt_text : String,
-    select : () -> @cli.Continuation?,
+    select : () -> CodingAgentContinuation?,
   ) -> @core.Node[Int, Int] {
     coding_agent_node(
       node_id,
@@ -554,9 +556,9 @@ async test "coding_agent_node continuation 2 - selected opaque continuation resu
         },
         build_prompt=fn(_context, _state) { @cli.Prompt::Prompt(prompt_text) },
         select_continuation=fn(_context, _state) { select() },
-        decode_response=fn(_state, response) {
-          if response.continuation is Some(continuation) {
-            selected_continuation = Some(continuation)
+        decode_response=fn(_state, response, continuation) {
+          if continuation is Some(owned_continuation) {
+            selected_continuation = Some(owned_continuation)
           }
           @core.NodeOutput::NodeOutput(
             Some(1),
@@ -623,6 +625,126 @@ async test "coding_agent_node continuation 2 - selected opaque continuation resu
 }
 
 ///|
+async test "coding_agent_node continuation 3 - rejects another agent continuation before provider side effects" {
+  @async.with_task_group() <| group => {
+    let calls : Array[String] = []
+    let mut selected_continuation : CodingAgentContinuation? = None
+    let resumed_session = CodingAgentNodeFakeSession::{
+      label: "session-a-resumed",
+      calls,
+      fail_once: false,
+      block_on: None,
+      cleanup: [],
+      continuation_value: None,
+    }
+    let continuation = @cli.Continuation::Continuation(fn() {
+      calls.push("resume:agent-a")
+      (resumed_session : &@cli.CliSession)
+    })
+    let initial_session = CodingAgentNodeFakeSession::{
+      label: "session-a-initial",
+      calls,
+      fail_once: false,
+      block_on: None,
+      cleanup: [],
+      continuation_value: Some(continuation),
+    }
+    let agent_a = CodingAgent::CodingAgent(
+      coding_agent_node_test_agent_id("continuation-agent-a"),
+      async fn(_context) {
+        @async.pause()
+        calls.push("open:agent-a")
+        @cli.Cli::Cli(fn() {
+          calls.push("start:agent-a")
+          (initial_session : &@cli.CliSession)
+        })
+      },
+    )
+    let agent_b = CodingAgent::CodingAgent(
+      coding_agent_node_test_agent_id("continuation-agent-b"),
+      async fn(_context) {
+        @async.pause()
+        calls.push("open:agent-b")
+        @cli.Cli::Cli(fn() {
+          calls.push("start:agent-b")
+          (resumed_session : &@cli.CliSession)
+        })
+      },
+    )
+    let resources = @core.ResourceStore::ResourceStore()
+    let first_id = @core.NodeId::NodeId("continuation-owner-source")
+    let first : @core.Node[Int, Int] = coding_agent_node(
+      first_id,
+      coding_agent_node_metadata("continuation-owner-source"),
+      CodingAgentNodeSpec::CodingAgentNodeSpec(
+        agent=agent_a,
+        resource_key=@core.ResourceKey::ResourceKey("continuation-mismatch"),
+        resource_scope=@core.Node,
+        open_context=fn(context, _state) {
+          coding_agent_open_context(context.task_group)
+        },
+        build_prompt=fn(_context, _state) { @cli.Prompt::Prompt("first") },
+        select_continuation=fn(_context, _state) { None },
+        decode_response=fn(_state, response, owned_continuation) {
+          selected_continuation = owned_continuation
+          @core.NodeOutput::NodeOutput(None, Some(Json::string(response.text)))
+        },
+      ),
+    )
+    (first.execute)(coding_agent_node_context(group, first_id, resources), 0)
+    |> ignore
+    resources.release_node(first_id)
+    guard selected_continuation is Some(owned_continuation) else {
+      abort("source agent must return a continuation")
+    }
+    let calls_before_mismatch = calls.join(",")
+    let mismatch_id = @core.NodeId::NodeId("continuation-owner-mismatch")
+    let mismatch : @core.Node[Int, Int] = coding_agent_node(
+      mismatch_id,
+      coding_agent_node_metadata("continuation-owner-mismatch"),
+      CodingAgentNodeSpec::CodingAgentNodeSpec(
+        agent=agent_b,
+        resource_key=@core.ResourceKey::ResourceKey("continuation-mismatch"),
+        resource_scope=@core.Node,
+        open_context=fn(context, _state) {
+          calls.push("context:agent-b")
+          coding_agent_open_context(context.task_group)
+        },
+        build_prompt=fn(_context, _state) {
+          calls.push("build-prompt:agent-b")
+          @cli.Prompt::Prompt("work")
+        },
+        select_continuation=fn(_context, _state) { Some(owned_continuation) },
+        decode_response=fn(_state, response, _continuation) {
+          @core.NodeOutput::NodeOutput(None, Some(Json::string(response.text)))
+        },
+      ),
+    )
+    let mismatch_result = try {
+      (mismatch.execute)(
+        coding_agent_node_context(group, mismatch_id, resources),
+        0,
+      )
+      |> ignore
+      "not rejected"
+    } catch {
+      CodingAgentContinuationError::AgentMismatch(expected~, actual~) =>
+        "\{expected.to_string()}:\{actual.to_string()}"
+      error => "unexpected:\{error}"
+    }
+    inspect(
+      mismatch_result,
+      content="continuation-agent-b:continuation-agent-a",
+    )
+    assert_eq(calls.join(","), calls_before_mismatch)
+    debug_inspect(
+      calls,
+      content="[\"open:agent-a\", \"start:agent-a\", \"prompt:session-a-initial:first\"]",
+    )
+  }
+}
+
+///|
 async test "coding_agent_node mutex 1 - provider error releases the retained session mutex" {
   @async.with_task_group() <| group => {
     let calls : Array[String] = []
@@ -658,7 +780,7 @@ async test "coding_agent_node mutex 1 - provider error releases the retained ses
           @cli.Prompt::Prompt("attempt-\{state}")
         },
         select_continuation=fn(_context, _state) { None },
-        decode_response=fn(_state, response) {
+        decode_response=fn(_state, response, _continuation) {
           @core.NodeOutput::NodeOutput(
             Some(1),
             Some(Json::string(response.text)),
@@ -712,7 +834,7 @@ async test "coding_agent_node mutex 2 - concurrent callers serialize one retaine
           @cli.Prompt::Prompt("attempt-\{state}")
         },
         select_continuation=fn(_context, _state) { None },
-        decode_response=fn(_state, response) {
+        decode_response=fn(_state, response, _continuation) {
           @core.NodeOutput::NodeOutput(None, Some(Json::string(response.text)))
         },
       ),
@@ -775,7 +897,7 @@ async test "coding_agent_node cancellation 1 - cleanup and cancellation propagat
           }
         },
         select_continuation=fn(_context, _state) { None },
-        decode_response=fn(_state, response) {
+        decode_response=fn(_state, response, _continuation) {
           @core.NodeOutput::NodeOutput(None, Some(Json::string(response.text)))
         },
       ),
@@ -862,7 +984,7 @@ async fn coding_agent_node_assert_phase(
           @cli.Prompt::Prompt("phase")
         },
         select_continuation=fn(_context, _state) { None },
-        decode_response=(_state, _response) => {
+        decode_response=(_state, _response, _continuation) => {
           calls.push("decode")
           if phase == Decode {
             raise DecodeFailed
@@ -942,7 +1064,7 @@ async test "coding_agent_node errors 2 - retries an open failure without caching
         open_context=fn(_context, _state) { coding_agent_open_context(group) },
         build_prompt=fn(_context, _state) { @cli.Prompt::Prompt("retry") },
         select_continuation=fn(_context, _state) { None },
-        decode_response=fn(_state, _response) {
+        decode_response=fn(_state, _response, _continuation) {
           @core.NodeOutput::NodeOutput(Some(1), None)
         },
       ),

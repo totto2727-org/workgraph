@@ -167,8 +167,8 @@ fn codex_integration_node(
         }
       },
       select_continuation=fn(_context, _state) { None },
-      decode_response=fn(_state, response) {
-        let continuation = if response.continuation is Some(_) {
+      decode_response=fn(_state, response, continuation) {
+        let continuation = if continuation is Some(_) {
           "present"
         } else {
           "absent"
@@ -239,7 +239,7 @@ async test "codex_agent integration 1 - decodes final responses from node callba
       )
       assert_true(
         codex_integration_text("\{fixture.records}/input.1").contains(
-          "Context files supplied by the caller:\nREADME.md",
+          "Context files supplied by the caller:\n\{fixture.root}/README.md",
         ),
       )
     }

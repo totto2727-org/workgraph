@@ -235,9 +235,9 @@ The injected provider is trusted application code. Its stream-error message is r
 
 ### Coding-Agent Node
 
-A coding-agent node opens a configured `Cli`, creates a `Prompt`, and selects a `Continuation?`. It calls `Cli.start()` when no continuation is selected or `Cli.continue_session()` when one is selected, exactly once while acquiring its resource. The resource key includes both the visible key and `CodingAgentId`, so different agents cannot share a session accidentally. The node serializes `CliSession.prompt` with its own mutex and converts `FinalResponse` into a patch and optional value.
+A coding-agent node selects a `CodingAgentContinuation?`, validates its owner, opens a configured `Cli`, and creates a workspace-resolved `Prompt`. It calls `Cli.start()` when no continuation is selected or `Cli.continue_session()` when one is selected, exactly once while acquiring its resource. The resource key includes both the visible key and `CodingAgentId`, so different agents cannot share a session accidentally. The node serializes `CliSession.prompt` with its own mutex and passes the direct `FinalResponse` plus its owned continuation token to the decoder.
 
-The resource finalizer is deliberately a no-op because agent-sdk has no idle `CliSession` close operation. Provider cleanup belongs to the cancellable `prompt` call; cancellation propagates after cleanup. A `Continuation` is opaque and in-process only, so it is not a durable checkpoint or cross-agent value. Graph nodes execute sequentially, and separately configured Codex, OpenCode, or custom agents retain isolated sessions, state slots, and continuations.
+The resource finalizer is deliberately a no-op because agent-sdk has no idle `CliSession` close operation. Provider cleanup belongs to the cancellable `prompt` call; cancellation propagates after cleanup. A `CodingAgentContinuation` is opaque, in-process only, and bound to its producing `CodingAgentId`, so it is neither a durable checkpoint nor a cross-agent value. Graph nodes execute sequentially, and separately configured Codex, OpenCode, or custom agents retain isolated sessions, state slots, and continuations.
 
 ## Codex Adapter
 

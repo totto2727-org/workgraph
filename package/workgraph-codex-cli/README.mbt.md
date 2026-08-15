@@ -2,7 +2,7 @@
 
 `workgraph-codex-cli` implements the Workgraph coding-agent contract through `totto2727/agent-sdk/cli/codex`. Its public `CodexAgentOptions` and `codex_agent` constructor remain the composition root for Codex-native option types from `totto2727/codex-sdk/cli`.
 
-`codex_agent` returns a configured agent-sdk `Cli` through `CodingAgent.open`; the shared node owns session acquisition, prompt serialization, continuation selection, and response decoding. Prompts retain the caller-ordered context-file list. Provider errors and prompt cancellation propagate unchanged, with provider cleanup owned by the cancellable `CliSession.prompt` call. There is no Workgraph session wrapper, logical `close`, or post-close error.
+`codex_agent` returns a configured agent-sdk `Cli` through `CodingAgent.open`; the shared node owns session acquisition, prompt serialization, agent-bound continuation selection, response decoding, and relative context-file resolution against the Workgraph workspace. Absolute `Path` values and caller order are retained. Provider errors and prompt cancellation propagate unchanged, with provider cleanup owned by the cancellable `CliSession.prompt` call. There is no Workgraph session wrapper, logical `close`, or post-close error.
 
 ## Package
 

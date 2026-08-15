@@ -235,9 +235,9 @@ LLM ノードは以下を実行します。
 
 ### コーディングエージェントノード
 
-コーディングエージェントノードは設定済み`Cli`を開き、`Prompt`を構築し、`Continuation?`を選択します。continuationがなければ`Cli.start()`を、あれば`Cli.continue_session()`をリソース取得時に正確に1回呼び出します。内部resource keyには可視keyと`CodingAgentId`の両方が含まれるため、異なるagentがsessionを誤って共有しません。nodeは自身のmutexで`CliSession.prompt`を直列化し、`FinalResponse`をpatchとoptional valueへ変換します。
+コーディングエージェントノードは`CodingAgentContinuation?`を選択してownerを検証し、設定済み`Cli`を開いてworkspace基準で解決済みの`Prompt`を構築します。continuationがなければ`Cli.start()`を、あれば`Cli.continue_session()`をリソース取得時に正確に1回呼び出します。内部resource keyには可視keyと`CodingAgentId`の両方が含まれるため、異なるagentがsessionを誤って共有しません。nodeは自身のmutexで`CliSession.prompt`を直列化し、direct `FinalResponse`と所有continuation tokenをdecoderへ渡します。
 
-agent-sdkにidleな`CliSession` close操作がないため、resource finalizerは意図的なno-opです。provider cleanupはcancellableな`prompt`呼び出しが所有し、cleanup後にcancellationが伝播します。`Continuation`はopaqueなプロセス内handleであり、durable checkpointやagent間の値ではありません。graph nodeは逐次的に実行し、個別設定のCodex、OpenCode、custom agentはsession、state slot、continuationを分離して保持します。
+agent-sdkにidleな`CliSession` close操作がないため、resource finalizerは意図的なno-opです。provider cleanupはcancellableな`prompt`呼び出しが所有し、cleanup後にcancellationが伝播します。`CodingAgentContinuation`はopaqueなプロセス内handleであり、生成元`CodingAgentId`にbindされるため、durable checkpointやagent間の値ではありません。graph nodeは逐次的に実行し、個別設定のCodex、OpenCode、custom agentはsession、state slot、continuationを分離して保持します。
 
 ## Codex アダプター
 

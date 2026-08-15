@@ -479,8 +479,8 @@ pub(all) struct CodingAgentNodeSpec[S, P] {
   resource_scope : ResourceScope
   open_context : (NodeContext, S) -> CodingAgentOpenContext raise
   build_prompt : (NodeContext, S) -> @cli.Prompt raise
-  select_continuation : (NodeContext, S) -> @cli.Continuation? raise
-  decode_response : (S, @cli.FinalResponse) -> NodeOutput[P] raise
+  select_continuation : (NodeContext, S) -> CodingAgentContinuation? raise
+  decode_response : (S, @cli.FinalResponse, CodingAgentContinuation?) -> NodeOutput[P] raise
 }
 ```
 
@@ -488,7 +488,7 @@ Source: `../workgraph-agent-cli/src/coding_agent_contract.mbt` and `../workgraph
 
 The provider adapter returns a configured `Cli`; the shared node acquires one `CliSession` per agent ID and resource scope, starts or resumes it once, serializes `prompt` with a node-owned mutex, and decodes the `FinalResponse`. The finalizer is a no-op because agent-sdk has no idle close operation. Provider cleanup belongs to the cancellable prompt call, so cancellation is re-raised after that cleanup.
 
-`Continuation` is opaque and in-process only. It cannot be serialized as a checkpoint and cannot cross agent identities. The graph runtime remains sequential, so multiple Codex, OpenCode, or custom agent nodes compose in order while their resource keys, sessions, state slots, and continuations remain isolated. The removed Workgraph mirror types are `SessionId`, `CodingAgentRequest`, `CodingAgentStatus`, `CodingAgentResponse`, and `CodingAgentSession`.
+`CodingAgentContinuation` is opaque, in-process only, and bound to the `CodingAgentId` that produced it. It cannot be serialized as a checkpoint, forged through a public constructor, or resumed by another agent. Relative prompt context files are resolved against the configured workspace root before either provider receives them. The graph runtime remains sequential, so multiple Codex, OpenCode, or custom agent nodes compose in order while their resource keys, sessions, state slots, and continuations remain isolated. The removed Workgraph mirror types are `SessionId`, `CodingAgentRequest`, `CodingAgentStatus`, `CodingAgentResponse`, and `CodingAgentSession`.
 
 This is dependency inversion at the package boundary: `workgraph-agent-cli` owns the node contract, provider integration packages configure `Cli`, and core remains unaware of coding-agent details.
 

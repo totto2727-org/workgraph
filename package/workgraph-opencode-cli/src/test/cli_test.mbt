@@ -233,37 +233,59 @@ async test "opencode_agent 2 - merges adapter and caller environment through the
 }
 
 ///|
-async test "opencode_agent 3 - maps context files through the public agent" {
+async test "opencode_agent 3 - resolves relative context files through the public node" {
   with_opencode_cli_fixture(async fn(fixture) {
-    @async.with_task_group(async fn(group) {
-      let environment = fixture.environment([
-        opencode_cli_completed_events("session-files", "Files"),
-      ])
-      let cli = (opencode_cli_agent(fixture, environment).open)(
-        opencode_cli_context(fixture, group),
-      )
-      cli
-      .start()
-      .prompt(
-        @agent_cli.Prompt::Prompt("fix the issue", context_files=[
-          @path.Path(fixture.root).join(@path.Path("README.md")),
-          @path.Path("/shared/guide.md"),
-        ]),
-      )
-      |> ignore
-      let args = fixture.recorded_lines("args", 1)
-      assert_true(
-        opencode_cli_contains_pair(
-          args,
-          "--file",
-          @path.Path(fixture.root).join(@path.Path("README.md")).to_string(),
-        ),
-      )
-      assert_true(
-        opencode_cli_contains_pair(args, "--file", "/shared/guide.md"),
-      )
-      assert_eq(fixture.recorded_text("input", 1), "fix the issue")
-    })
+    let environment = fixture.environment([
+      opencode_cli_completed_events("session-files", "Files"),
+    ])
+    let node_id = @core.NodeId::NodeId("opencode-relative-context")
+    let node : @core.Node[Int, Int] = @coding_agent.coding_agent_node(
+      node_id,
+      @core.NodeMetadata::NodeMetadata(
+        name="opencode-relative-context",
+        description=None,
+        kind=@core.CodingAgent,
+        tags=["integration"],
+      ),
+      @coding_agent.CodingAgentNodeSpec::CodingAgentNodeSpec(
+        agent=opencode_cli_agent(fixture, environment),
+        resource_key=@core.ResourceKey::ResourceKey("opencode-relative-context"),
+        resource_scope=@core.Node,
+        open_context=fn(context, _state) {
+          opencode_cli_context(fixture, context.task_group)
+        },
+        build_prompt=fn(_context, _state) {
+          @agent_cli.Prompt::Prompt("fix the issue", context_files=[
+            @path.Path("README.md"),
+            @path.Path("/shared/guide.md"),
+          ])
+        },
+        select_continuation=fn(_context, _state) { None },
+        decode_response=fn(_state, response, _continuation) {
+          @core.NodeOutput::NodeOutput(None, Some(Json::string(response.text)))
+        },
+      ),
+    )
+    let definition = @core.GraphDefinition::GraphDefinition(
+      @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+    )
+    definition.add_node(node)
+    definition.set_router(
+      node_id,
+      @core.router([], fn(_state, _completion) { @core.End }),
+    )
+    definition.set_entry(node_id)
+    @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(0) |> ignore
+    let args = fixture.recorded_lines("args", 1)
+    assert_true(
+      opencode_cli_contains_pair(
+        args,
+        "--file",
+        @path.Path(fixture.root).join(@path.Path("README.md")).to_string(),
+      ),
+    )
+    assert_true(opencode_cli_contains_pair(args, "--file", "/shared/guide.md"))
+    assert_eq(fixture.recorded_text("input", 1), "fix the issue")
   })
 }
 
