@@ -4,8 +4,9 @@ pub struct CodingAgentNodeSpec[S, P] {
   resource_key : @core.ResourceKey
   resource_scope : @core.ResourceScope
   open_context : (@core.NodeContext, S) -> CodingAgentOpenContext raise
-  build_request : (@core.NodeContext, S) -> CodingAgentRequest raise
-  decode_response : (S, CodingAgentResponse) -> @core.NodeOutput[P] raise
+  build_prompt : (@core.NodeContext, S) -> @cli.Prompt raise
+  select_continuation : (@core.NodeContext, S) -> @cli.Continuation? raise
+  decode_response : (S, @cli.FinalResponse) -> @core.NodeOutput[P] raise
 }
 
 ///|
@@ -15,22 +16,25 @@ pub fn[S, P] CodingAgentNodeSpec::CodingAgentNodeSpec(
   resource_key~ : @core.ResourceKey,
   resource_scope~ : @core.ResourceScope,
   open_context~ : (@core.NodeContext, S) -> CodingAgentOpenContext raise,
-  build_request~ : (@core.NodeContext, S) -> CodingAgentRequest raise,
-  decode_response~ : (S, CodingAgentResponse) -> @core.NodeOutput[P] raise,
+  build_prompt~ : (@core.NodeContext, S) -> @cli.Prompt raise,
+  select_continuation~ : (@core.NodeContext, S) -> @cli.Continuation? raise,
+  decode_response~ : (S, @cli.FinalResponse) -> @core.NodeOutput[P] raise,
 ) -> CodingAgentNodeSpec[S, P] {
   CodingAgentNodeSpec::{
     agent,
     resource_key,
     resource_scope,
     open_context,
-    build_request,
+    build_prompt,
+    select_continuation,
     decode_response,
   }
 }
 
 ///|
 priv struct CodingAgentResource {
-  session : &CodingAgentSession
+  session : &@cli.CliSession
+  mutex : @async.Mutex
 }
 
 ///|
@@ -62,12 +66,17 @@ impl @any.Anyable for CodingAgentResource with fn iso() {
 ///|
 fn coding_agent_resource_ref(
   key : @core.ResourceKey,
-) -> @any_collection.AnyRef[@core.ResourceKey, CodingAgentResource] {
-  @any_collection.AnyRef::AnyRef(key)
+  agent_id : CodingAgentId,
+) -> @any_collection.AnyRef[@core.ResourceKey, CodingAgentResource] raise {
+  let agent = agent_id.to_string()
+  let composite_key = @core.ResourceKey::ResourceKey(
+    "coding-agent:\{agent.length()}:\{agent}:\{key.to_string()}",
+  )
+  @any_collection.AnyRef::AnyRef(composite_key)
 }
 
 ///|
-/// Create a graph node that acquires a coding-agent session, executes a request, and decodes its response.
+/// Create a graph node that acquires an agent SDK session, serializes a prompt, and decodes its final response.
 pub fn[S, P] coding_agent_node(
   id : @core.NodeId,
   metadata : @core.NodeMetadata,
@@ -75,30 +84,36 @@ pub fn[S, P] coding_agent_node(
 ) -> @core.Node[S, P] {
   @core.Node::Node(id, metadata, async fn(context, state) {
     let open_context = (spec.open_context)(context, state)
-    let reference = coding_agent_resource_ref(spec.resource_key)
+    let reference = coding_agent_resource_ref(spec.resource_key, spec.agent.id)
+    let open_resource = async fn() {
+      let cli = (spec.agent.open)(open_context)
+      let session = match (spec.select_continuation)(context, state) {
+        Some(continuation) => cli.continue_session(continuation)
+        None => cli.start()
+      }
+      CodingAgentResource::{ session, mutex: @async.Mutex::Mutex() }
+    }
     let resource = match spec.resource_scope {
       @core.Node =>
         context.resources.acquire_resource(
           reference,
           @core.Node,
-          async fn() {
-            CodingAgentResource::{ session: (spec.agent.open)(open_context) }
-          },
-          async fn(resource) { resource.session.close() },
+          open_resource,
+          fn(_resource) { () },
           owner=context.node_id,
         )
       @core.Run =>
         context.resources.acquire_resource(
           reference,
           @core.Run,
-          async fn() {
-            CodingAgentResource::{ session: (spec.agent.open)(open_context) }
-          },
-          async fn(resource) { resource.session.close() },
+          open_resource,
+          fn(_resource) { () },
         )
     }
-    let request = (spec.build_request)(context, state)
-    let response = resource.session.execute(request)
+    let prompt = (spec.build_prompt)(context, state)
+    resource.mutex.acquire()
+    defer resource.mutex.release()
+    let response = resource.session.prompt(prompt)
     (spec.decode_response)(state, response)
   })
 }

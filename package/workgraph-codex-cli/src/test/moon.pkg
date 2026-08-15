@@ -1,4 +1,5 @@
 import {
+  "totto2727/agent-sdk/cli" @agent_cli,
   "moonbitlang/async",
   "moonbitlang/async/fs",
   "moonbitlang/async/process",

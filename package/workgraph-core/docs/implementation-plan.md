@@ -24,14 +24,14 @@ package/
     └── src/test/
 ```
 
-Core owns identifiers, graph construction and compilation, runtime state reduction, events, coding-agent contracts, and the in-memory resource store. It does not import LLM or CLI SDKs.
+Core owns identifiers, graph construction and compilation, runtime state reduction, events, and the in-memory resource store. It does not import LLM or CLI SDKs; coding-agent contracts belong to `workgraph-agent-cli`.
 
 `workgraph-agent-cli`, `workgraph-llm`, and `workgraph-visualization` each import core. Codex and OpenCode import core and agent CLI plus only their corresponding CLI SDK.
 
 ## Target Policy
 
-- `workgraph-core`, `workgraph-agent-cli`, and `workgraph-visualization` prefer Wasm/WASI and support JavaScript, native, and Wasm/WASI. `workgraph-llm` prefers JavaScript and supports JavaScript and native because `mizchi/llm` uses aborting Wasm stubs for runtime operations.
-- `workgraph-codex-cli` and `workgraph-opencode-cli` prefer Wasm/WASI and support Wasm/WASI and native from the same production source. Process integration tests and real CLI examples remain native-only.
+- `workgraph-core` and `workgraph-visualization` prefer Wasm/WASI and support JavaScript, native, and Wasm/WASI. `workgraph-llm` prefers JavaScript and supports JavaScript and native because `mizchi/llm` uses aborting Wasm stubs for runtime operations.
+- Version `0.2.0` of `workgraph-agent-cli`, `workgraph-codex-cli`, and `workgraph-opencode-cli` prefers Wasm/WASI and supports Wasm/WASI and native from the same production source; JavaScript is not supported. They resolve published `agent-sdk@0.2.0` and provider SDK `0.4.0` dependencies. Process integration tests and optional real CLI examples remain native-only.
 
 ## Test Ownership
 

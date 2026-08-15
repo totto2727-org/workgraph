@@ -4,9 +4,9 @@
 
 This document records the current architecture of the Workgraph module family.
 
-The implementation baseline uses `mizchi/llm@0.3.1` for typed LLM messages, tools, provider results, and test providers. Codex and OpenCode use same-source CLI SDK integrations for Wasm/WASI and native, with process smoke tests restricted to native.
+The implementation baseline uses `mizchi/llm@0.3.1` for typed LLM messages, tools, provider results, and test providers. Coding-agent nodes use registry-resolved `agent-sdk@0.2.0`; Codex and OpenCode provider options use their respective `0.4.0` SDKs. The CLI integrations use the same production source for Wasm/WASI and native, with fake process tests restricted to native and real credentialed smoke tests optional.
 
-The core runtime, coding-agent, visualization, Codex CLI, and OpenCode CLI modules prefer Wasm/WASI. The first three support JavaScript, native, and Wasm/WASI, while the CLI integrations support Wasm/WASI and native from the same production source. The LLM module prefers JavaScript and supports JavaScript and native because its `mizchi/llm` dependency uses aborting stubs on Wasm.
+The core runtime, coding-agent, visualization, Codex CLI, and OpenCode CLI modules prefer Wasm/WASI. Core and visualization support JavaScript, native, and Wasm/WASI; coding-agent, Codex CLI, and OpenCode CLI support Wasm/WASI and native, but not JavaScript. The LLM module prefers JavaScript and supports JavaScript and native because its `mizchi/llm` dependency uses aborting stubs on Wasm.
 
 ## Implementation Status
 
@@ -30,7 +30,7 @@ Node categories are based on execution semantics rather than transport.
 
 The original design direction is retained with the following corrections.
 
-1. The core, coding-agent, and visualization modules support JavaScript, native, and Wasm/WASI; the LLM module supports JavaScript and native; Codex and OpenCode CLI integrations support Wasm/WASI and native from the same production source.
+1. Core and visualization support JavaScript, native, and Wasm/WASI; coding-agent, Codex CLI, and OpenCode CLI prefer Wasm/WASI and support Wasm/WASI and native, but not JavaScript; the LLM module supports JavaScript and native.
 2. All asynchronous work uses `moonbitlang/async` structured concurrency.
 3. Each graph invocation owns one task group, and every subprocess or background task created for that invocation belongs to that group.
 4. Cancellation uses task cancellation from `moonbitlang/async`; the MVP does not introduce a second cancellation-token abstraction.
@@ -57,15 +57,17 @@ flowchart TD
   Runtime --> Function["Function node"]
   Runtime --> LLM["LLM node"]
   Runtime --> AgentNode["Coding-agent node"]
-  AgentNode --> Codex["Codex session adapter"]
-  AgentNode --> OpenCode["OpenCode session adapter"]
-  OpenCode --> OpenCodeSDK["OpenCode CLI SDK"]
-  OpenCodeSDK --> AgentCLI["Shared agent CLI process runtime"]
+  AgentNode --> Cli["agent-sdk Cli"]
+  Cli --> Session["CliSession"]
+  Session --> Prompt["Prompt"]
+  Session --> Response["FinalResponse + Continuation?"]
+  Cli --> Codex["Codex adapter"]
+  Cli --> OpenCode["OpenCode adapter"]
 ```
 
 The core runtime does not import Codex, OpenCode, or LLM concrete types.
 
-The integration packages adapt those concrete SDKs to core callback and session contracts.
+The integration packages return configured agent-sdk `Cli` values; `workgraph-agent-cli` owns node-scoped or run-scoped session acquisition and the Workgraph node contract.
 
 The runtime uses `TaskGroup[Unit]` for each invocation so process ownership does not depend on the graph's state type.
 
@@ -233,38 +235,27 @@ The injected provider is trusted application code. Its stream-error message is r
 
 ### Coding-Agent Node
 
-A coding-agent node:
+A coding-agent node opens a configured `Cli`, creates a `Prompt`, and selects a `Continuation?`. It calls `Cli.start()` when no continuation is selected or `Cli.continue_session()` when one is selected, exactly once while acquiring its resource. The resource key includes both the visible key and `CodingAgentId`, so different agents cannot share a session accidentally. The node serializes `CliSession.prompt` with its own mutex and converts `FinalResponse` into a patch and optional value.
 
-- Builds a common coding-agent request.
-- Stores the process as an ordinary typed resource and acquires or reuses it according to resource scope.
-- Executes the request.
-- Converts the response into a patch and optional value.
-
-Codex and OpenCode share session semantics but keep SDK-specific options inside their adapters.
+The resource finalizer is deliberately a no-op because agent-sdk has no idle `CliSession` close operation. Provider cleanup belongs to the cancellable `prompt` call; cancellation propagates after cleanup. A `Continuation` is opaque and in-process only, so it is not a durable checkpoint or cross-agent value. Graph nodes execute sequentially, and separately configured Codex, OpenCode, or custom agents retain isolated sessions, state slots, and continuations.
 
 ## Codex Adapter
 
-The Codex adapter maps a common request to `totto2727/agent-sdk/cli`, using `totto2727/codex-sdk/cli` only for provider-native options.
-
-A Codex session owns one common `CliSession` created by the Codex CLI adapter.
-
-Task cancellation is the native equivalent of the upstream abort signal.
-
-Codex continuation and response metadata use `CliSession.id`, `FinalResponse.session_id`, and `FinalResponse.changed_files`.
+The Codex adapter returns a configured `Cli` from `CodingAgent.open`, using `totto2727/codex-sdk/cli` only for provider-native options. The node owns `CliSession` lifecycle, mutex, and continuation selection; `FinalResponse` remains provider-neutral.
 
 ## OpenCode Adapter
 
-The OpenCode adapter owns one common `CliSession`, the provider-native options used to create it, a session mutex, and logical closed state.
+The OpenCode adapter returns a configured `Cli`; it does not own a Workgraph session, mutex, or logical closed state.
 
 The repository's `totto2727/opencode-sdk` is the OpenCode CLI SDK. It invokes `opencode run --format json`, while `totto2727/opencode-server-sdk` separately owns optional `opencode serve` lifecycle and is not imported by Workgraph.
 
-The adapter creates or resumes an agent-sdk CLI session at open time. Each `execute` sends a common `Prompt` and maps the resulting `FinalResponse` into the Workgraph response.
+The node creates or resumes an agent-sdk CLI session during resource acquisition. Each `prompt` sends a common `Prompt` and passes its `FinalResponse` to the node decoder.
 
 Relative context files are resolved against the workspace root before being passed in the common prompt.
 
 The adapter snapshots the inherited process environment, applies configured adapter variables, then applies the open context environment with caller values taking precedence. It maps executable path, typed config, resume ID, model, agent, working directory, variant, title, and thinking options to the CLI SDK.
 
-Session close delegates to the common CLI session. Cancellation, CLI failures, and response errors propagate through agent-sdk, while a closed Workgraph session raises `OpenCodeAdapterError::SessionClosed`.
+Cancellation and CLI failures propagate through agent-sdk. There is no Workgraph post-close error because Workgraph does not expose a logical session close operation.
 
 ## Package Layout
 
@@ -284,7 +275,7 @@ package/
 
 `workgraph-llm` imports core and `mizchi/llm`.
 
-`workgraph-agent-cli` imports core and defines the common agent session contract and node factory.
+`workgraph-agent-cli` imports core and `agent-sdk/cli`, defines the direct `Cli` node contract, and owns session resource acquisition.
 
 The two CLI adapter modules import core, coding, and their corresponding concrete SDK.
 
@@ -296,7 +287,7 @@ The graph module and native CLI SDKs share the repository async runtime. `mizchi
 
 The MVP includes:
 
-- Native and JavaScript async execution for runtime-independent modules.
+- Native and JavaScript async execution for core and visualization; Wasm/native execution for coding-agent and CLI adapters.
 - Function, LLM, and coding-agent nodes.
 - Typed state and patches.
 - Conditional routing.
@@ -326,6 +317,7 @@ The MVP excludes:
 - [MoonBit methods, traits, and trait objects](https://docs.moonbitlang.com/en/latest/language/methods.html)
 - [MoonBit module configuration and target declarations](https://docs.moonbitlang.com/en/latest/toolchain/moon/module.html)
 - [MoonBit package configuration](https://docs.moonbitlang.com/en/latest/toolchain/moon/package.html)
+- [agent-sdk 0.2.0 source](https://github.com/totto2727-org/agent-sdk/tree/9abf45ee53a543149ce19e0542733ec86d055488)
 - [moonbitlang/async package documentation](https://mooncakes.io/docs/moonbitlang/async)
 - [mizchi/llm package](https://mooncakes.io/docs/mizchi/llm@0.3.1)
 - [Codex TypeScript SDK reference pinned by the repository port](https://github.com/openai/codex/tree/f201c30c52a35f819262865a53df94b6f4ea7a50/sdk/typescript)

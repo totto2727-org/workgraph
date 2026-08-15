@@ -7,13 +7,13 @@
 | モジュール                | テスト                                                        | Targets    |
 | ------------------------- | ------------------------------------------------------------- | ---------- |
 | `workgraph-core`          | グラフコンパイル、runtime、state、resource、event、identifier | wasm（`js`、`native`、`wasm`） |
-| `workgraph-agent-cli`     | coding-agent session scope、lifecycle、error、cancellation    | wasm（`js`、`native`、`wasm`） |
+| `workgraph-agent-cli`     | 直接`Cli` nodeのscope、isolation、continuation、mutex、cancellation | wasm（`wasm`、`native`） |
 | `workgraph-llm`           | provider実行と公開`mizchi/llm.MockProvider` integration       | js（`js`、`native`） |
 | `workgraph-visualization` | 決定的なMermaid rendering                                     | wasm（`js`、`native`、`wasm`） |
 | `workgraph-codex-cli`     | portable option contractとnative fake Codex process integration    | wasm（`wasm`、`native`） |
 | `workgraph-opencode-cli`  | portable option contractとnative fake OpenCode process integration | wasm（`wasm`、`native`） |
 
-削除したモジュール横断E2E workflowと共有testingパッケージは、現在のsuiteに含まれません。通常テストは認証情報を必要としないため、remote provider呼び出しはmanual checkとして残します。
+削除したモジュール横断E2E workflowと共有testingパッケージは、現在のsuiteに含まれません。通常テストは認証情報を必要としません。実CodexまたはOpenCode CLIのsmokeは任意であり、ローカルcredentialを意図的に利用できる場合だけ実行します。
 
 adapterの`src`パッケージは、processを使わないcontract testをWasm/WASIとnativeでサポートします。CIは共通のMoonBit actionへtarget未指定のformat、check、build、testを委譲し、各moduleのpreferred targetに従います。`ci` Nix dev shellはdefault開発shellへ両provider CLIを追加します。native専用のfake executableとprocess lifecycle testは既存の`src/test`パッケージに置きます。実CLI smoke testもnativeだけで実行します。
 
@@ -40,4 +40,4 @@ vp run mbt:build
 vp run mbt:test
 ```
 
-CodexとOpenCodeのintegration testは決定的なfake executableを使用し、argv、environment、JSONL、continuation、failure、cancellationを検証します。実CLI exampleは別のmanual checkであり、有効なローカル認証に依存します。
+agent-cli testはnode/run scopeのsession取得、`Cli.start`と`Cli.continue_session`、agent-isolated resource key、逐次的な複数agent構成、failureとcancellation後のmutex release、プロセス内だけのcontinuation利用を検証します。CodexとOpenCodeのintegration testは決定的なfake executableを使用し、argv、environment、JSONL、continuation、failure、cancellationを検証します。実CLI exampleは別の任意manual checkであり、有効なローカル認証に依存します。

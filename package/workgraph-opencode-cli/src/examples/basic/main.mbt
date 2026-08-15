@@ -49,11 +49,14 @@ async fn main {
           events=context.events,
         )
       },
-      build_request=fn(_context, state : OpenCodeExampleState) {
-        @coding.CodingAgentRequest::CodingAgentRequest(state.instruction, [])
+      build_prompt=fn(_context, state : OpenCodeExampleState) {
+        @agent_cli.Prompt::Prompt(state.instruction)
+      },
+      select_continuation=fn(_context, _state) {
+        None
       },
       decode_response=fn(_state, response) {
-        let summary = response.summary.unwrap_or("")
+        let summary = response.text
         @core.NodeOutput::NodeOutput(
           Some(OpenCodeExamplePatch::{ summary, }),
           Some(Json::string(summary)),

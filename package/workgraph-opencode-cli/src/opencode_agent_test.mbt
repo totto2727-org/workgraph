@@ -1,7 +1,7 @@
 ///|
 test "opencode_agent 1 - constructs CLI options" {
-  let config : @sdk.OpenCodeConfigObject = {
-    "model": @sdk.ConfigString("test/model"),
+  let config : @sdk.ConfigObject = {
+    "model": Json::string("test/model"),
   }
   let options = OpenCodeAgentOptions::OpenCodeAgentOptions(
     opencode_path_override=@path.Path("/tools/opencode"),

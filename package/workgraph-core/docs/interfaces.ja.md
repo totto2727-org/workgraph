@@ -9,7 +9,7 @@
 実装は現在のMoonBitの規約に従います：
 
 - `moon.mod` と `moon.pkg` が設定フォーマットです。
-- core、coding-agent、Codex CLI、OpenCode CLIライブラリはWasm/WASIを優先します。coreとcoding-agentはJavaScript、native、Wasm/WASIをサポートし、CLI統合は同じproduction sourceでWasm/WASIとnativeをサポートします。LLMライブラリはJavaScriptを優先し、JavaScriptとnativeをサポートします。
+- core、coding-agent、Codex CLI、OpenCode CLIライブラリはWasm/WASIを優先します。coreはJavaScript、native、Wasm/WASIをサポートします。version `0.2.0`のcoding-agentとCLI統合はWasm/WASIとnativeをサポートしますが、JavaScriptはサポートしません。LLMライブラリはJavaScriptを優先し、JavaScriptとnativeをサポートします。
 - パブリックな識別子ラッパーは `Eq`、`Hash`、`Debug` を導出します。
 - 同期バリデーションとルーティングは明示的な `raise` アノテーションを使用します。
 - 非同期関数は暗黙的に raise します。
@@ -480,41 +480,26 @@ pub fn[S, P] llm_node(
 
 `mizchi/llm` のstream errorは `LlmNodeError::ProviderFailed` へ変換され、graph node failureとして保持されます。
 
-## コーディングエージェントのリクエストとレスポンス
+## コーディングエージェントとagent-sdkの境界
 
 これらのinterfaceは`workgraph-agent-cli`に属し、coreはimportしません。
 
 ```moonbit
-pub struct CodingAgentId(String) derive(Eq, Hash, Debug)
-pub struct SessionId(String) derive(Eq, Hash, Debug)
+pub struct CodingAgentId {
+  value : String
+} derive(Eq, Hash, Debug)
 
-pub(all) struct WorkspaceRef {
+pub fn CodingAgentId::CodingAgentId(
+  value : String,
+) -> CodingAgentId raise IdError
+
+pub struct WorkspaceRef {
   root : @path.Path
   additional_writable_roots : ReadOnlyArray[@path.Path]
 } derive(Debug, Eq)
-
-pub(all) struct CodingAgentRequest {
-  instruction : String
-  context_files : ReadOnlyArray[@path.Path]
-} derive(Debug, Eq)
-
-pub(all) enum CodingAgentStatus {
-  Succeeded
-  Failed
-  NeedsApproval
-} derive(Debug, Eq)
-
-pub(all) struct CodingAgentResponse {
-  status : CodingAgentStatus
-  summary : String?
-  continuation_id : String?
-  changed_files : ReadOnlyArray[@path.Path]
-} derive(Debug)
 ```
 
-キャンセルは、成功した `Cancelled` レスポンスではなく、raise されたタスクキャンセルエラーによって表現されます。
-
-アダプターは、そのSDKが信頼できる変更セットを公開しない場合、空の `changed_files` 配列を返すことがあります。
+`SessionId`、`CodingAgentRequest`、`CodingAgentStatus`、`CodingAgentResponse`、`CodingAgentSession`は削除されました。直接のagent-sdk契約は`Cli`、`CliSession`、`Prompt`、`FinalResponse`、opaqueな`Continuation`を使用します。`FinalResponse`はtext、任意のprovider session ID、changed file、任意のcontinuationを保持します。providerは空のchanged-file配列を返すことがあります。cancellationは成功レスポンスではなくraiseされたタスクキャンセルエラーです。
 
 ## コーディングエージェントポリシー
 
@@ -546,28 +531,16 @@ pub(all) struct CodingAgentOpenContext {
 
 アダプター固有のオプションはアダプターのコンストラクタに残ります。
 
-## コーディングエージェントセッション
-
-共通のセッションインターフェースは非ジェネリックであり、非同期トレイトオブジェクトを使用します。
+## コーディングエージェントファクトリー
 
 ```moonbit
-pub(open) trait CodingAgentSession {
-  fn id(Self) -> SessionId?
-  async fn execute(Self, CodingAgentRequest) -> CodingAgentResponse
-  async fn close(Self) -> Unit
-}
-
 pub(all) struct CodingAgent {
   id : CodingAgentId
-  open : async (CodingAgentOpenContext) -> &CodingAgentSession
+  open : async (CodingAgentOpenContext) -> @cli.Cli
 }
 ```
 
-ランタイムは、あるアダプターによって作成されたセッションを別のアダプターに渡すことは決してありません。
-
-`close` はセッション境界で冪等であり、CodingAgentリソースは通常のcleanupコールバックとして登録し、最大でも1回だけ実行します。
-
-実行中のセッションは、タスクキャンセルに応答して、非同期呼び出しが終了する前に、所有するプロセス作業を終了またはキャンセルします。
+`CodingAgent.open`は設定済み`Cli`を返し、Workgraph sessionをopen、close、wrapしません。nodeはscoped resourceを取得するときに1つの`CliSession`を開始または再開します。agent-sdkにidle session close操作がないためresource finalizerはno-opです。cancellableな`CliSession.prompt`がprovider cleanupを所有し、そのcleanup後にcancellationを再raiseします。
 
 ## リソーススコープとストア
 
@@ -638,7 +611,7 @@ Nodeスコープのリソースは `owner` が必要であり、そのノード�
 
 オープンに失敗したものはストアに挿入されることはありません。
 
-管理対象リソースは取得の逆順でcleanupを実行します。CodingAgentプロセスも通常の型付きリソースとして保存され、同じ取得・cleanup経路を使用します。
+管理対象リソースは取得の逆順でcleanupを実行します。CodingAgent sessionも通常の型付きリソースとして保存されますが、SDKにidle close操作がないためそのfinalizerはno-opです。
 
 ## コーディングエージェントノード
 
@@ -648,8 +621,9 @@ pub(all) struct CodingAgentNodeSpec[S, P] {
   resource_key : ResourceKey
   resource_scope : ResourceScope
   open_context : (NodeContext, S) -> CodingAgentOpenContext raise
-  build_request : (NodeContext, S) -> CodingAgentRequest raise
-  decode_response : (S, CodingAgentResponse) -> NodeOutput[P] raise
+  build_prompt : (NodeContext, S) -> @cli.Prompt raise
+  select_continuation : (NodeContext, S) -> @cli.Continuation? raise
+  decode_response : (S, @cli.FinalResponse) -> NodeOutput[P] raise
 }
 
 pub fn[S, P] coding_agent_node(
@@ -658,6 +632,8 @@ pub fn[S, P] coding_agent_node(
   spec : CodingAgentNodeSpec[S, P],
 ) -> Node[S, P]
 ```
+
+内部resource referenceは`resource_key`と`agent.id`を組み合わせるため、呼び出し側に見えるkeyによって異なるagentがsessionを共有することはありません。Node scopeはnode試行ごとにsessionを開き、Run scopeは呼び出し内で1つのsessionを再利用します。`None`は新しいsessionを開始し、`Some(Continuation)`はsessionを再開します。nodeは各promptの周囲にmutexを所有し、成功、failure、cancellation後にそれをreleaseします。continuation値はプロセス内だけに保持されます。graph runtimeは逐次的に実行されるため、複数agent nodeは順番に構成され、session、state slot、continuationを分離して保持します。
 
 ## Codexアダプター
 
@@ -688,17 +664,13 @@ pub fn CodexAgentOptions::CodexAgentOptions(
   web_search? : @codex_sdk.WebSearchMode,
 ) -> CodexAgentOptions
 
-pub(all) suberror CodexAdapterError {
-  SessionClosed
-} derive(Debug)
-
 pub fn codex_agent(
   id : CodingAgentId,
   options : CodexAgentOptions,
 ) -> CodingAgent
 ```
 
-adapterはcontext environment、workspace root、追加のwritable root、approval、network、および指定されたoptionをagent-sdkのCodex CLI sessionへmapします。`FinalResponse.text`を`summary`、`FinalResponse.session_id`を`continuation_id`、`FinalResponse.changed_files`を`changed_files`として返します。sessionをcloseすると、以降の実行は`CodexAdapterError::SessionClosed`をraiseします。
+adapterはcontext environment、workspace root、追加のwritable root、approval、network、および指定されたoptionを設定済みagent-sdk Codex `Cli`へmapします。共有nodeがsession lifecycleを所有して`FinalResponse`をdecodeし、Workgraph close操作やpost-close errorはありません。
 
 ## OpenCodeアダプター
 
@@ -727,21 +699,17 @@ pub fn OpenCodeAgentOptions::OpenCodeAgentOptions(
   extra_env? : Map[String, String] = Map([]),
 ) -> OpenCodeAgentOptions
 
-pub(all) suberror OpenCodeAdapterError {
-  SessionClosed
-} derive(Debug)
-
 pub fn opencode_agent(
   id : CodingAgentId,
   options : OpenCodeAgentOptions,
 ) -> CodingAgent
 ```
 
-adapterは`agent-sdk/cli/opencode`を通じてagent-sdk CLI sessionを作成し、provider-native option typeに限って`totto2727/opencode-sdk/cli`を使用します。別途管理される`opencode-server-sdk`はimportしません。相対context fileをworkspace rootに対して解決してから共通promptへ転送します。継承されたprocess environmentは保持され、adapter entryが次に適用され、callerのcontext entryが優先されます。正常なturnは`FinalResponse.text`を`summary`、`FinalResponse.session_id`を`continuation_id`、`FinalResponse.changed_files`を`changed_files`として返します。cancellationとCLI errorはagent-sdkを通じて伝播します。論理sessionのcloseはidempotentであり、以降の実行は`OpenCodeAdapterError::SessionClosed`をraiseします。
+adapterは`agent-sdk/cli/opencode`を通じて設定済みagent-sdk `Cli`を返し、provider-native option typeに限って`totto2727/opencode-sdk/cli`を使用します。別途管理される`opencode-server-sdk`はimportしません。相対context fileをworkspace rootに対して解決してから共通promptへ転送します。継承されたprocess environmentは保持され、adapter entryが次に適用され、callerのcontext entryが優先されます。cancellationとCLI errorはagent-sdkを通じて伝播し、共有nodeがsession lifecycleを所有するため、論理closeやpost-close errorはありません。
 
 ## 確定したMVPの設計判断
 
-1. core、coding-agent、visualizationの実行はJavaScript、native、Wasm/WASIをサポートし、LLMの実行はJavaScriptとnativeをサポートします。CodexとOpenCodeのCLI integrationは同じproduction sourceでWasm/WASIとnativeをサポートします。
+1. coreとvisualizationの実行はJavaScript、native、Wasm/WASIをサポートし、coding-agent、Codex、OpenCode CLIの実行はWasm/WASIとnativeをサポートしますが、JavaScriptはサポートしません。LLMの実行はJavaScriptとnativeをサポートします。
 2. グラフの実行は逐次的です。
 3. サイクルは許可され、`max_steps` によって制限されます。
 4. 各ノードには正確に1つのルーターがあります。
@@ -750,11 +718,12 @@ adapterは`agent-sdk/cli/opencode`を通じてagent-sdk CLI sessionを作成し�
 7. キャンセルはタスクキャンセルを使用します。
 8. 非同期クリーンアップは明示的であり、キャンセルから保護され、タイムアウトで制限されます。
 9. リソーススコープは各コーディングエージェントノードの仕様によって選択されます。
-10. CodexとOpenCodeは、1つのセッション契約の背後にある別個のアダプターです。
+10. CodexとOpenCodeは別々の設定済み`Cli`ファクトリーですが、1つの直接agent-sdk node契約の背後にあります。
 11. 並列ノード、チェックポイント、永続状態、アプリケーションスコープのリソースは先送りされます。
 
 ## 参考文献
 
+- [agent-sdk 0.2.0 source](https://github.com/totto2727-org/agent-sdk/tree/9abf45ee53a543149ce19e0542733ec86d055488)
 - [MoonBit async programming](https://docs.moonbitlang.com/en/latest/language/async-experimental.html)
 - [MoonBit error handling](https://docs.moonbitlang.com/en/latest/language/error-handling.html)
 - [MoonBit methods and traits](https://docs.moonbitlang.com/en/latest/language/methods.html)

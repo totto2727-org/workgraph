@@ -1,5 +1,4 @@
 import {
-  "totto2727/agent-sdk/cli" @agent_cli,
   "totto2727/agent-sdk/cli/opencode" @opencode_adapter,
   "moonbitlang/async",
   "moonbitlang/core/env",

@@ -14,47 +14,6 @@ pub fn WorkspaceRef::WorkspaceRef(
 }
 
 ///|
-pub struct CodingAgentRequest {
-  instruction : String
-  context_files : ReadOnlyArray[@path.Path]
-} derive(Debug, Eq)
-
-///|
-/// Creates one coding-agent request.
-pub fn CodingAgentRequest::CodingAgentRequest(
-  instruction : String,
-  context_files : ReadOnlyArray[@path.Path],
-) -> CodingAgentRequest {
-  CodingAgentRequest::{ instruction, context_files }
-}
-
-///|
-pub(all) enum CodingAgentStatus {
-  Succeeded
-  Failed
-  NeedsApproval
-} derive(Debug, Eq)
-
-///|
-pub struct CodingAgentResponse {
-  status : CodingAgentStatus
-  summary : String?
-  continuation_id : String?
-  changed_files : ReadOnlyArray[@path.Path]
-} derive(Debug)
-
-///|
-/// Creates one coding-agent response.
-pub fn CodingAgentResponse::CodingAgentResponse(
-  status~ : CodingAgentStatus,
-  summary~ : String?,
-  continuation_id~ : String?,
-  changed_files~ : ReadOnlyArray[@path.Path],
-) -> CodingAgentResponse {
-  CodingAgentResponse::{ status, summary, continuation_id, changed_files }
-}
-
-///|
 pub(all) enum ApprovalPolicy {
   Never
   OnRequest
@@ -102,27 +61,16 @@ pub fn CodingAgentOpenContext::CodingAgentOpenContext(
 }
 
 ///|
-/// Represents a live provider-specific coding-agent session.
-///
-/// This trait is open so downstream integrations can provide session
-/// implementations for additional coding-agent providers.
-pub(open) trait CodingAgentSession {
-  fn id(Self) -> SessionId?
-  async fn execute(Self, CodingAgentRequest) -> CodingAgentResponse
-  async fn close(Self) -> Unit
-}
-
-///|
 pub struct CodingAgent {
   id : CodingAgentId
-  open : async (CodingAgentOpenContext) -> &CodingAgentSession
+  open : async (CodingAgentOpenContext) -> @cli.Cli
 }
 
 ///|
 /// Creates a coding-agent adapter.
 pub fn CodingAgent::CodingAgent(
   id : CodingAgentId,
-  open : async (CodingAgentOpenContext) -> &CodingAgentSession,
+  open : async (CodingAgentOpenContext) -> @cli.Cli,
 ) -> CodingAgent {
   CodingAgent::{ id, open }
 }

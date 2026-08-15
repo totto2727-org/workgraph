@@ -6,6 +6,7 @@ import {
   "moonbitlang/core/json",
   "moonbitlang/core/string",
   "moonbitlang/x/path",
+  "totto2727/agent-sdk/cli" @agent_cli,
   "totto2727/opencode-sdk/cli" @opencode_sdk,
   "totto2727/workgraph-agent-cli" @coding_agent,
   "totto2727/workgraph-core" @core,

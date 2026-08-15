@@ -465,28 +465,32 @@ The trade-off is that callers requiring durable audit logs must provide persiste
 
 ## Coding-Agent Boundary
 
-The `workgraph-agent-cli` package exposes a provider-neutral session trait.
+The `workgraph-agent-cli` package defines the Workgraph-owned coding-agent context and direct agent-sdk node contract.
 
 ```moonbit
-pub(open) trait CodingAgentSession {
-  fn id(Self) -> SessionId?
-  async fn execute(Self, CodingAgentRequest) -> CodingAgentResponse
-  async fn close(Self) -> Unit
-}
-
 pub(all) struct CodingAgent {
   id : CodingAgentId
-  open : async (CodingAgentOpenContext) -> &CodingAgentSession
+  open : async (CodingAgentOpenContext) -> @cli.Cli
+}
+
+pub(all) struct CodingAgentNodeSpec[S, P] {
+  agent : CodingAgent
+  resource_key : ResourceKey
+  resource_scope : ResourceScope
+  open_context : (NodeContext, S) -> CodingAgentOpenContext raise
+  build_prompt : (NodeContext, S) -> @cli.Prompt raise
+  select_continuation : (NodeContext, S) -> @cli.Continuation? raise
+  decode_response : (S, @cli.FinalResponse) -> NodeOutput[P] raise
 }
 ```
 
-Source: `../workgraph-agent-cli/src/coding_agent_contract.mbt`
+Source: `../workgraph-agent-cli/src/coding_agent_contract.mbt` and `../workgraph-agent-cli/src/coding_agent_node.mbt`
 
-The graph runtime and common coding-agent node therefore do not need to know whether the session is implemented by Codex, OpenCode, or another provider.
+The provider adapter returns a configured `Cli`; the shared node acquires one `CliSession` per agent ID and resource scope, starts or resumes it once, serializes `prompt` with a node-owned mutex, and decodes the `FinalResponse`. The finalizer is a no-op because agent-sdk has no idle close operation. Provider cleanup belongs to the cancellable prompt call, so cancellation is re-raised after that cleanup.
 
-The `open` callback receives the run task group, workspace policy, approval policy, network policy, environment, and event sink.
+`Continuation` is opaque and in-process only. It cannot be serialized as a checkpoint and cannot cross agent identities. The graph runtime remains sequential, so multiple Codex, OpenCode, or custom agent nodes compose in order while their resource keys, sessions, state slots, and continuations remain isolated. The removed Workgraph mirror types are `SessionId`, `CodingAgentRequest`, `CodingAgentStatus`, `CodingAgentResponse`, and `CodingAgentSession`.
 
-This is dependency inversion at the package boundary: `workgraph-agent-cli` defines the capability, provider integration packages implement it, and core remains unaware of coding-agent details.
+This is dependency inversion at the package boundary: `workgraph-agent-cli` owns the node contract, provider integration packages configure `Cli`, and core remains unaware of coding-agent details.
 
 ## Worked Transition
 

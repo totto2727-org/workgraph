@@ -9,7 +9,7 @@ The snippets record the implemented and verified public contract for the asynchr
 The implementation uses current MoonBit conventions:
 
 - `moon.mod` and `moon.pkg` are the configuration formats.
-- Core, coding-agent, Codex CLI, and OpenCode CLI libraries prefer Wasm/WASI; core and coding-agent support JavaScript, native, and Wasm/WASI, while the CLI integrations support Wasm/WASI and native from the same production source; the LLM library prefers JavaScript and supports JavaScript and native.
+- Core, coding-agent, Codex CLI, and OpenCode CLI libraries prefer Wasm/WASI; core supports JavaScript, native, and Wasm/WASI, while version `0.2.0` of coding-agent and the CLI integrations support Wasm/WASI and native, but not JavaScript. The LLM library prefers JavaScript and supports JavaScript and native.
 - Public identifier wrappers derive `Eq`, `Hash`, and `Debug`.
 - Synchronous validation and routing use explicit `raise` annotations.
 - Async functions raise implicitly.
@@ -480,41 +480,26 @@ The caller constructs any `mizchi/llm` provider, boxes it with the provider pack
 
 `mizchi/llm` stream errors are converted to `LlmNodeError::ProviderFailed` and remain graph node failures.
 
-## Coding-Agent Request and Response
+## Coding-Agent and agent-sdk Boundary
 
 These interfaces belong to `workgraph-agent-cli`; core does not import them.
 
 ```moonbit
-pub struct CodingAgentId(String) derive(Eq, Hash, Debug)
-pub struct SessionId(String) derive(Eq, Hash, Debug)
+pub struct CodingAgentId {
+  value : String
+} derive(Eq, Hash, Debug)
 
-pub(all) struct WorkspaceRef {
+pub fn CodingAgentId::CodingAgentId(
+  value : String,
+) -> CodingAgentId raise IdError
+
+pub struct WorkspaceRef {
   root : @path.Path
   additional_writable_roots : ReadOnlyArray[@path.Path]
 } derive(Debug, Eq)
-
-pub(all) struct CodingAgentRequest {
-  instruction : String
-  context_files : ReadOnlyArray[@path.Path]
-} derive(Debug, Eq)
-
-pub(all) enum CodingAgentStatus {
-  Succeeded
-  Failed
-  NeedsApproval
-} derive(Debug, Eq)
-
-pub(all) struct CodingAgentResponse {
-  status : CodingAgentStatus
-  summary : String?
-  continuation_id : String?
-  changed_files : ReadOnlyArray[@path.Path]
-} derive(Debug)
 ```
 
-Cancellation is represented by the raised task-cancellation error rather than a successful `Cancelled` response.
-
-An adapter may return an empty `changed_files` array when its SDK does not expose a reliable change set.
+`SessionId`, `CodingAgentRequest`, `CodingAgentStatus`, `CodingAgentResponse`, and `CodingAgentSession` were removed. The direct agent-sdk contract uses `Cli`, `CliSession`, `Prompt`, `FinalResponse`, and opaque `Continuation`; `FinalResponse` retains text, an optional provider session ID, changed files, and an optional continuation. A provider may report an empty changed-file array. Cancellation remains a raised task-cancellation error, not a successful response.
 
 ## Coding-Agent Policy
 
@@ -546,28 +531,16 @@ Environment and policy are session-open settings because the current Codex and O
 
 Adapter-specific options remain in adapter constructors.
 
-## Coding-Agent Session
-
-The common session interface is non-generic and uses an async trait object.
+## Coding-Agent Factory
 
 ```moonbit
-pub(open) trait CodingAgentSession {
-  fn id(Self) -> SessionId?
-  async fn execute(Self, CodingAgentRequest) -> CodingAgentResponse
-  async fn close(Self) -> Unit
-}
-
 pub(all) struct CodingAgent {
   id : CodingAgentId
-  open : async (CodingAgentOpenContext) -> &CodingAgentSession
+  open : async (CodingAgentOpenContext) -> @cli.Cli
 }
 ```
 
-The runtime never passes a session created by one adapter into another adapter.
-
-`close` is idempotent at the session boundary, and the coding-agent resource registers it as an ordinary cleanup callback that runs at most once.
-
-An executing session responds to task cancellation by terminating or cancelling its owned process work before the async call exits.
+`CodingAgent.open` returns a configured `Cli`; it does not open, close, or wrap a Workgraph session. The node starts or resumes one `CliSession` when acquiring its scoped resource. The resource finalizer is a no-op because agent-sdk has no idle session close operation. The cancellable `CliSession.prompt` call owns provider cleanup and re-raises cancellation after that cleanup.
 
 ## Resource Scope and Store
 
@@ -638,7 +611,7 @@ Node-scoped resources require `owner` and run their registered cleanup after tha
 
 Open failures are never inserted into the store.
 
-Managed resources run cleanup in reverse acquisition order. A coding-agent process is stored as an ordinary typed resource and uses this same acquisition and cleanup path.
+Managed resources run cleanup in reverse acquisition order. A coding-agent session is stored as an ordinary typed resource, but its finalizer is a no-op because the SDK has no idle close operation.
 
 ## Coding-Agent Node
 
@@ -648,8 +621,9 @@ pub(all) struct CodingAgentNodeSpec[S, P] {
   resource_key : ResourceKey
   resource_scope : ResourceScope
   open_context : (NodeContext, S) -> CodingAgentOpenContext raise
-  build_request : (NodeContext, S) -> CodingAgentRequest raise
-  decode_response : (S, CodingAgentResponse) -> NodeOutput[P] raise
+  build_prompt : (NodeContext, S) -> @cli.Prompt raise
+  select_continuation : (NodeContext, S) -> @cli.Continuation? raise
+  decode_response : (S, @cli.FinalResponse) -> NodeOutput[P] raise
 }
 
 pub fn[S, P] coding_agent_node(
@@ -658,6 +632,8 @@ pub fn[S, P] coding_agent_node(
   spec : CodingAgentNodeSpec[S, P],
 ) -> Node[S, P]
 ```
+
+The internal resource reference combines `resource_key` with `agent.id`, so a caller-visible key cannot cause different agents to share a session. Node scope opens a session for one node attempt; run scope reuses one session within an invocation. `None` starts a fresh session and `Some(Continuation)` resumes one. The node owns a mutex around each prompt, releases it after success, failure, or cancellation, and keeps continuation values in-process only. Graph runtime execution remains sequential, so multiple agent nodes compose in order while retaining isolated sessions, state slots, and continuations.
 
 ## Codex Adapter
 
@@ -688,17 +664,13 @@ pub fn CodexAgentOptions::CodexAgentOptions(
   web_search? : @codex_sdk.WebSearchMode,
 ) -> CodexAgentOptions
 
-pub(all) suberror CodexAdapterError {
-  SessionClosed
-} derive(Debug)
-
 pub fn codex_agent(
   id : CodingAgentId,
   options : CodexAgentOptions,
 ) -> CodingAgent
 ```
 
-The adapter maps context environment, workspace root, additional writable roots, approval, network, and supplied options to an agent-sdk Codex CLI session. It returns `FinalResponse.text` as `summary`, `FinalResponse.session_id` as `continuation_id`, and `FinalResponse.changed_files` as `changed_files`. Closing a session makes later execution raise `CodexAdapterError::SessionClosed`.
+The adapter maps context environment, workspace root, additional writable roots, approval, network, and supplied options to a configured agent-sdk Codex `Cli`. The shared node owns session lifecycle and decodes `FinalResponse`; there is no Workgraph close operation or post-close error.
 
 ## OpenCode Adapter
 
@@ -727,21 +699,17 @@ pub fn OpenCodeAgentOptions::OpenCodeAgentOptions(
   extra_env? : Map[String, String] = Map([]),
 ) -> OpenCodeAgentOptions
 
-pub(all) suberror OpenCodeAdapterError {
-  SessionClosed
-} derive(Debug)
-
 pub fn opencode_agent(
   id : CodingAgentId,
   options : OpenCodeAgentOptions,
 ) -> CodingAgent
 ```
 
-The adapter creates an agent-sdk CLI session through `agent-sdk/cli/opencode`, using `totto2727/opencode-sdk/cli` only for provider-native option types, and does not import the separately maintained `opencode-server-sdk`. It resolves relative context files against the workspace root before forwarding them in a common prompt. The inherited process environment is retained, adapter entries are applied next, and caller context entries take precedence. Successful turns return `FinalResponse.text` as `summary`, `FinalResponse.session_id` as `continuation_id`, and `FinalResponse.changed_files` as `changed_files`. Cancellation and CLI errors propagate through agent-sdk. Closing the logical session is idempotent and later execution raises `OpenCodeAdapterError::SessionClosed`.
+The adapter returns a configured agent-sdk `Cli` through `agent-sdk/cli/opencode`, using `totto2727/opencode-sdk/cli` only for provider-native option types, and does not import the separately maintained `opencode-server-sdk`. It resolves relative context files against the workspace root before forwarding them in a common prompt. The inherited process environment is retained, adapter entries are applied next, and caller context entries take precedence. Cancellation and CLI errors propagate through agent-sdk; the shared node owns session lifecycle and there is no logical close or post-close error.
 
 ## Fixed MVP Decisions
 
-1. Core, coding-agent, and visualization execution supports JavaScript, native, and Wasm/WASI; LLM execution supports JavaScript and native; Codex and OpenCode CLI integrations support Wasm/WASI and native from the same production source.
+1. Core and visualization execution supports JavaScript, native, and Wasm/WASI; coding-agent, Codex, and OpenCode CLI execution supports Wasm/WASI and native, but not JavaScript; LLM execution supports JavaScript and native.
 2. Graph execution is sequential.
 3. Cycles are allowed and bounded by `max_steps`.
 4. Each node has exactly one router.
@@ -750,11 +718,12 @@ The adapter creates an agent-sdk CLI session through `agent-sdk/cli/opencode`, u
 7. Cancellation uses task cancellation.
 8. Async cleanup is explicit, cancellation-protected, and timeout-bounded.
 9. Resource scope is selected by each coding-agent node specification.
-10. Codex and OpenCode are separate adapters behind one session contract.
+10. Codex and OpenCode are separate configured `Cli` factories behind one direct agent-sdk node contract.
 11. Parallel nodes, checkpointing, durable state, and application-scoped resources are deferred.
 
 ## References
 
+- [agent-sdk 0.2.0 source](https://github.com/totto2727-org/agent-sdk/tree/9abf45ee53a543149ce19e0542733ec86d055488)
 - [MoonBit async programming](https://docs.moonbitlang.com/en/latest/language/async-experimental.html)
 - [MoonBit error handling](https://docs.moonbitlang.com/en/latest/language/error-handling.html)
 - [MoonBit methods and traits](https://docs.moonbitlang.com/en/latest/language/methods.html)

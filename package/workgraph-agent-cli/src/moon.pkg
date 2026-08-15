@@ -1,3 +1,5 @@
+supported_targets = "+wasm+native"
+
 import {
   "Yoorkin/any",
   "moonbitlang/async",
@@ -5,5 +7,6 @@ import {
   "moonbitlang/core/immut/hashmap" @immut_hashmap,
   "moonbitlang/x/path",
   "totto2727/any-collection" @any_collection,
+  "totto2727/agent-sdk/cli",
   "totto2727/workgraph-core" @core,
 }

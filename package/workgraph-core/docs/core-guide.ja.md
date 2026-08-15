@@ -465,28 +465,32 @@ pub fn EventSink::try_emit(self : EventSink, event : GraphEvent) -> Unit {
 
 ## コーディングエージェント境界
 
-`workgraph-agent-cli`パッケージはプロバイダに依存しないセッショントレイトを公開します。
+`workgraph-agent-cli`パッケージはWorkgraphが所有するcoding-agent contextと直接agent-sdk node契約を定義します。
 
 ```moonbit
-pub(open) trait CodingAgentSession {
-  fn id(Self) -> SessionId?
-  async fn execute(Self, CodingAgentRequest) -> CodingAgentResponse
-  async fn close(Self) -> Unit
-}
-
 pub(all) struct CodingAgent {
   id : CodingAgentId
-  open : async (CodingAgentOpenContext) -> &CodingAgentSession
+  open : async (CodingAgentOpenContext) -> @cli.Cli
+}
+
+pub(all) struct CodingAgentNodeSpec[S, P] {
+  agent : CodingAgent
+  resource_key : ResourceKey
+  resource_scope : ResourceScope
+  open_context : (NodeContext, S) -> CodingAgentOpenContext raise
+  build_prompt : (NodeContext, S) -> @cli.Prompt raise
+  select_continuation : (NodeContext, S) -> @cli.Continuation? raise
+  decode_response : (S, @cli.FinalResponse) -> NodeOutput[P] raise
 }
 ```
 
-出典: `../workgraph-agent-cli/src/coding_agent_contract.mbt`
+出典: `../workgraph-agent-cli/src/coding_agent_contract.mbt`および`../workgraph-agent-cli/src/coding_agent_node.mbt`
 
-したがって、グラフランタイムと共通のコーディングエージェントノードは、セッションが Codex、OpenCode、または別のプロバイダーによって実装されているかを知る必要はありません。
+provider adapterは設定済み`Cli`を返します。共有nodeはagent IDとresource scopeごとに1つの`CliSession`を取得し、正確に1回開始または再開し、node所有のmutexで`prompt`を直列化して、`FinalResponse`をdecodeします。agent-sdkにはidle close操作がないためfinalizerはno-opです。provider cleanupはcancellableなprompt呼び出しが所有するため、cleanup後にcancellationを再raiseします。
 
-`open` コールバックは、実行タスクグループ、ワークスペースポリシー、承認ポリシー、ネットワークポリシー、環境、イベントシンクを受け取ります。
+`Continuation`はopaqueでプロセス内だけの値です。checkpointとしてserializeできず、agent identityをまたげません。graph runtimeは逐次的なため、複数のCodex、OpenCode、custom agent nodeは順番に構成され、resource key、session、state slot、continuationを分離して保持します。削除されたWorkgraph mirror typeは`SessionId`、`CodingAgentRequest`、`CodingAgentStatus`、`CodingAgentResponse`、`CodingAgentSession`です。
 
-これはパッケージ境界での依存性逆転です。`workgraph-agent-cli`が能力を定義し、provider integrationパッケージが実装し、coreはcoding-agentの詳細を認識しません。
+これはパッケージ境界での依存性逆転です。`workgraph-agent-cli`がnode契約を所有し、provider integrationパッケージが`Cli`を設定し、coreはcoding-agentの詳細を認識しません。
 
 ## 動作する遷移の例
 
