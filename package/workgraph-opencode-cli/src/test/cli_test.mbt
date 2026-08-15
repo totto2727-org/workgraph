@@ -242,7 +242,9 @@ async test "opencode_agent 3 - maps context files through the public agent" {
       let cli = (opencode_cli_agent(fixture, environment).open)(
         opencode_cli_context(fixture, group),
       )
-      cli.start().prompt(
+      cli
+      .start()
+      .prompt(
         @agent_cli.Prompt::Prompt("fix the issue", context_files=[
           @path.Path(fixture.root).join(@path.Path("README.md")),
           @path.Path("/shared/guide.md"),
@@ -389,10 +391,9 @@ async test "opencode_agent CLI integration 3 - preserves process failure" {
 async test "opencode_agent CLI integration 4 - preserves invalid event failure" {
   with_opencode_cli_fixture(async fn(fixture) {
     @async.with_task_group(async fn(group) {
-      let cli = (opencode_cli_agent(
-        fixture,
-        fixture.environment(["{not-json"]),
-      ).open)(opencode_cli_context(fixture, group))
+      let cli = (opencode_cli_agent(fixture, fixture.environment(["{not-json"])).open)(
+        opencode_cli_context(fixture, group),
+      )
       let message = try {
         cli.start().prompt(@agent_cli.Prompt::Prompt("malformed")) |> ignore
         "no error"
@@ -400,7 +401,9 @@ async test "opencode_agent CLI integration 4 - preserves invalid event failure" 
         @opencode_sdk.SdkError::InvalidEvent(message~) => message
         error => "unexpected: \{error}"
       }
-      assert_true(message.has_prefix("Failed to parse OpenCode event: {not-json"))
+      assert_true(
+        message.has_prefix("Failed to parse OpenCode event: {not-json"),
+      )
     })
   })
 }

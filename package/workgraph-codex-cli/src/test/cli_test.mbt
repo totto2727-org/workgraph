@@ -58,7 +58,9 @@ async fn with_codex_integration_fixture(
   let fixture = codex_integration_fixture()
   run(fixture) catch {
     error => {
-      @async.protect_from_cancel(async fn() { @fs.rmdir(fixture.root, recursive=true) })
+      @async.protect_from_cancel(async fn() {
+        @fs.rmdir(fixture.root, recursive=true)
+      })
       raise error
     }
   }
@@ -121,8 +123,10 @@ fn codex_integration_context(
     approval=@coding_agent.OnRequest,
     network=@coding_agent.Enabled,
     environment=@immut_hashmap.HashMap([
-      ("PATH", "/usr/bin:/bin"), ("FAKE_CODEX_RECORDS", fixture.records),
-      ("FAKE_CODEX_MODE", mode), ("FAKE_CODEX_THREAD_ID", thread_id),
+      ("PATH", "/usr/bin:/bin"),
+      ("FAKE_CODEX_RECORDS", fixture.records),
+      ("FAKE_CODEX_MODE", mode),
+      ("FAKE_CODEX_THREAD_ID", thread_id),
       ("MAPPED_ENV", "present"),
     ]),
     events=@core.EventSink::discard(),
@@ -151,11 +155,13 @@ fn codex_integration_node(
       resource_key=@core.ResourceKey::ResourceKey("codex-integration"),
       resource_scope=@core.Run,
       open_context=fn(context, _state) {
-        codex_integration_context(fixture, context.task_group, mode, thread_id=thread_id)
+        codex_integration_context(fixture, context.task_group, mode, thread_id~)
       },
       build_prompt=fn(_context, state) {
         if state == 0 {
-          @agent_cli.Prompt::Prompt("first instruction", context_files=[@path.Path("README.md")])
+          @agent_cli.Prompt::Prompt("first instruction", context_files=[
+            @path.Path("README.md"),
+          ])
         } else {
           @agent_cli.Prompt::Prompt("second instruction")
         }
@@ -189,14 +195,26 @@ async test "codex_agent integration 1 - decodes final responses from node callba
       let node_id = @core.NodeId::NodeId("codex-integration")
       definition.set_router(
         node_id,
-        @core.router([@core.DeclaredRoute::DeclaredRoute(node_id)], fn(state, _completion) {
-          if state < 2 { @core.To(node_id) } else { @core.End }
+        @core.router([@core.DeclaredRoute::DeclaredRoute(node_id)], fn(
+          state,
+          _completion,
+        ) {
+          if state < 2 {
+            @core.To(node_id)
+          } else {
+            @core.End
+          }
         }),
       )
       definition.set_entry(node_id)
-      let result = @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(0)
+      let result = @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(
+        0,
+      )
       inspect(result.final_state, content="2")
-      inspect(observations.join("|"), content="summary-1:thread-1:src/success.mbt:present|summary-2:thread-1:src/success.mbt:present")
+      inspect(
+        observations.join("|"),
+        content="summary-1:thread-1:src/success.mbt:present|summary-2:thread-1:src/success.mbt:present",
+      )
       let first_args = codex_integration_text("\{fixture.records}/args.1")
       let second_args = codex_integration_text("\{fixture.records}/args.2")
       assert_false(first_args.contains("\nresume\n"))
@@ -206,10 +224,24 @@ async test "codex_agent integration 1 - decodes final responses from node callba
       assert_true(first_args.contains("\n--cd\n\{fixture.root}\n"))
       assert_true(first_args.contains("\n--add-dir\n\{fixture.root}/extra\n"))
       assert_true(first_args.contains("\n--skip-git-repo-check\n"))
-      assert_true(first_args.contains("\n--config\napproval_policy=\"on-request\"\n"))
-      assert_true(first_args.contains("\n--config\nsandbox_workspace_write.network_access=true\n"))
-      assert_true(codex_integration_text("\{fixture.records}/env.1").contains("MAPPED_ENV=present"))
-      assert_true(codex_integration_text("\{fixture.records}/input.1").contains("Context files supplied by the caller:\nREADME.md"))
+      assert_true(
+        first_args.contains("\n--config\napproval_policy=\"on-request\"\n"),
+      )
+      assert_true(
+        first_args.contains(
+          "\n--config\nsandbox_workspace_write.network_access=true\n",
+        ),
+      )
+      assert_true(
+        codex_integration_text("\{fixture.records}/env.1").contains(
+          "MAPPED_ENV=present",
+        ),
+      )
+      assert_true(
+        codex_integration_text("\{fixture.records}/input.1").contains(
+          "Context files supplied by the caller:\nREADME.md",
+        ),
+      )
     }
   })
   assert_false(@fs.exists(root))
@@ -232,11 +264,21 @@ async test "codex_agent integration 2 - starts configured resumed thread through
         @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
       )
       definition.add_node(node)
-      definition.set_router(node_id, @core.router([], fn(_state, _completion) { @core.End }))
+      definition.set_router(
+        node_id,
+        @core.router([], fn(_state, _completion) { @core.End }),
+      )
       definition.set_entry(node_id)
       @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(0) |> ignore
-      inspect(observations.join("|"), content="summary-1:thread-existing:src/success.mbt:present")
-      assert_true(codex_integration_text("\{fixture.records}/args.1").contains("\nresume\nthread-existing\n"))
+      inspect(
+        observations.join("|"),
+        content="summary-1:thread-existing:src/success.mbt:present",
+      )
+      assert_true(
+        codex_integration_text("\{fixture.records}/args.1").contains(
+          "\nresume\nthread-existing\n",
+        ),
+      )
     }
   })
   assert_false(@fs.exists(root))
@@ -277,25 +319,39 @@ async test "codex_agent integration 4 - cancellation reaches provider prompt thr
         @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
       )
       definition.add_node(node)
-      definition.set_router(node_id, @core.router([], fn(_state, _completion) { @core.End }))
+      definition.set_router(
+        node_id,
+        @core.router([], fn(_state, _completion) { @core.End }),
+      )
       definition.set_entry(node_id)
       let runtime = @core.GraphRuntime::GraphRuntime(
         definition.compile(),
         events=@core.EventSink::EventSink(fn(event) { events.push(event) }),
       )
-      let task = group.spawn(async fn() { runtime.invoke(0) |> ignore }, allow_failure=true)
+      let task = group.spawn(
+        async fn() { runtime.invoke(0) |> ignore },
+        allow_failure=true,
+      )
       codex_integration_wait_for("\{fixture.records}/started.1")
       let pid = codex_integration_text("\{fixture.records}/pid.1")
       task.cancel()
-      let cancelled = try { task.wait(); false } catch { error => @async.is_cancellation_error(error) }
+      let cancelled = try {
+        task.wait()
+        false
+      } catch {
+        error => @async.is_cancellation_error(error)
+      }
       @async.with_timeout(2000, async fn() {
-        while @process.collect_output("/bin/kill", ["-0", pid.trim().to_owned()]).0 == 0 {
+        while @process.collect_output("/bin/kill", ["-0", pid.trim().to_owned()]).0 ==
+              0 {
           @async.pause()
         }
       })
       let mut run_cancelled = 0
       for event in events {
-        if event is @core.RunCancelled(_) { run_cancelled = run_cancelled + 1 }
+        if event is @core.RunCancelled(_) {
+          run_cancelled = run_cancelled + 1
+        }
       }
       inspect(cancelled, content="true")
       inspect(run_cancelled, content="1")

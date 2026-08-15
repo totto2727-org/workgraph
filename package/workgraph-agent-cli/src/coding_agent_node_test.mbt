@@ -424,7 +424,10 @@ async test "coding_agent_node isolation 2 - sequential graph keeps configured ag
           responses.push(
             "\{response.text}:\{response.session_id.unwrap_or("missing")}",
           )
-          @core.NodeOutput::NodeOutput(Some(1), Some(Json::string(response.text)))
+          @core.NodeOutput::NodeOutput(
+            Some(1),
+            Some(Json::string(response.text)),
+          )
         },
       ),
     )
@@ -445,9 +448,10 @@ async test "coding_agent_node isolation 2 - sequential graph keeps configured ag
       @core.To(node_b.id)
     }),
   )
-  definition.set_router(node_b.id, @core.router([], fn(_state, _completion) {
-    @core.End
-  }))
+  definition.set_router(
+    node_b.id,
+    @core.router([], fn(_state, _completion) { @core.End }),
+  )
   definition.set_entry(node_a.id)
   let runtime = @core.GraphRuntime::GraphRuntime(
     definition.compile(),
@@ -554,7 +558,10 @@ async test "coding_agent_node continuation 2 - selected opaque continuation resu
           if response.continuation is Some(continuation) {
             selected_continuation = Some(continuation)
           }
-          @core.NodeOutput::NodeOutput(Some(1), Some(Json::string(response.text)))
+          @core.NodeOutput::NodeOutput(
+            Some(1),
+            Some(Json::string(response.text)),
+          )
         },
       ),
     )
@@ -601,9 +608,10 @@ async test "coding_agent_node continuation 2 - selected opaque continuation resu
       @core.To(resumed_a.id)
     }),
   )
-  definition.set_router(resumed_a.id, @core.router([], fn(_state, _completion) {
-    @core.End
-  }))
+  definition.set_router(
+    resumed_a.id,
+    @core.router([], fn(_state, _completion) { @core.End }),
+  )
   definition.set_entry(first_a.id)
   let result = @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(0)
   inspect(result.steps, content="3")
