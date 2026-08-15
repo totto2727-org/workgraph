@@ -24,18 +24,18 @@ package/
     └── src/test/
 ```
 
-Core owns identifiers, graph construction and compilation, runtime state reduction, events, coding-agent contracts, and the in-memory resource store. It does not import LLM or CLI SDKs.
+Core owns identifiers, graph construction and compilation, runtime state reduction, events, and the in-memory resource store. It does not import LLM or CLI SDKs; coding-agent contracts belong to `workgraph-agent-cli`.
 
 `workgraph-agent-cli`, `workgraph-llm`, and `workgraph-visualization` each import core. Codex and OpenCode import core and agent CLI plus only their corresponding CLI SDK.
 
 ## Target Policy
 
-- `workgraph-core`, `workgraph-agent-cli`, and `workgraph-visualization` prefer Wasm/WASI and support JavaScript, native, and Wasm/WASI. `workgraph-llm` prefers JavaScript and supports JavaScript and native because `mizchi/llm` uses aborting Wasm stubs for runtime operations.
-- `workgraph-codex-cli` and `workgraph-opencode-cli` prefer and support native because their published SDK dependencies are native-only.
+- `workgraph-core` and `workgraph-visualization` prefer Wasm/WASI and support JavaScript, native, and Wasm/WASI. `workgraph-llm` prefers JavaScript and supports JavaScript and native because `mizchi/llm` uses aborting Wasm stubs for runtime operations.
+- Version `0.2.0` of `workgraph-agent-cli`, `workgraph-codex-cli`, and `workgraph-opencode-cli` prefers Wasm/WASI and supports Wasm/WASI and native from the same production source; JavaScript is not supported. They resolve published `agent-sdk@0.2.0` and provider SDK `0.4.0` dependencies. Process integration tests and optional real CLI examples remain native-only.
 
 ## Test Ownership
 
-Unit tests remain beside their implementation files. LLM provider, Codex CLI, and OpenCode CLI integration tests live under the owning module's `src/test` package. The former shared testing helpers and cross-module E2E workflow were removed because they existed only for the deleted aggregate workflow suite.
+Portable contract tests remain beside their implementation files. LLM provider and native process-backed Codex/OpenCode integration tests live under the owning module's `src/test` package. The former shared testing helpers and cross-module E2E workflow were removed because they existed only for the deleted aggregate workflow suite.
 
 ## Examples
 

@@ -24,18 +24,18 @@ package/
     └── src/test/
 ```
 
-coreは識別子、グラフ構築とコンパイル、ランタイムのstate reducer、イベント、coding-agent契約、インメモリresource storeを所有します。LLM SDKやCLI SDKはインポートしません。
+coreは識別子、グラフ構築とコンパイル、ランタイムのstate reducer、イベント、インメモリresource storeを所有します。LLM SDKやCLI SDKはインポートせず、coding-agent契約は`workgraph-agent-cli`に属します。
 
 `workgraph-agent-cli`、`workgraph-llm`、`workgraph-visualization`はそれぞれcoreをインポートします。CodexとOpenCodeはcoreとagent CLIに加え、対応するCLI SDKだけをインポートします。
 
 ## Targetポリシー
 
-- `workgraph-core`、`workgraph-agent-cli`、`workgraph-visualization`はWasm/WASIを優先し、JavaScript、native、Wasm/WASIをサポートします。`workgraph-llm`は`mizchi/llm`のruntime操作がWasmでabortするstubのため、JavaScriptを優先し、JavaScriptとnativeをサポートします。
-- `workgraph-codex-cli`と`workgraph-opencode-cli`は、公開済みSDK依存がnative専用のため、nativeをpreferred targetおよびsupported targetとします。
+- `workgraph-core`と`workgraph-visualization`はWasm/WASIを優先し、JavaScript、native、Wasm/WASIをサポートします。`workgraph-llm`は`mizchi/llm`のruntime操作がWasmでabortするstubのため、JavaScriptを優先し、JavaScriptとnativeをサポートします。
+- `workgraph-agent-cli`、`workgraph-codex-cli`、`workgraph-opencode-cli`のversion `0.2.0`はWasm/WASIをpreferred targetとし、同じproduction sourceでWasm/WASIとnativeをサポートしますが、JavaScriptはサポートしません。公開済みの`agent-sdk@0.2.0`とprovider SDK `0.4.0`を解決します。process integration testと任意の実CLI exampleはnative専用です。
 
 ## テストの所有
 
-unit testは実装ファイルの隣に置きます。LLM provider、Codex CLI、OpenCode CLIのintegration testは、所有モジュールの`src/test`パッケージに置きます。従来の共有testing helperとモジュール横断E2E workflowは、削除した集約workflow suite専用だったため削除しました。
+portable contract testは実装ファイルの隣に置きます。LLM providerとnative processを使うCodex/OpenCode integration testは、所有モジュールの`src/test`パッケージに置きます。従来の共有testing helperとモジュール横断E2E workflowは、削除した集約workflow suite専用だったため削除しました。
 
 ## Examples
 

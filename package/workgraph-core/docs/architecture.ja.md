@@ -4,13 +4,13 @@
 
 このドキュメントは、Workgraphモジュール群の現在のアーキテクチャを記録します。
 
-実装ベースラインでは、型付きLLMメッセージ、ツール、プロバイダー結果、テストプロバイダーに `mizchi/llm@0.3.1` を使用します。CodexとOpenCodeは引き続きnative SDK統合です。
+実装ベースラインでは、型付きLLMメッセージ、ツール、プロバイダー結果、テストプロバイダーに `mizchi/llm@0.3.1` を使用します。coding-agent nodeはregistry解決の`agent-sdk@0.2.0`を使用し、CodexとOpenCodeのprovider optionはそれぞれ`0.4.0` SDKを使用します。CLI integrationはWasm/WASIとnativeで同じproduction sourceを使用し、fake process testはnativeに限定し、実credentialのsmoke testは任意です。
 
-core runtime、coding-agent、visualizationモジュールはWasm/WASIを優先し、JavaScript、native、Wasm/WASIをサポートします。LLMモジュールは`mizchi/llm`のWasm実装がabortするstubのため、JavaScriptを優先し、JavaScriptとnativeをサポートします。CodexとOpenCodeのCLI integrationモジュールはSDK依存によりnative専用です。
+core runtime、coding-agent、visualization、Codex CLI、OpenCode CLIモジュールはWasm/WASIを優先します。coreとvisualizationはJavaScript、native、Wasm/WASIをサポートし、coding-agent、Codex CLI、OpenCode CLIはWasm/WASIとnativeをサポートしますが、JavaScriptはサポートしません。LLMモジュールは`mizchi/llm`のWasm実装がabortするstubのため、JavaScriptを優先し、JavaScriptとnativeをサポートします。
 
 ## 実装状況
 
-実装はランタイム非依存のcore、coding-agent、LLM、visualizationモジュールと、nativeのCodexおよびOpenCode CLI integrationモジュールに分割されています。各モジュールが自身のテストとexampleを所有します。
+実装はランタイム非依存のcore、coding-agent、LLM、visualizationモジュールと、同じsourceを使うCodexおよびOpenCode CLI integrationモジュールに分割されています。各モジュールが自身のテストとexampleを所有します。
 
 先送りされた作業には、並列ノードスケジューリング、永続的チェックポイントまたは耐久性のある実行、人間による承認の一時停止、サブグラフ、分散ワーカー、プロバイダー完全な権限マッピング、および実際のクレデンシャルを持つプロバイダーによるエンドツーエンドテストが含まれます。
 
@@ -30,7 +30,7 @@ MVP は次の3つの実行セマンティクスをサポートします。
 
 元の設計方針は、以下の修正を加えて維持されます。
 
-1. core、coding-agent、visualizationモジュールはJavaScript、native、Wasm/WASIをサポートし、LLMモジュールはJavaScriptとnativeをサポートします。CodexとOpenCodeのCLI統合はSDK依存がportableなbackendをサポートするまでnative専用のままとします。
+1. coreとvisualizationはJavaScript、native、Wasm/WASIをサポートします。coding-agent、Codex CLI、OpenCode CLIはWasm/WASIを優先し、Wasm/WASIとnativeをサポートしますが、JavaScriptはサポートしません。LLMモジュールはJavaScriptとnativeをサポートします。
 2. すべての非同期処理は `moonbitlang/async` の構造化並行処理を使用します。
 3. 各グラフ呼び出しは1つのタスクグループを所有し、その呼び出しのために生成されたすべてのサブプロセスまたはバックグラウンドタスクはそのグループに属します。
 4. キャンセルは `moonbitlang/async` のタスクキャンセルを使用します。MVP は2つ目のキャンセルトークンの抽象化を導入しません。
@@ -57,15 +57,17 @@ flowchart TD
   Runtime --> Function["Function node"]
   Runtime --> LLM["LLM node"]
   Runtime --> AgentNode["Coding-agent node"]
-  AgentNode --> Codex["Codex session adapter"]
-  AgentNode --> OpenCode["OpenCode session adapter"]
-  OpenCode --> OpenCodeSDK["OpenCode CLI SDK"]
-  OpenCodeSDK --> AgentCLI["Shared agent CLI process runtime"]
+  AgentNode --> Cli["agent-sdk Cli"]
+  Cli --> Session["CliSession"]
+  Session --> Prompt["Prompt"]
+  Session --> Response["FinalResponse + Continuation?"]
+  Cli --> Codex["Codex adapter"]
+  Cli --> OpenCode["OpenCode adapter"]
 ```
 
 コアランタイムは、Codex、OpenCode、またはLLMの具象型をインポートしません。
 
-統合パッケージは、それらの具象 SDK をコアのコールバックおよびセッション契約に適応させます。
+統合パッケージは設定済みagent-sdk `Cli`を返し、`workgraph-agent-cli`がnodeまたはrunスコープのsession取得とWorkgraph node契約を所有します。
 
 ランタイムは各呼び出しに `TaskGroup[Unit]` を使用するため、プロセスの所有権はグラフの状態型に依存しません。
 
@@ -233,47 +235,27 @@ LLM ノードは以下を実行します。
 
 ### コーディングエージェントノード
 
-コーディングエージェントノードは以下を実行します。
+コーディングエージェントノードは`CodingAgentContinuation?`を選択してownerを検証し、設定済み`Cli`を開いてworkspace基準で解決済みの`Prompt`を構築します。continuationがなければ`Cli.start()`を、あれば`Cli.continue_session()`をリソース取得時に正確に1回呼び出します。内部resource keyには可視keyと`CodingAgentId`の両方が含まれるため、異なるagentがsessionを誤って共有しません。nodeは自身のmutexで`CliSession.prompt`を直列化し、direct `FinalResponse`と所有continuation tokenをdecoderへ渡します。
 
-- 共通のコーディングエージェントリクエストを構築します。
-- プロセスを通常の型付きリソースとして保存し、リソーススコープに従って取得または再利用します。
-- リクエストを実行します。
-- レスポンスをpatchとoptional valueに変換します。
-
-Codex と OpenCode はセッションセマンティクスを共有しますが、SDK 固有のオプションはアダプター内に保持します。
+agent-sdkにidleな`CliSession` close操作がないため、resource finalizerは意図的なno-opです。provider cleanupはcancellableな`prompt`呼び出しが所有し、cleanup後にcancellationが伝播します。`CodingAgentContinuation`はopaqueなプロセス内handleであり、生成元`CodingAgentId`にbindされるため、durable checkpointやagent間の値ではありません。graph nodeは逐次的に実行し、個別設定のCodex、OpenCode、custom agentはsession、state slot、continuationを分離して保持します。
 
 ## Codex アダプター
 
-Codex アダプターは、共通リクエストをリポジトリの `totto2727/codex-sdk` にマッピングします。
-
-Codex セッションは1つの `Thread` を所有します。
-
-`Thread::run` および `Thread::run_streamed` は、ターンごとにネイティブサブプロセスを開始およびクリーンアップします。
-
-タスクキャンセルは、上流のアボートシグナルに相当するネイティブのものです。
-
-Codex スレッドの継続は `Thread::id` を使用します。
-
-現在の SDK イベントモデルが実際にそのデータを公開しない限り、アダプターは stdout、stderr、または変更されたファイルデータを約束してはいけません。
+Codex adapterは`CodingAgent.open`から設定済み`Cli`を返し、provider-native optionに限って`totto2727/codex-sdk/cli`を使用します。nodeが`CliSession` lifecycle、mutex、continuation選択を所有し、`FinalResponse`はprovider-neutralのままです。
 
 ## OpenCode アダプター
 
-OpenCode アダプターは以下を所有します。
-
-- 1つのリポジトリ `@opencode_sdk.Thread`。
-- 各ターンに適用されるワーキングディレクトリとスレッドオプション。
-- JSONL イベントから学習された、または再開用に提供された論理的な OpenCode セッション ID。
-- セッションミューテックスと論理的なクローズ状態。
+OpenCode adapterは設定済み`Cli`を返し、Workgraph session、mutex、論理的closed stateを所有しません。
 
 リポジトリの `totto2727/opencode-sdk` は OpenCode CLI SDK です。これは `opencode run --format json` を呼び出します。一方、`totto2727/opencode-server-sdk` はオプションの `opencode serve` ライフサイクルを別途所有し、Workgraph によってインポートされることはありません。
 
-アダプターは、オープン時に CLI スレッドを作成または再開します。各 `execute` は `Thread::run` を呼び出し、これは1つのネイティブサブプロセスを開始し、型付き JSONL イベントを解析し、最終テキストをキャプチャし、次のターン用に出力されたセッション ID を保持します。
+nodeはresource取得時にagent-sdk CLI sessionを作成または再開します。各`prompt`は共通の`Prompt`を送り、その`FinalResponse`をnode decoderへ渡します。
 
-相対コンテキストファイルはワークスペースルートに対して解決され、型付きローカルファイル入力として渡されるため、SDK は繰り返し `--file` フラグを出力します。指示はファイルパスをテキストに埋め込む代わりに、CLI プロンプトのまま残ります。
+相対コンテキストファイルは、共通プロンプトへ渡す前にワークスペースルートに対して解決します。
 
 アダプターは継承されたプロセス環境をスナップショットし、設定されたアダプター変数を適用し、次にオープンコンテキスト環境を適用して、呼び出し元の値を優先します。実行可能パス、型付き設定、再開 ID、モデル、エージェント、ワーキングディレクトリ、バリアント、タイトル、および思考オプションを CLI SDK にマッピングします。
 
-アイドルスレッドに属する永続的なサブプロセスがないため、セッションクローズは論理的です。実行中の処理は `agent-cli-sdk` 内でその子プロセスを所有します。キャンセルはその子プロセスをハードストップして待機します。一方、CLI の終了、JSONL、およびターンの失敗は、具象の `OpenCodeSdkError` を保持します。クローズされたセッションは `OpenCodeAdapterError::SessionClosed` を発生させます。
+キャンセルとCLI failureはagent-sdkを通じて伝播します。Workgraphは論理session close操作を公開しないため、post-close errorはありません。
 
 ## パッケージレイアウト
 
@@ -293,7 +275,7 @@ package/
 
 `workgraph-llm`はcoreと`mizchi/llm`をインポートします。
 
-`workgraph-agent-cli`はcoreをインポートし、共通agent session契約とnode factoryを定義します。
+`workgraph-agent-cli`はcoreと`agent-sdk/cli`をインポートし、直接`Cli` node契約とsession resource取得を定義します。
 
 2つのCLI adapterモジュールはcore、coding、対応する具象SDKをインポートします。
 
@@ -305,7 +287,7 @@ package/
 
 MVP に含まれるもの:
 
-- ランタイム非依存モジュールのnativeおよびJavaScript非同期実行。
+- coreとvisualizationのnativeおよびJavaScript非同期実行、ならびにcoding-agentとCLI adapterのWasm/native実行。
 - ファンクション、LLM、およびコーディングエージェントノード。
 - 型付き状態とパッチ。
 - 条件付きルーティング。
@@ -335,6 +317,7 @@ MVP から除外されるもの:
 - [MoonBit メソッド、トレイト、およびトレイトオブジェクト](https://docs.moonbitlang.com/en/latest/language/methods.html)
 - [MoonBit モジュール設定とネイティブターゲット宣言](https://docs.moonbitlang.com/en/latest/toolchain/moon/module.html)
 - [MoonBit パッケージ設定](https://docs.moonbitlang.com/en/latest/toolchain/moon/package.html)
+- [agent-sdk 0.2.0 source](https://github.com/totto2727-org/agent-sdk/tree/9abf45ee53a543149ce19e0542733ec86d055488)
 - [moonbitlang/async パッケージドキュメント](https://mooncakes.io/docs/moonbitlang/async)
 - [mizchi/llm パッケージ](https://mooncakes.io/docs/mizchi/llm@0.3.1)
 - [リポジトリの移植元である Codex TypeScript SDK リファレンス](https://github.com/openai/codex/tree/f201c30c52a35f819262865a53df94b6f4ea7a50/sdk/typescript)

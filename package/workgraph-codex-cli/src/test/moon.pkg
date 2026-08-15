@@ -1,10 +1,11 @@
 import {
+  "totto2727/agent-sdk/cli" @agent_cli,
   "moonbitlang/async",
   "moonbitlang/async/fs",
   "moonbitlang/async/process",
   "moonbitlang/core/immut/hashmap" @immut_hashmap,
   "moonbitlang/x/path",
-  "totto2727/codex-sdk" @codex_sdk,
+  "totto2727/codex-sdk/cli" @codex_sdk,
   "totto2727/workgraph-codex-cli" @codex,
   "totto2727/workgraph-agent-cli" @coding_agent,
   "totto2727/workgraph-core" @core,

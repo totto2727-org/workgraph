@@ -1,14 +1,8 @@
 import {
+  "totto2727/agent-sdk/cli/codex" @codex_adapter,
   "totto2727/workgraph-agent-cli" @coding,
-  "totto2727/codex-sdk" @sdk,
-  "moonbitlang/async",
+  "totto2727/codex-sdk/cli" @sdk,
   "moonbitlang/x/path",
 }
 
-import {
-  "moonbitlang/async/fs",
-  "moonbitlang/core/immut/hashmap" @immut_hashmap,
-  "totto2727/workgraph-core" @core,
-} for "test"
-
-supported_targets = "native"
+supported_targets = "+wasm+native"

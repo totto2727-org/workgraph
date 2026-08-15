@@ -6,6 +6,23 @@ struct OpenCodeCliFixture {
 }
 
 ///|
+async fn write_opencode_cli_executable(
+  path : @path.Path,
+  content : String,
+) -> Unit {
+  let (code, _, stderr) = @process.collect_output("/bin/sh", [
+    "-c",
+    "printf '%s' \"$1\" > \"$2\" && chmod 755 \"$2\"",
+    "fixture-writer",
+    content,
+    path.to_string(),
+  ])
+  if code != 0 {
+    abort("failed to create OpenCode fixture executable: \{stderr.text()}")
+  }
+}
+
+///|
 async fn create_opencode_cli_fixture() -> OpenCodeCliFixture {
   let root = @fs.tmpdir(prefix="moon-agent-opencode-cli-")
   let executable = @path.Path(root).join(@path.Path("opencode"))
@@ -13,12 +30,7 @@ async fn create_opencode_cli_fixture() -> OpenCodeCliFixture {
     .join(@path.Path("records"))
     .to_string()
   @fs.mkdir(record_directory, recursive=true)
-  @fs.write_file(
-    executable.to_string(),
-    opencode_cli_fixture_script(),
-    create_mode=CreateOrTruncate,
-  )
-  @fs.chmod(executable.to_string(), 0o755)
+  write_opencode_cli_executable(executable, opencode_cli_fixture_script())
   { root, executable, record_directory }
 }
 
@@ -203,92 +215,108 @@ async test "opencode_agent 2 - merges adapter and caller environment through the
       let environment = fixture.environment([
         opencode_cli_completed_events("session-env", "Environment"),
       ])
-      let session = (opencode_cli_agent(fixture, environment).open)(
+      let cli = (opencode_cli_agent(fixture, environment).open)(
         opencode_cli_context(fixture, group, environment={
           "CALLER": "active",
           "SHARED": "caller",
         }),
       )
-      session.execute(
-        @coding_agent.CodingAgentRequest::CodingAgentRequest(
-          "inspect environment",
-          [],
-        ),
-      )
+      cli.start().prompt(@agent_cli.Prompt::Prompt("inspect environment"))
       |> ignore
       let recorded_env = fixture.recorded_lines("env", 1)
-      assert_true(recorded_env.contains("ADAPTER=enabled"))
       assert_true(recorded_env.contains("ADAPTER=enabled"))
       assert_true(recorded_env.contains("CALLER=active"))
       assert_true(recorded_env.contains("SHARED=caller"))
       assert_true(recorded_env.iter().any(line => line.has_prefix("PATH=")))
-      session.close()
     })
   })
 }
 
 ///|
-async test "opencode_agent 3 - maps context files through the public agent" {
+async test "opencode_agent 3 - resolves relative context files through the public node" {
   with_opencode_cli_fixture(async fn(fixture) {
-    @async.with_task_group(async fn(group) {
-      let environment = fixture.environment([
-        opencode_cli_completed_events("session-files", "Files"),
-      ])
-      let session = (opencode_cli_agent(fixture, environment).open)(
-        opencode_cli_context(fixture, group),
-      )
-      session.execute(
-        @coding_agent.CodingAgentRequest::CodingAgentRequest("fix the issue", [
-          @path.Path("README.md"),
-          @path.Path("/shared/guide.md"),
-        ]),
-      )
-      |> ignore
-      let args = fixture.recorded_lines("args", 1)
-      assert_true(
-        opencode_cli_contains_pair(
-          args,
-          "--file",
-          @path.Path(fixture.root).join(@path.Path("README.md")).to_string(),
-        ),
-      )
-      assert_true(
-        opencode_cli_contains_pair(args, "--file", "/shared/guide.md"),
-      )
-      assert_eq(fixture.recorded_text("input", 1), "fix the issue")
-      session.close()
-    })
+    let environment = fixture.environment([
+      opencode_cli_completed_events("session-files", "Files"),
+    ])
+    let node_id = @core.NodeId::NodeId("opencode-relative-context")
+    let node : @core.Node[Int, Int] = @coding_agent.coding_agent_node(
+      node_id,
+      @core.NodeMetadata::NodeMetadata(
+        name="opencode-relative-context",
+        description=None,
+        kind=@core.CodingAgent,
+        tags=["integration"],
+      ),
+      @coding_agent.CodingAgentNodeSpec::CodingAgentNodeSpec(
+        agent=opencode_cli_agent(fixture, environment),
+        resource_key=@core.ResourceKey::ResourceKey("opencode-relative-context"),
+        resource_scope=@core.Node,
+        open_context=fn(context, _state) {
+          opencode_cli_context(fixture, context.task_group)
+        },
+        build_prompt=fn(_context, _state) {
+          @agent_cli.Prompt::Prompt("fix the issue", context_files=[
+            @path.Path("README.md"),
+            @path.Path("/shared/guide.md"),
+          ])
+        },
+        select_continuation=fn(_context, _state) { None },
+        decode_response=fn(_state, response, _continuation) {
+          @core.NodeOutput::NodeOutput(None, Some(Json::string(response.text)))
+        },
+      ),
+    )
+    let definition = @core.GraphDefinition::GraphDefinition(
+      @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+    )
+    definition.add_node(node)
+    definition.set_router(
+      node_id,
+      @core.router([], fn(_state, _completion) { @core.End }),
+    )
+    definition.set_entry(node_id)
+    @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(0) |> ignore
+    let args = fixture.recorded_lines("args", 1)
+    assert_true(
+      opencode_cli_contains_pair(
+        args,
+        "--file",
+        @path.Path(fixture.root).join(@path.Path("README.md")).to_string(),
+      ),
+    )
+    assert_true(opencode_cli_contains_pair(args, "--file", "/shared/guide.md"))
+    assert_eq(fixture.recorded_text("input", 1), "fix the issue")
   })
 }
 
 ///|
-async test "opencode_agent CLI integration 1 - maps requests and reuses the session ID" {
+async test "opencode_agent CLI integration 1 - maps prompts and reuses the session ID" {
   with_opencode_cli_fixture(async fn(fixture) {
     @async.with_task_group(async fn(group) {
       let environment = fixture.environment([
         opencode_cli_completed_events("session-1", "First"),
         opencode_cli_completed_events("session-1", "Second"),
       ])
-      let session = (opencode_cli_agent(fixture, environment).open)(
+      let cli = (opencode_cli_agent(fixture, environment).open)(
         opencode_cli_context(fixture, group, environment={
           "CALLER": "active",
           "SHARED": "caller",
         }),
       )
+      let session = cli.start()
       assert_eq(session.id(), None)
-      let first = session.execute(
-        @coding_agent.CodingAgentRequest::CodingAgentRequest("first", [
-          @path.Path("README.md"),
+      let first = session.prompt(
+        @agent_cli.Prompt::Prompt("first", context_files=[
+          @path.Path(fixture.root).join(@path.Path("README.md")),
           @path.Path("/shared/guide.md"),
         ]),
       )
-      assert_eq(first.summary, Some("First"))
-      assert_eq(first.continuation_id, Some("session-1"))
+      assert_eq(first.text, "First")
+      assert_eq(first.session_id, Some("session-1"))
       assert_eq(first.changed_files, [])
-      let second = session.execute(
-        @coding_agent.CodingAgentRequest::CodingAgentRequest("second", []),
-      )
-      assert_eq(second.summary, Some("Second"))
+      assert_true(first.continuation is Some(_))
+      let second = session.prompt(@agent_cli.Prompt::Prompt("second"))
+      assert_eq(second.text, "Second")
       assert_eq(session.id().map(id => id.to_string()), Some("session-1"))
 
       let first_args = fixture.recorded_lines("args", 1)
@@ -325,20 +353,6 @@ async test "opencode_agent CLI integration 1 - maps requests and reuses the sess
       let recorded_env = fixture.recorded_lines("env", 1)
       assert_true(recorded_env.contains("CALLER=active"))
       assert_true(recorded_env.contains("SHARED=caller"))
-
-      session.close()
-      session.close()
-      let closed = try {
-        session.execute(
-          @coding_agent.CodingAgentRequest::CodingAgentRequest("after close", []),
-        )
-        |> ignore
-        false
-      } catch {
-        @opencode.OpenCodeAdapterError::SessionClosed => true
-        _ => false
-      }
-      assert_true(closed)
     })
   })
 }
@@ -350,16 +364,17 @@ async test "opencode_agent CLI integration 2 - resumes a configured session" {
       let environment = fixture.environment([
         opencode_cli_completed_events("session-7", "Resumed"),
       ])
-      let session = (opencode_cli_agent(
+      let cli = (opencode_cli_agent(
         fixture,
         environment,
         resume_thread_id="session-7",
       ).open)(opencode_cli_context(fixture, group))
-      assert_eq(session.id().map(id => id.to_string()), Some("session-7"))
-      let response = session.execute(
-        @coding_agent.CodingAgentRequest::CodingAgentRequest("continue", []),
-      )
-      assert_eq(response.summary, Some("Resumed"))
+      let session = cli.start()
+      assert_eq(session.id(), Some("session-7"))
+      let response = session.prompt(@agent_cli.Prompt::Prompt("continue"))
+      assert_eq(response.text, "Resumed")
+      assert_eq(response.session_id, Some("session-7"))
+      assert_true(response.continuation is Some(_))
       assert_true(
         opencode_cli_contains_pair(
           fixture.recorded_lines("args", 1),
@@ -367,7 +382,6 @@ async test "opencode_agent CLI integration 2 - resumes a configured session" {
           "session-7",
         ),
       )
-      session.close()
     })
   })
 }
@@ -379,41 +393,55 @@ async test "opencode_agent CLI integration 3 - preserves process failure" {
       let environment = fixture.environment([])
       environment["FAKE_OPENCODE_EXIT_CODE"] = "17"
       environment["FAKE_OPENCODE_STDERR"] = "cli failed"
-      let session = (opencode_cli_agent(fixture, environment).open)(
+      let cli = (opencode_cli_agent(fixture, environment).open)(
         opencode_cli_context(fixture, group),
       )
       let message = try {
-        session.execute(
-          @coding_agent.CodingAgentRequest::CodingAgentRequest("fail", []),
-        )
-        |> ignore
+        cli.start().prompt(@agent_cli.Prompt::Prompt("fail")) |> ignore
         "no error"
       } catch {
-        @opencode_sdk.OpenCodeSdkError::ExecFailed(code~, stderr~) =>
+        @opencode_sdk.SdkError::ExecFailed(code~, stderr~) =>
           "\{code}:\{stderr}"
         error => "unexpected: \{error}"
       }
       assert_eq(message, "17:cli failed")
-      session.close()
     })
   })
 }
 
 ///|
-async test "opencode_agent CLI integration 4 - cancellation stops the child process" {
+async test "opencode_agent CLI integration 4 - preserves invalid event failure" {
+  with_opencode_cli_fixture(async fn(fixture) {
+    @async.with_task_group(async fn(group) {
+      let cli = (opencode_cli_agent(fixture, fixture.environment(["{not-json"])).open)(
+        opencode_cli_context(fixture, group),
+      )
+      let message = try {
+        cli.start().prompt(@agent_cli.Prompt::Prompt("malformed")) |> ignore
+        "no error"
+      } catch {
+        @opencode_sdk.SdkError::InvalidEvent(message~) => message
+        error => "unexpected: \{error}"
+      }
+      assert_true(
+        message.has_prefix("Failed to parse OpenCode event: {not-json"),
+      )
+    })
+  })
+}
+
+///|
+async test "opencode_agent CLI integration 5 - cancellation stops the child process" {
   with_opencode_cli_fixture(async fn(fixture) {
     @async.with_task_group(async fn(group) {
       let environment = fixture.environment([])
       environment["FAKE_OPENCODE_PAUSE"] = "1"
-      let session = (opencode_cli_agent(fixture, environment).open)(
+      let cli = (opencode_cli_agent(fixture, environment).open)(
         opencode_cli_context(fixture, group),
       )
       let task = group.spawn(
         async fn() {
-          session.execute(
-            @coding_agent.CodingAgentRequest::CodingAgentRequest("pause", []),
-          )
-          |> ignore
+          cli.start().prompt(@agent_cli.Prompt::Prompt("pause")) |> ignore
         },
         allow_failure=true,
       )
@@ -433,7 +461,6 @@ async test "opencode_agent CLI integration 4 - cancellation stops the child proc
       }
       assert_true(cancelled)
       assert_false(opencode_cli_process_is_running(pid))
-      session.close()
     })
   })
 }

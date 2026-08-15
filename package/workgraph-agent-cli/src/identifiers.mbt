@@ -4,11 +4,6 @@ pub struct CodingAgentId {
 } derive(Eq, Hash, Debug)
 
 ///|
-pub struct SessionId {
-  value : String
-} derive(Eq, Hash, Debug)
-
-///|
 pub suberror IdError {
   EmptyId(kind~ : String)
 } derive(Debug)
@@ -28,15 +23,5 @@ pub fn CodingAgentId::CodingAgentId(
 
 ///|
 pub fn CodingAgentId::to_string(self : CodingAgentId) -> String {
-  self.value
-}
-
-///|
-pub fn SessionId::SessionId(value : String) -> SessionId raise IdError {
-  SessionId::{ value: parse_id(value, "SessionId") }
-}
-
-///|
-pub fn SessionId::to_string(self : SessionId) -> String {
   self.value
 }

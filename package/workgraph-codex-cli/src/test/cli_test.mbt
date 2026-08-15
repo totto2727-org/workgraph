@@ -7,51 +7,46 @@ struct CodexIntegrationFixture {
 
 ///|
 async fn codex_integration_fixture() -> CodexIntegrationFixture {
-  let root = @fs.tmpdir(prefix="moon-agent-codex-integration-")
+  let root = @fs.tmpdir(prefix="workgraph-codex-integration-")
   let executable = @path.Path("\{root}/codex")
   let records = "\{root}/records"
   @fs.mkdir(records, recursive=true)
-  @fs.write_file(
-    executable.to_string(),
-    (
-      #|#!/bin/sh
-      #|set -eu
-      #|records="${FAKE_CODEX_RECORDS:?}"
-      #|counter="$records/counter"
-      #|call=0
-      #|if [ -f "$counter" ]; then call=$(/bin/cat "$counter"); fi
-      #|call=$((call + 1))
-      #|printf '%s' "$call" > "$counter"
-      #|: > "$records/args.$call"
-      #|for arg in "$@"; do printf '%s\n' "$arg" >> "$records/args.$call"; done
-      #|/usr/bin/env | /usr/bin/sort > "$records/env.$call"
-      #|/bin/cat > "$records/input.$call"
-      #|printf '%s' "$$" > "$records/pid.$call"
-      #|: > "$records/started.$call"
-      #|case "${FAKE_CODEX_MODE-success}" in
-      #|  success)
-      #|    printf '%s\n' '{"type":"thread.started","thread_id":"thread-1"}'
-      #|    printf '%s\n' '{"type":"turn.started"}'
-      #|    printf '%s\n' '{"type":"item.completed","item":{"id":"patch-1","type":"file_change","changes":[{"path":"src/success.mbt","kind":"update"}],"status":"completed"}}'
-      #|    printf '%s\n' "{\"type\":\"item.completed\",\"item\":{\"id\":\"message-$call\",\"type\":\"agent_message\",\"text\":\"summary-$call\"}}"
-      #|    printf '%s\n' '{"type":"turn.completed","usage":{"input_tokens":3,"cached_input_tokens":0,"output_tokens":2,"reasoning_output_tokens":0}}'
-      #|    ;;
-      #|  failed)
-      #|    printf '%s\n' '{"type":"thread.started","thread_id":"thread-failed"}'
-      #|    printf '%s\n' '{"type":"turn.started"}'
-      #|    printf '%s\n' '{"type":"turn.failed","error":{"message":"deterministic failure"}}'
-      #|    /bin/sleep 30
-      #|    ;;
-      #|  pause)
-      #|    trap 'exit 0' TERM INT
-      #|    /bin/sleep 30
-      #|    : > "$records/finished.$call"
-      #|    ;;
-      #|esac
-      #|
-    ),
-    create_mode=CreateOrTruncate,
-  )
+  let script =
+    #|#!/bin/sh
+    #|set -eu
+    #|records="${FAKE_CODEX_RECORDS:?}"
+    #|counter="$records/counter"
+    #|call=0
+    #|if [ -f "$counter" ]; then call=$(/bin/cat "$counter"); fi
+    #|call=$((call + 1))
+    #|printf '%s' "$call" > "$counter"
+    #|printf '%s\n' "$@" > "$records/args.$call"
+    #|/usr/bin/env | /usr/bin/sort > "$records/env.$call"
+    #|/bin/cat > "$records/input.$call"
+    #|printf '%s' "$$" > "$records/pid.$call"
+    #|: > "$records/started.$call"
+    #|case "${FAKE_CODEX_MODE-success}" in
+    #|  success)
+    #|    printf '{"type":"thread.started","thread_id":"%s"}\n' "${FAKE_CODEX_THREAD_ID-thread-1}"
+    #|    printf '%s\n' '{"type":"turn.started"}'
+    #|    printf '%s\n' '{"type":"item.completed","item":{"id":"patch-1","type":"file_change","changes":[{"path":"src/success.mbt","kind":"update"}],"status":"completed"}}'
+    #|    printf '%s\n' "{\"type\":\"item.completed\",\"item\":{\"id\":\"message-$call\",\"type\":\"agent_message\",\"text\":\"summary-$call\"}}"
+    #|    printf '%s\n' '{"type":"turn.completed","usage":{"input_tokens":3,"cached_input_tokens":0,"output_tokens":2,"reasoning_output_tokens":0}}'
+    #|    ;;
+    #|  failed)
+    #|    printf '%s\n' '{"type":"thread.started","thread_id":"thread-failed"}'
+    #|    printf '%s\n' '{"type":"turn.started"}'
+    #|    printf '%s\n' '{"type":"turn.failed","error":{"message":"deterministic failure"}}'
+    #|    /bin/sleep 30
+    #|    ;;
+    #|  pause)
+    #|    trap 'exit 0' TERM INT
+    #|    /bin/sleep 30
+    #|    : > "$records/finished.$call"
+    #|    ;;
+    #|esac
+    #|
+  @fs.write_file(executable.to_string(), script, create_mode=CreateOrTruncate)
   @fs.chmod(executable.to_string(), 0o755)
   { root, executable, records }
 }
@@ -88,10 +83,33 @@ async fn codex_integration_wait_for(path : String) -> Unit {
 }
 
 ///|
+fn codex_integration_agent(
+  fixture : CodexIntegrationFixture,
+  resume_thread_id? : String,
+) -> @coding_agent.CodingAgent {
+  @codex.codex_agent(
+    @coding_agent.CodingAgentId::CodingAgentId("codex-integration") catch {
+      _ => abort("integration agent ID must be valid")
+    },
+    @codex.CodexAgentOptions::CodexAgentOptions(
+      codex_path_override=fixture.executable,
+      api_key="test-key",
+      resume_thread_id?,
+      model="codex-test",
+      sandbox=@codex_sdk.WorkspaceWrite,
+      skip_git=true,
+      reasoning=@codex_sdk.High,
+      web_search=@codex_sdk.Cached,
+    ),
+  )
+}
+
+///|
 fn codex_integration_context(
   fixture : CodexIntegrationFixture,
   group : @async.TaskGroup[Unit],
   mode : String,
+  thread_id? : String = "thread-1",
 ) -> @coding_agent.CodingAgentOpenContext {
   @coding_agent.CodingAgentOpenContext::CodingAgentOpenContext(
     run_id=@core.RunId::RunId("codex-integration-run") catch {
@@ -108,6 +126,7 @@ fn codex_integration_context(
       ("PATH", "/usr/bin:/bin"),
       ("FAKE_CODEX_RECORDS", fixture.records),
       ("FAKE_CODEX_MODE", mode),
+      ("FAKE_CODEX_THREAD_ID", thread_id),
       ("MAPPED_ENV", "present"),
     ]),
     events=@core.EventSink::discard(),
@@ -115,49 +134,87 @@ fn codex_integration_context(
 }
 
 ///|
-fn codex_integration_agent(
+fn codex_integration_node(
   fixture : CodexIntegrationFixture,
-) -> @coding_agent.CodingAgent {
-  @codex.codex_agent(
-    @coding_agent.CodingAgentId::CodingAgentId("codex-integration") catch {
-      _ => abort("integration agent ID must be valid")
-    },
-    @codex.CodexAgentOptions::CodexAgentOptions(
-      codex_path_override=fixture.executable,
-      api_key="test-key",
-      model="codex-test",
-      sandbox=@codex_sdk.WorkspaceWrite,
-      skip_git=true,
-      reasoning=@codex_sdk.High,
-      web_search=@codex_sdk.Cached,
+  mode : String,
+  observations : Array[String],
+  resume_thread_id? : String,
+  thread_id? : String = "thread-1",
+) -> @core.Node[Int, Int] raise {
+  let node_id = @core.NodeId::NodeId("codex-integration")
+  @coding_agent.coding_agent_node(
+    node_id,
+    @core.NodeMetadata::NodeMetadata(
+      name="codex-integration",
+      description=None,
+      kind=@core.CodingAgent,
+      tags=["integration"],
+    ),
+    @coding_agent.CodingAgentNodeSpec::CodingAgentNodeSpec(
+      agent=codex_integration_agent(fixture, resume_thread_id?),
+      resource_key=@core.ResourceKey::ResourceKey("codex-integration"),
+      resource_scope=@core.Run,
+      open_context=fn(context, _state) {
+        codex_integration_context(fixture, context.task_group, mode, thread_id~)
+      },
+      build_prompt=fn(_context, state) {
+        if state == 0 {
+          @agent_cli.Prompt::Prompt("first instruction", context_files=[
+            @path.Path("README.md"),
+          ])
+        } else {
+          @agent_cli.Prompt::Prompt("second instruction")
+        }
+      },
+      select_continuation=fn(_context, _state) { None },
+      decode_response=fn(_state, response, continuation) {
+        let continuation = if continuation is Some(_) {
+          "present"
+        } else {
+          "absent"
+        }
+        observations.push(
+          "\{response.text}:\{response.session_id.unwrap_or("")}:\{response.changed_files.map(path => path.to_string()).join(",")}:\{continuation}",
+        )
+        @core.NodeOutput::NodeOutput(Some(1), Some(Json::string(response.text)))
+      },
     ),
   )
 }
 
 ///|
-async test "codex_agent integration 1 - starts then resumes with mapped CLI options and successful files" {
+async test "codex_agent integration 1 - decodes final responses from node callbacks" {
   let root = with_codex_integration_fixture(async fn(fixture) {
-    @async.with_task_group() <| group => {
-      let session = (codex_integration_agent(fixture).open)(
-        codex_integration_context(fixture, group, "success"),
+    @async.with_task_group() <| _group => {
+      let observations : Array[String] = []
+      let node = codex_integration_node(fixture, "success", observations)
+      let definition = @core.GraphDefinition::GraphDefinition(
+        @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
       )
-      let first = session.execute(
-        @coding_agent.CodingAgentRequest::CodingAgentRequest(
-          "first instruction",
-          [@path.Path("README.md")],
-        ),
+      definition.add_node(node)
+      let node_id = @core.NodeId::NodeId("codex-integration")
+      definition.set_router(
+        node_id,
+        @core.router([@core.DeclaredRoute::DeclaredRoute(node_id)], fn(
+          state,
+          _completion,
+        ) {
+          if state < 2 {
+            @core.To(node_id)
+          } else {
+            @core.End
+          }
+        }),
       )
-      let second = session.execute(
-        @coding_agent.CodingAgentRequest::CodingAgentRequest(
-          "second instruction",
-          [],
-        ),
+      definition.set_entry(node_id)
+      let result = @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(
+        0,
       )
-      debug_inspect(first.summary, content="Some(\"summary-1\")")
-      debug_inspect(first.continuation_id, content="Some(\"thread-1\")")
-      inspect(first.changed_files[0].to_string(), content="src/success.mbt")
-      debug_inspect(second.summary, content="Some(\"summary-2\")")
-      debug_inspect(second.continuation_id, content="Some(\"thread-1\")")
+      inspect(result.final_state, content="2")
+      inspect(
+        observations.join("|"),
+        content="summary-1:thread-1:src/success.mbt:present|summary-2:thread-1:src/success.mbt:present",
+      )
       let first_args = codex_integration_text("\{fixture.records}/args.1")
       let second_args = codex_integration_text("\{fixture.records}/args.2")
       assert_false(first_args.contains("\nresume\n"))
@@ -182,76 +239,86 @@ async test "codex_agent integration 1 - starts then resumes with mapped CLI opti
       )
       assert_true(
         codex_integration_text("\{fixture.records}/input.1").contains(
-          "Context files supplied by the caller:\nREADME.md",
+          "Context files supplied by the caller:\n\{fixture.root}/README.md",
         ),
       )
-      session.close()
     }
   })
   assert_false(@fs.exists(root))
 }
 
 ///|
-async test "codex_agent integration 2 - propagates turn.failed without waiting for the fake process" {
+async test "codex_agent integration 2 - starts configured resumed thread through node callback" {
   let root = with_codex_integration_fixture(async fn(fixture) {
-    @async.with_task_group() <| group => {
-      let session = (codex_integration_agent(fixture).open)(
-        codex_integration_context(fixture, group, "failed"),
+    @async.with_task_group() <| _group => {
+      let observations : Array[String] = []
+      let node = codex_integration_node(
+        fixture,
+        "success",
+        observations,
+        resume_thread_id="thread-existing",
+        thread_id="thread-existing",
+      )
+      let node_id = @core.NodeId::NodeId("codex-integration")
+      let definition = @core.GraphDefinition::GraphDefinition(
+        @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+      )
+      definition.add_node(node)
+      definition.set_router(
+        node_id,
+        @core.router([], fn(_state, _completion) { @core.End }),
+      )
+      definition.set_entry(node_id)
+      @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(0) |> ignore
+      inspect(
+        observations.join("|"),
+        content="summary-1:thread-existing:src/success.mbt:present",
+      )
+      assert_true(
+        codex_integration_text("\{fixture.records}/args.1").contains(
+          "\nresume\nthread-existing\n",
+        ),
+      )
+    }
+  })
+  assert_false(@fs.exists(root))
+}
+
+///|
+async test "codex_agent integration 3 - propagates provider failure from CliSession prompt" {
+  let root = with_codex_integration_fixture(async fn(fixture) {
+    @async.with_task_group() <| _group => {
+      let cli = (codex_integration_agent(fixture).open)(
+        codex_integration_context(fixture, _group, "failed"),
       )
       let message = try {
         @async.with_timeout(2000, async fn() {
-          session.execute(
-            @coding_agent.CodingAgentRequest::CodingAgentRequest("fail", []),
-          )
-          |> ignore
+          cli.start().prompt(@agent_cli.Prompt::Prompt("fail")) |> ignore
         })
         "no error"
       } catch {
-        @codex_sdk.CodexSdkError::TurnFailed(message~) => message
+        @codex_sdk.SdkError::TurnFailed(message~) => message
         @async.TimeoutError => "timed out"
         error => "unexpected:\{error}"
       }
       inspect(message, content="deterministic failure")
-      session.close()
     }
   })
   assert_false(@fs.exists(root))
 }
 
 ///|
-async test "codex_agent integration 3 - caller cancellation kills the started subprocess and leaves no finish marker" {
+async test "codex_agent integration 4 - cancellation reaches provider prompt through node callback" {
   let root = with_codex_integration_fixture(async fn(fixture) {
     @async.with_task_group() <| group => {
-      let node_id = @core.NodeId::NodeId("codex-cancel")
+      let observations : Array[String] = []
+      let node = codex_integration_node(fixture, "pause", observations)
+      let node_id = @core.NodeId::NodeId("codex-integration")
       let events : Array[@core.GraphEvent] = []
       let definition = @core.GraphDefinition::GraphDefinition(
         @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
       )
-      definition.add_node(
-        @coding_agent.coding_agent_node(
-          node_id,
-          @core.NodeMetadata::NodeMetadata(
-            name="codex-cancel",
-            description=None,
-            kind=@core.CodingAgent,
-            tags=["integration"],
-          ),
-          @coding_agent.CodingAgentNodeSpec::CodingAgentNodeSpec(
-            agent=codex_integration_agent(fixture),
-            resource_key=@core.ResourceKey::ResourceKey("codex-cancel"),
-            resource_scope=@core.Run,
-            open_context=fn(context, _state) {
-              codex_integration_context(fixture, context.task_group, "pause")
-            },
-            build_request=fn(_context, _state) {
-              @coding_agent.CodingAgentRequest::CodingAgentRequest("cancel", [])
-            },
-            decode_response=fn(_state, _response) {
-              @core.NodeOutput::NodeOutput(Some(1), None)
-            },
-          ),
-        ),
-      )
+      definition.add_node(node)
       definition.set_router(
         node_id,
         @core.router([], fn(_state, _completion) { @core.End }),
@@ -288,6 +355,7 @@ async test "codex_agent integration 3 - caller cancellation kills the started su
       }
       inspect(cancelled, content="true")
       inspect(run_cancelled, content="1")
+      inspect(observations.length(), content="0")
       assert_false(@fs.exists("\{fixture.records}/finished.1"))
     }
   })

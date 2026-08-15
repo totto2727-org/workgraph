@@ -4,8 +4,11 @@ pub struct CodingAgentNodeSpec[S, P] {
   resource_key : @core.ResourceKey
   resource_scope : @core.ResourceScope
   open_context : (@core.NodeContext, S) -> CodingAgentOpenContext raise
-  build_request : (@core.NodeContext, S) -> CodingAgentRequest raise
-  decode_response : (S, CodingAgentResponse) -> @core.NodeOutput[P] raise
+  build_prompt : (@core.NodeContext, S) -> @cli.Prompt raise
+  select_continuation : (@core.NodeContext, S) -> CodingAgentContinuation? raise
+  decode_response : (S, @cli.FinalResponse, CodingAgentContinuation?) -> @core.NodeOutput[
+    P,
+  ] raise
 }
 
 ///|
@@ -15,22 +18,44 @@ pub fn[S, P] CodingAgentNodeSpec::CodingAgentNodeSpec(
   resource_key~ : @core.ResourceKey,
   resource_scope~ : @core.ResourceScope,
   open_context~ : (@core.NodeContext, S) -> CodingAgentOpenContext raise,
-  build_request~ : (@core.NodeContext, S) -> CodingAgentRequest raise,
-  decode_response~ : (S, CodingAgentResponse) -> @core.NodeOutput[P] raise,
+  build_prompt~ : (@core.NodeContext, S) -> @cli.Prompt raise,
+  select_continuation~ : (@core.NodeContext, S) -> CodingAgentContinuation? raise,
+  decode_response~ : (S, @cli.FinalResponse, CodingAgentContinuation?) -> @core.NodeOutput[
+    P,
+  ] raise,
 ) -> CodingAgentNodeSpec[S, P] {
   CodingAgentNodeSpec::{
     agent,
     resource_key,
     resource_scope,
     open_context,
-    build_request,
+    build_prompt,
+    select_continuation,
     decode_response,
   }
 }
 
 ///|
+fn resolve_prompt_context_files(
+  workspace_root : @path.Path,
+  prompt : @cli.Prompt,
+) -> @cli.Prompt {
+  @cli.Prompt::Prompt(
+    prompt.text,
+    context_files=prompt.context_files.map(path => {
+      if path.is_absolute() {
+        path
+      } else {
+        workspace_root |> @path.Path::join(path)
+      }
+    }),
+  )
+}
+
+///|
 priv struct CodingAgentResource {
-  session : &CodingAgentSession
+  session : &@cli.CliSession
+  mutex : @async.Mutex
 }
 
 ///|
@@ -62,43 +87,66 @@ impl @any.Anyable for CodingAgentResource with fn iso() {
 ///|
 fn coding_agent_resource_ref(
   key : @core.ResourceKey,
-) -> @any_collection.AnyRef[@core.ResourceKey, CodingAgentResource] {
-  @any_collection.AnyRef::AnyRef(key)
+  agent_id : CodingAgentId,
+) -> @any_collection.AnyRef[@core.ResourceKey, CodingAgentResource] raise {
+  let agent = agent_id.to_string()
+  let composite_key = @core.ResourceKey::ResourceKey(
+    "coding-agent:\{agent.length()}:\{agent}:\{key.to_string()}",
+  )
+  @any_collection.AnyRef::AnyRef(composite_key)
 }
 
 ///|
-/// Create a graph node that acquires a coding-agent session, executes a request, and decodes its response.
+/// Create a graph node that acquires an agent SDK session, serializes a prompt, and decodes its final response.
 pub fn[S, P] coding_agent_node(
   id : @core.NodeId,
   metadata : @core.NodeMetadata,
   spec : CodingAgentNodeSpec[S, P],
 ) -> @core.Node[S, P] {
   @core.Node::Node(id, metadata, async fn(context, state) {
+    let selected_continuation = (spec.select_continuation)(context, state)
+    match selected_continuation {
+      Some(continuation) if continuation.owner != spec.agent.id =>
+        raise AgentMismatch(expected=spec.agent.id, actual=continuation.owner)
+      _ => ()
+    }
     let open_context = (spec.open_context)(context, state)
-    let reference = coding_agent_resource_ref(spec.resource_key)
+    let reference = coding_agent_resource_ref(spec.resource_key, spec.agent.id)
+    let open_resource = async fn() {
+      let cli = (spec.agent.open)(open_context)
+      let session = match selected_continuation {
+        Some(continuation) => cli.continue_session(continuation.raw)
+        None => cli.start()
+      }
+      CodingAgentResource::{ session, mutex: @async.Mutex::Mutex() }
+    }
     let resource = match spec.resource_scope {
       @core.Node =>
         context.resources.acquire_resource(
           reference,
           @core.Node,
-          async fn() {
-            CodingAgentResource::{ session: (spec.agent.open)(open_context) }
-          },
-          async fn(resource) { resource.session.close() },
+          open_resource,
+          fn(_resource) { () },
           owner=context.node_id,
         )
       @core.Run =>
         context.resources.acquire_resource(
           reference,
           @core.Run,
-          async fn() {
-            CodingAgentResource::{ session: (spec.agent.open)(open_context) }
-          },
-          async fn(resource) { resource.session.close() },
+          open_resource,
+          fn(_resource) { () },
         )
     }
-    let request = (spec.build_request)(context, state)
-    let response = resource.session.execute(request)
-    (spec.decode_response)(state, response)
+    let prompt = resolve_prompt_context_files(
+      open_context.workspace.root,
+      (spec.build_prompt)(context, state),
+    )
+    resource.mutex.acquire()
+    defer resource.mutex.release()
+    let response = resource.session.prompt(prompt)
+    let continuation = response.continuation.map(raw => {
+      CodingAgentContinuation::CodingAgentContinuation(spec.agent.id, raw)
+    })
+    (spec.decode_response)(state, response, continuation)
   })
 }
