@@ -98,7 +98,7 @@ fn[S, P] validate_graph(
       }
     }
   }
-  let reachable : Set[NodeId] = Set::default()
+  let reachable : Set[NodeId] = Default::default()
   let pending = [entry]
   while pending.pop() is Some(node_id) {
     if reachable.add_and_check(node_id) {
