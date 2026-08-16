@@ -43,8 +43,9 @@ moon add totto2727/workgraph-core
 2. Import `totto2727/workgraph-core` from the package that defines the graph.
 
 ```moonbit nocheck
+///|
 import {
-  "totto2727/workgraph-core"
+  "totto2727/workgraph-core",
 }
 ```
 
