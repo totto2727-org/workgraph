@@ -1,8 +1,8 @@
-# Workgraph
+# workgraph-core
 
-Workgraph is a MoonBit workspace for building typed graphs with state reducers, lifecycle events, scoped resources, provider-neutral LLM and coding-agent nodes, CLI adapters, and Mermaid visualization.
+`workgraph-core` provides the typed graph definitions, compiler, sequential runtime, reducers, events, identifiers, and scoped `ResourceStore` used by the Workgraph package family.
 
-This document is canonical `README.mbt.md`; the repository-root `README.mbt.md` and `README.md` are relative symlinks to it.
+This document is canonical `README.mbt.md` for the source package; the module-level README is maintained at [../README.md](../README.md).
 
 ## Usage
 
@@ -24,9 +24,9 @@ moon run package/workgraph-core/src/examples/basic
 
 ## Key features
 
-- Typed graph compilation that validates declared routes, destinations, entry points, and reachability
-- Sequential graph execution with reducer-only state updates, lifecycle events, cancellation-aware cleanup, and scoped typed resources
-- Optional LLM, coding-agent, provider-adapter, and Mermaid-rendering packages that compose with the core runtime
+- Validates graph routes, destinations, entry points, and reachability before execution
+- Runs typed nodes sequentially and applies state only through reducers
+- Exposes lifecycle events and typed, invocation-scoped resources
 
 ## Prerequisites
 
@@ -42,18 +42,11 @@ moon add totto2727/workgraph-core
 
 2. Import `totto2727/workgraph-core` from the package that defines the graph.
 
-```moonbit nocheck
-///|
-import {
-  "totto2727/workgraph-core",
-}
-```
-
 ## API
 
 [Mooncakes API reference](https://mooncakes.io/docs/totto2727/workgraph-core)
 
-For graph construction and runtime behavior, see the [Workgraph Runtime Interfaces guide](../docs/interfaces.md) and the [Core Types and Execution Guide](../docs/core-guide.md).
+For graph construction and runtime behavior, see the [architecture guide](../docs/architecture.md), [Core Types and Execution Guide](../docs/core-guide.md), [Workgraph Runtime Interfaces guide](../docs/interfaces.md), and [testing guide](../docs/testing.md).
 
 ## Development
 

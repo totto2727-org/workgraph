@@ -21,7 +21,8 @@ package/workgraph-core/docs/     Runtime API, architecture, testing, and migrati
 - Use `nix develop .#ci` when validating Codex or OpenCode CLI integration; the default shell does not add those CLIs.
 - Keep dependencies registry-resolved in CI; do not rewrite `moon.work` with local SDK checkouts.
 - Treat process-backed fake CLI tests as native-only; credentialed provider examples are optional smoke checks, not required gates.
-- Preserve `package/workgraph-core/src/README.mbt.md` as the canonical root README source, `README.mbt.md` as its relative symlink, and `README.md` as the relative `README.mbt.md` symlink.
+- Preserve the repository-root `README.mbt.md` as the canonical workspace overview and `README.md` as its relative symlink.
+- Keep each independently published module's physical `README.mbt.md` and its `README.md` relative symlink; package source documentation remains package-specific and must not become a workspace aggregate.
 
 ### Standard tasks
 
@@ -60,7 +61,7 @@ package/workgraph-core/docs/     Runtime API, architecture, testing, and migrati
 
 - The [Workgraph Runtime Interfaces guide](./package/workgraph-core/docs/interfaces.md) is the detailed public API source of truth.
 - The [Core Types and Execution Guide](./package/workgraph-core/docs/core-guide.md) explains the runtime model and guarantees.
-- Keep user-facing setup and usage in `README.mbt.md`; keep commands, architecture, and repository constraints here.
+- Keep the workspace's user-facing setup and usage in the root `README.mbt.md`; keep module/package user-facing details in their own README files, and keep commands, architecture, and repository constraints here.
 
 ## Development tools
 
