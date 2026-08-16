@@ -58,8 +58,8 @@ package/workgraph-core/docs/     Runtime API, architecture, testing, and migrati
 
 ### Documentation
 
-- The [Workgraph Runtime Interfaces guide](package/workgraph-core/docs/interfaces.md) is the detailed public API source of truth.
-- The [Core Types and Execution Guide](package/workgraph-core/docs/core-guide.md) explains the runtime model and guarantees.
+- The [Workgraph Runtime Interfaces guide](./package/workgraph-core/docs/interfaces.md) is the detailed public API source of truth.
+- The [Core Types and Execution Guide](./package/workgraph-core/docs/core-guide.md) explains the runtime model and guarantees.
 - Keep user-facing setup and usage in `README.mbt.md`; keep commands, architecture, and repository constraints here.
 
 ## Development tools
@@ -73,7 +73,6 @@ package/workgraph-core/docs/     Runtime API, architecture, testing, and migrati
 - Keep public provider-neutral contracts in `workgraph-agent-cli`; provider-specific options belong only in the Codex or OpenCode adapter packages.
 - Preserve the published dependency versions and preferred-target declarations in each package's `moon.mod` unless the corresponding module migration is intentional.
 - When changing public MoonBit symbols, update the API guide and run `moon info`, `moon check`, and `moon test` before handoff.
-- Read [RELEASING.md](RELEASING.md) for the split-repository dependency contract and publication order before changing release automation.
-- Read the [agent-sdk migration note](docs/migrations/tot-175-agent-sdk-cli.md) when changing the coding-agent or provider adapter boundary.
+- Read [RELEASING.md](./RELEASING.md) for the split-repository dependency contract and publication order before changing release automation.
 
 _This AGENTS.md was generated from the [share-artifact skill](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/SKILL.md) and [AGENTS template](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/agents/template.md)._

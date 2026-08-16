@@ -33,12 +33,12 @@ moon run --target native package/workgraph-opencode-cli/src/examples/basic
 
 | Module | Purpose | Preferred target |
 | --- | --- | --- |
-| [`totto2727/workgraph-core`](package/workgraph-core/README.md) | Graph compiler, runtime, state, events, and resources | Wasm |
-| [`totto2727/workgraph-agent-cli`](package/workgraph-agent-cli/README.md) | Provider-neutral coding-agent nodes | Wasm |
-| [`totto2727/workgraph-llm`](package/workgraph-llm/README.md) | Provider-neutral LLM nodes | JavaScript |
-| [`totto2727/workgraph-visualization`](package/workgraph-visualization/README.md) | Mermaid rendering | Wasm |
-| [`totto2727/workgraph-codex-cli`](package/workgraph-codex-cli/README.md) | Codex CLI adapter | Wasm |
-| [`totto2727/workgraph-opencode-cli`](package/workgraph-opencode-cli/README.md) | OpenCode CLI adapter | Wasm |
+| [`totto2727/workgraph-core`](./package/workgraph-core/README.md) | Graph compiler, runtime, state, events, and resources | Wasm |
+| [`totto2727/workgraph-agent-cli`](./package/workgraph-agent-cli/README.md) | Provider-neutral coding-agent nodes | Wasm |
+| [`totto2727/workgraph-llm`](./package/workgraph-llm/README.md) | Provider-neutral LLM nodes | JavaScript |
+| [`totto2727/workgraph-visualization`](./package/workgraph-visualization/README.md) | Mermaid rendering | Wasm |
+| [`totto2727/workgraph-codex-cli`](./package/workgraph-codex-cli/README.md) | Codex CLI adapter | Wasm |
+| [`totto2727/workgraph-opencode-cli`](./package/workgraph-opencode-cli/README.md) | OpenCode CLI adapter | Wasm |
 
 ## Prerequisites
 
@@ -69,7 +69,9 @@ moon update
 
 ## API
 
-The complete public API contract for the Workgraph modules is maintained in the [Workgraph Runtime Interfaces guide](package/workgraph-core/docs/interfaces.md), which covers graph construction, runtime execution, resources, LLM nodes, coding-agent nodes, and provider adapters. The [Core Types and Execution Guide](package/workgraph-core/docs/core-guide.md) provides the accompanying runtime walkthrough.
+The Workgraph Runtime Interfaces guide covers graph construction, runtime execution, resources, LLM nodes, coding-agent nodes, and provider adapters.
+
+See [Workgraph Runtime Interfaces guide](./package/workgraph-core/docs/interfaces.md).
 
 ## Development
 
@@ -77,6 +79,6 @@ For repository structure and development commands, see [AGENTS.md](./AGENTS.md).
 
 ## License
 
-[MIT](LICENSE)
+[MIT](./LICENSE)
 
 _This README was generated from the [share-artifact skill](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/SKILL.md) and [README template](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/readme/template.md)._
