@@ -541,7 +541,7 @@ pub(all) struct CodingAgentOpenContext {
 } derive(Debug)
 ```
 
-Environment and policy are session-open settings because the current Codex and OpenCode adapters apply supported values when creating their clients and threads.
+Environment and policy are session-open settings. The Codex adapter applies approval and network values when creating its client and thread; the OpenCode adapter forwards environment and workspace context but does not enforce these approval or network policies.
 
 Adapter-specific options remain in adapter constructors.
 
