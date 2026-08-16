@@ -12,7 +12,7 @@ import {
 }
 ```
 
-Run the optional read-only example with a locally configured OpenCode CLI.
+Run the optional example with a locally configured OpenCode CLI.
 
 ```bash
 moon run --target native package/workgraph-opencode-cli/src/examples/basic

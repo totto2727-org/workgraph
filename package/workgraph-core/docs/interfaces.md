@@ -20,20 +20,34 @@ The implementation uses current MoonBit conventions:
 ## Identifiers
 
 ```moonbit
-pub struct NodeId(String) derive(Eq, Hash, Debug)
-pub struct RunId(String) derive(Eq, Hash, Debug)
-pub struct ResourceKey(String) derive(Eq, Hash, Debug)
+pub struct NodeId {
+  value : String
+} derive(Eq, Hash)
+pub struct RunId {
+  value : String
+} derive(Eq, Hash)
+pub struct ResourceKey {
+  value : String
+} derive(Eq, Hash)
 ```
 
-Each identifier has a validating constructor or parser.
+Each identifier has a validating constructor.
 
 ```moonbit
 pub(all) suberror IdError {
   EmptyId(kind~ : String)
 } derive(Debug)
 
-pub fn NodeId::parse(value : String) -> NodeId raise IdError
+pub fn NodeId::NodeId(value : String) -> NodeId raise IdError
 pub fn NodeId::to_string(self : NodeId) -> String
+```
+
+A checked construction handles the constructor's raised validation error.
+
+```moonbit
+let node_id = NodeId::NodeId("entry") catch {
+  _ => abort("node ID must be valid")
+}
 ```
 
 Equivalent APIs are provided for the other identifier types.
