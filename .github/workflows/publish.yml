@@ -12,37 +12,35 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - uses: totto2727-org/monorepo/.github/actions/setup-nix@050a0db1c73bfd8ddc0816c2c6414fd3d03fabf4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: totto2727-org/monorepo/.github/actions/setup-nix@main
       - name: Publish workgraph-core
-        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@050a0db1c73bfd8ddc0816c2c6414fd3d03fabf4
+        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@main
         with:
           token: ${{ secrets.MOONCAKES_TOKEN }}
           package-path: package/workgraph-core
       - name: Publish workgraph-agent-cli
-        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@050a0db1c73bfd8ddc0816c2c6414fd3d03fabf4
+        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@main
         with:
           token: ${{ secrets.MOONCAKES_TOKEN }}
           package-path: package/workgraph-agent-cli
       - name: Publish workgraph-llm
-        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@050a0db1c73bfd8ddc0816c2c6414fd3d03fabf4
+        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@main
         with:
           token: ${{ secrets.MOONCAKES_TOKEN }}
           package-path: package/workgraph-llm
       - name: Publish workgraph-visualization
-        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@050a0db1c73bfd8ddc0816c2c6414fd3d03fabf4
+        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@main
         with:
           token: ${{ secrets.MOONCAKES_TOKEN }}
           package-path: package/workgraph-visualization
       - name: Publish workgraph-codex-cli
-        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@050a0db1c73bfd8ddc0816c2c6414fd3d03fabf4
+        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@main
         with:
           token: ${{ secrets.MOONCAKES_TOKEN }}
           package-path: package/workgraph-codex-cli
       - name: Publish workgraph-opencode-cli
-        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@050a0db1c73bfd8ddc0816c2c6414fd3d03fabf4
+        uses: totto2727-org/monorepo/.github/actions/publish-moonbit@main
         with:
           token: ${{ secrets.MOONCAKES_TOKEN }}
           package-path: package/workgraph-opencode-cli
