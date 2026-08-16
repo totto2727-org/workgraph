@@ -16,10 +16,12 @@ jobs:
       NIX_DEV_SHELL: ci
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: totto2727-org/monorepo/.github/actions/setup-nix@main
-      - uses: totto2727-org/monorepo/.github/actions/setup-moonbit@main
+        with:
+          persist-credentials: false
+      - uses: totto2727-org/monorepo/.github/actions/setup-nix@050a0db1c73bfd8ddc0816c2c6414fd3d03fabf4
+      - uses: totto2727-org/monorepo/.github/actions/setup-moonbit@050a0db1c73bfd8ddc0816c2c6414fd3d03fabf4
         with:
           dev-shell: ${{ env.NIX_DEV_SHELL }}
-      - uses: totto2727-org/monorepo/.github/actions/check-moonbit@main
+      - uses: totto2727-org/monorepo/.github/actions/check-moonbit@050a0db1c73bfd8ddc0816c2c6414fd3d03fabf4
         with:
           dev-shell: ${{ env.NIX_DEV_SHELL }}
