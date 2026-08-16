@@ -1,77 +1,58 @@
 # Workgraph
 
-Workgraph is a standalone MoonBit workspace for building asynchronous typed graphs with state reducers, lifecycle events, resources, LLM nodes, coding-agent nodes, CLI adapters, and Mermaid visualization.
+Workgraph is a MoonBit workspace for building typed graphs with state reducers, lifecycle events, scoped resources, provider-neutral LLM and coding-agent nodes, CLI adapters, and Mermaid visualization.
 
-This document is the canonical README source. Maintain `README.mbt.md` as the relative symlink `README.mbt.md -> package/workgraph-core/src/README.mbt.md`, then maintain `README.md` as the relative symlink `README.md -> README.mbt.md`.
+This document is canonical `README.mbt.md`; the repository-root `README.mbt.md` and `README.md` are relative symlinks to it.
 
 ## Usage
 
-Run one of the included examples from the repository root after installing the MoonBit toolchain:
+Build a graph from a reducer, nodes, declared routes, and an entry node.
+
+```mbt check
+///|
+test "README NodeId usage" {
+  let node_id = NodeId::NodeId("plan")
+  inspect(node_id.to_string(), content="plan")
+}
+```
+
+Run the complete basic graph example from the repository root.
 
 ```bash
 moon run package/workgraph-core/src/examples/basic
-moon run package/workgraph-llm/src/examples/basic
-moon run package/workgraph-visualization/src/examples/basic
-```
-
-The Codex and OpenCode adapters have optional native examples that use the corresponding locally authenticated CLI:
-
-```bash
-moon run --target native package/workgraph-codex-cli/src/examples/basic
-moon run --target native package/workgraph-opencode-cli/src/examples/basic
 ```
 
 ## Key features
 
-- Typed graph compilation with declared routes, reachability validation, and sequential execution
-- Invocation-local state reducers, cancellation-aware cleanup, lifecycle events, and typed resource scopes
-- Provider-neutral LLM nodes and direct `agent-sdk` coding-agent nodes
-- Codex and OpenCode adapters that retain provider-native options at their composition roots
-- Same-source Wasm/native CLI adapters and Mermaid rendering from compiled graph snapshots
-
-## Modules
-
-| Module | Purpose | Preferred target |
-| --- | --- | --- |
-| [`totto2727/workgraph-core`](../README.md) | Graph compiler, runtime, state, events, and resources | Wasm |
-| [`totto2727/workgraph-agent-cli`](../../workgraph-agent-cli/README.md) | Provider-neutral coding-agent nodes | Wasm |
-| [`totto2727/workgraph-llm`](../../workgraph-llm/README.md) | Provider-neutral LLM nodes | JavaScript |
-| [`totto2727/workgraph-visualization`](../../workgraph-visualization/README.md) | Mermaid rendering | Wasm |
-| [`totto2727/workgraph-codex-cli`](../../workgraph-codex-cli/README.md) | Codex CLI adapter | Wasm |
-| [`totto2727/workgraph-opencode-cli`](../../workgraph-opencode-cli/README.md) | OpenCode CLI adapter | Wasm |
+- Typed graph compilation that validates declared routes, destinations, entry points, and reachability
+- Sequential graph execution with reducer-only state updates, lifecycle events, cancellation-aware cleanup, and scoped typed resources
+- Optional LLM, coding-agent, provider-adapter, and Mermaid-rendering packages that compose with the core runtime
 
 ## Prerequisites
 
 - **MoonBit**: Install a current MoonBit toolchain.
-- **Nix**: Optional, for the pinned development shell and reproducible CLI integration environment.
-- **Codex and OpenCode CLIs**: Optional, only for the corresponding credentialed adapter examples.
 
 ## Setup
 
-1. Clone the repository.
+1. Add the package to a MoonBit project.
 
 ```bash
-git clone https://github.com/totto2727-org/workgraph.git
-cd workgraph
+moon add totto2727/workgraph-core
 ```
 
-2. Enter the pinned shell when using Nix.
+2. Import `totto2727/workgraph-core` from the package that defines the graph.
 
-```bash
-nix develop
-```
-
-3. Resolve the workspace dependencies.
-
-```bash
-moon update
+```moonbit nocheck
+import {
+  "totto2727/workgraph-core"
+}
 ```
 
 ## API
 
-The Workgraph Runtime Interfaces guide covers graph construction, runtime execution, resources, LLM nodes, coding-agent nodes, and provider adapters.
+[Mooncakes API reference](https://mooncakes.io/docs/totto2727/workgraph-core)
 
-See [Workgraph Runtime Interfaces guide](../docs/interfaces.md).
+For graph construction and runtime behavior, see the [Workgraph Runtime Interfaces guide](../docs/interfaces.md) and the [Core Types and Execution Guide](../docs/core-guide.md).
 
 ## Development
 

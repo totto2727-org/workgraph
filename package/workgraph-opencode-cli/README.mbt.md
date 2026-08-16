@@ -1,10 +1,10 @@
 # workgraph-opencode-cli
 
-`workgraph-opencode-cli` implements the Workgraph coding-agent contract through `totto2727/agent-sdk/cli/opencode`. Its public `OpenCodeAgentOptions` and `opencode_agent` constructor remain the composition root for OpenCode-native option types from `totto2727/opencode-sdk/cli`.
+`workgraph-opencode-cli` implements the Workgraph coding-agent contract through `totto2727/agent-sdk/cli/opencode` and exposes `OpenCodeAgentOptions` plus `opencode_agent` as the OpenCode-native composition root.
 
-`opencode_agent` returns a configured agent-sdk `Cli` through `CodingAgent.open`; the shared node owns session acquisition, prompt serialization, agent-bound continuation selection, response decoding, and relative context-file resolution against the Workgraph workspace. Absolute `Path` values and caller order are retained. Provider errors and prompt cancellation propagate unchanged, with provider cleanup owned by the cancellable `CliSession.prompt` call. There is no Workgraph session wrapper, logical `close`, or post-close error.
+This document is canonical `README.mbt.md`; maintain `README.md` as the relative symlink `README.md -> README.mbt.md`.
 
-## Package
+## Usage
 
 ```moonbit
 import {
@@ -12,12 +12,49 @@ import {
 }
 ```
 
-Version `0.2.0` prefers Wasm/WASI and supports Wasm/WASI and native from the same production source; JavaScript is not supported. It resolves `totto2727/agent-sdk@0.2.0` and `totto2727/opencode-sdk@0.4.0` from the MoonBit registry. The shared CI check follows the Wasm/WASI preferred target and loads the OpenCode CLI from the repository's `ci` Nix dev shell. Fake CLI process tests run only on native.
-
-## Example
-
-The `src/examples/basic` example can use local OpenCode CLI configuration and runs a read-only prompt in the current workspace. It is an optional credentialed smoke, not a required test gate.
+Run the optional read-only example with a locally configured OpenCode CLI.
 
 ```bash
 moon run --target native package/workgraph-opencode-cli/src/examples/basic
 ```
+
+## Key features
+
+- Preserves OpenCode-native options at the `opencode_agent` composition root
+- Reuses the shared coding-agent node for session acquisition, prompt serialization, and continuation selection
+- Propagates provider errors and cancellation while the provider owns prompt cleanup
+
+## Prerequisites
+
+- **MoonBit**: Install a current MoonBit toolchain.
+- **OpenCode CLI**: Install and configure the OpenCode CLI before running the optional example.
+
+## Setup
+
+1. Add the package to a MoonBit project.
+
+```bash
+moon add totto2727/workgraph-opencode-cli
+```
+
+2. Import `totto2727/workgraph-opencode-cli` where OpenCode-specific agent options are configured.
+
+```moonbit
+import {
+  "totto2727/workgraph-opencode-cli"
+}
+```
+
+## API
+
+[Mooncakes API reference](https://mooncakes.io/docs/totto2727/workgraph-opencode-cli)
+
+## Development
+
+For repository structure and development commands, see [AGENTS.md](../../AGENTS.md).
+
+## License
+
+[MIT](../../LICENSE)
+
+_This README was generated from the [share-artifact skill](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/SKILL.md) and [README template](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/readme/template.md)._

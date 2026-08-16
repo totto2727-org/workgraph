@@ -1,16 +1,10 @@
 # workgraph-agent-cli
 
-`workgraph-agent-cli` provides the Workgraph-owned coding-agent concepts: `WorkspaceRef`, approval and network policies, `CodingAgentOpenContext`, `CodingAgentId`, `CodingAgent`, `CodingAgentNodeSpec`, and `coding_agent_node`. The core package remains provider-neutral and exposes only node patches and optional values.
+`workgraph-agent-cli` provides Workgraph's provider-neutral coding-agent concepts, including workspace and policy types, agent identity, opaque in-process continuations, node specifications, and `coding_agent_node`.
 
-The breaking API delegates execution directly to `totto2727/agent-sdk/cli`: `CodingAgent.open` returns a configured `Cli`; a node creates a `Prompt`, selects an optional opaque `Continuation`, and decodes a `FinalResponse`. Workgraph no longer exposes mirror `SessionId`, `CodingAgentRequest`, `CodingAgentStatus`, `CodingAgentResponse`, or `CodingAgentSession` types.
+This document is canonical `README.mbt.md`; maintain `README.md` as the relative symlink `README.md -> README.mbt.md`.
 
-Each node acquires one `CliSession` per agent identity and caller resource scope, starting a session when no continuation is selected or resuming one when a `CodingAgentContinuation` is supplied. Only the node can construct this opaque token from a successful `FinalResponse`; it binds the raw continuation to the configured `CodingAgentId` and raises `CodingAgentContinuationError::AgentMismatch` before provider open when another agent selects it. The node resolves relative prompt context files against `CodingAgentOpenContext.workspace.root` and leaves absolute `Path` values unchanged. A node-owned mutex serializes `prompt` calls. Resource finalization is intentionally a no-op because `CliSession` has no idle close operation; cancellation cleanup is owned by the provider call and cancellation is re-raised after that cleanup. A continuation is an in-process handle, not a serializable or durable checkpoint.
-
-Graph execution is sequential. Multiple agents remain isolated even when callers reuse a visible resource key: Workgraph includes the agent ID in its internal key, so sessions, state slots, and continuations never cross agent boundaries.
-
-The package intentionally has no standalone example. Use the runnable `workgraph-codex-cli` and `workgraph-opencode-cli` examples to see this node with concrete coding-agent implementations.
-
-## Package
+## Usage
 
 ```moonbit
 import {
@@ -18,4 +12,49 @@ import {
 }
 ```
 
-Version `0.2.0` prefers the Wasm/WASI target and supports Wasm/WASI and native. JavaScript is not supported. The module resolves `totto2727/agent-sdk@0.2.0` from the MoonBit registry. Wasm GC is excluded because `moonbitlang/async` does not support it.
+Use the concrete Codex or OpenCode adapter examples to run a configured coding-agent node.
+
+```bash
+moon run --target native package/workgraph-codex-cli/src/examples/basic
+```
+
+## Key features
+
+- Defines provider-neutral `CodingAgent` contracts and a node that composes directly with `totto2727/agent-sdk/cli`
+- Keeps continuations opaque, in-process, and bound to the configured `CodingAgentId`
+- Serializes prompts per agent resource and resolves relative context files against the configured workspace
+
+## Prerequisites
+
+- **MoonBit**: Install a current MoonBit toolchain.
+- **A coding-agent adapter**: Add `workgraph-codex-cli` or `workgraph-opencode-cli` to run a concrete provider.
+
+## Setup
+
+1. Add the package to a MoonBit project.
+
+```bash
+moon add totto2727/workgraph-agent-cli
+```
+
+2. Import `totto2727/workgraph-agent-cli` where the graph's coding-agent node is defined.
+
+```moonbit
+import {
+  "totto2727/workgraph-agent-cli"
+}
+```
+
+## API
+
+[Mooncakes API reference](https://mooncakes.io/docs/totto2727/workgraph-agent-cli)
+
+## Development
+
+For repository structure and development commands, see [AGENTS.md](../../AGENTS.md).
+
+## License
+
+[MIT](../../LICENSE)
+
+_This README was generated from the [share-artifact skill](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/SKILL.md) and [README template](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/readme/template.md)._

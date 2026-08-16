@@ -1,53 +1,61 @@
-# Workgraph
+# workgraph-core
 
-Workgraph is a family of MoonBit modules for asynchronous typed graphs, LLM nodes, coding agents, CLI integrations, and visualization.
+`workgraph-core` provides the typed graph definitions, compiler, sequential runtime, reducers, events, identifiers, and scoped `ResourceStore` used by the Workgraph package family.
 
-## Modules
+This document is canonical `README.mbt.md`; maintain `README.md` as the relative symlink `README.md -> README.mbt.md`.
 
-| Module                              | Responsibility                                                                                                | Preferred target | Supported targets |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------- | ----------------- |
-| `totto2727/workgraph-core`          | Graph definitions, compiled graphs, sequential runtime, state reducers, events, and in-memory `ResourceStore` | wasm             | js, native, wasm  |
-| `totto2727/workgraph-agent-cli`     | Coding-agent node and session resource lifecycle                                                              | wasm             | js, native, wasm  |
-| `totto2727/workgraph-llm`           | Provider-neutral `mizchi/llm@0.3.1` node boundary                                                             | js               | js, native        |
-| `totto2727/workgraph-visualization` | Mermaid rendering from compiled graph snapshots                                                               | wasm             | js, native, wasm  |
-| `totto2727/workgraph-codex-cli`     | Codex CLI adapter                                                                                             | wasm             | wasm, native      |
-| `totto2727/workgraph-opencode-cli`  | OpenCode CLI adapter                                                                                          | wasm             | wasm, native      |
+## Usage
 
-Production dependency direction is acyclic:
-
-```mermaid
-flowchart LR
-  Core["workgraph-core"]
-  Coding["workgraph-agent-cli"] --> Core
-  LLM["workgraph-llm"] --> Core
-  Visualization["workgraph-visualization"] --> Core
-  Codex["workgraph-codex-cli"] --> Core
-  Codex --> Coding
-  OpenCode["workgraph-opencode-cli"] --> Core
-  OpenCode --> Coding
+```moonbit
+import {
+  "totto2727/workgraph-core"
+}
 ```
 
-Each module owns its unit and integration tests. The previous shared `testing`, aggregate `test`, and `e2e` packages are not part of the split module family.
-
-## Examples
-
-Run commands from the repository root.
+Run the included basic graph example from the workspace root.
 
 ```bash
 moon run package/workgraph-core/src/examples/basic
-moon run package/workgraph-llm/src/examples/basic
-moon run package/workgraph-visualization/src/examples/basic
-moon run package/workgraph-codex-cli/src/examples/basic
-moon run package/workgraph-opencode-cli/src/examples/basic
 ```
 
-The LLM example uses `mizchi/llm.MockProvider` and requires no credentials. The Codex and OpenCode examples use the corresponding installed CLI and local authentication. `workgraph-agent-cli` has no standalone example because the two CLI examples demonstrate its concrete use.
+## Key features
+
+- Validates graph routes, destinations, entry points, and reachability before execution
+- Runs typed nodes sequentially and applies state only through reducers
+- Exposes lifecycle events and typed, invocation-scoped resources
+
+## Prerequisites
+
+- **MoonBit**: Install a current MoonBit toolchain.
+
+## Setup
+
+1. Add the package to a MoonBit project.
+
+```bash
+moon add totto2727/workgraph-core
+```
+
+2. Import `totto2727/workgraph-core` from the package that defines the graph.
+
+```moonbit
+import {
+  "totto2727/workgraph-core"
+}
+```
+
+## API
+
+[Mooncakes API reference](https://mooncakes.io/docs/totto2727/workgraph-core)
+
+For graph construction and runtime behavior, see the [architecture guide](docs/architecture.md), [Core Types and Execution Guide](docs/core-guide.md), [Workgraph Runtime Interfaces guide](docs/interfaces.md), and [testing guide](docs/testing.md).
 
 ## Development
 
-```bash
-moon check
-moon test
-```
+For repository structure and development commands, see [AGENTS.md](../../AGENTS.md).
 
-See the [architecture](docs/architecture.md), [core guide](docs/core-guide.md), [interfaces](docs/interfaces.md), and [testing guide](docs/testing.md).
+## License
+
+[MIT](../../LICENSE)
+
+_This README was generated from the [share-artifact skill](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/SKILL.md) and [README template](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/readme/template.md)._
