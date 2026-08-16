@@ -21,7 +21,7 @@ package/workgraph-core/docs/     Runtime API, architecture, testing, and migrati
 - Use `nix develop .#ci` when validating Codex or OpenCode CLI integration; the default shell does not add those CLIs.
 - Keep dependencies registry-resolved in CI; do not rewrite `moon.work` with local SDK checkouts.
 - Treat process-backed fake CLI tests as native-only; credentialed provider examples are optional smoke checks, not required gates.
-- Preserve `README.mbt.md` as the canonical root document and `README.md` as its relative symlink.
+- Preserve `package/workgraph-core/src/README.mbt.md` as the canonical root README source, `README.mbt.md` as its relative symlink, and `README.md` as the relative `README.mbt.md` symlink.
 
 ### Standard tasks
 
