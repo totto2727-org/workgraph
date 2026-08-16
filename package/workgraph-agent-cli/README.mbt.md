@@ -51,10 +51,10 @@ import {
 
 ## Development
 
-For repository structure and development commands, see [AGENTS.md](../../AGENTS.md).
+For module structure and development commands, see [AGENTS.md](./AGENTS.md).
 
 ## License
 
-[MIT](../../LICENSE)
+[MIT](./LICENSE)
 
 _This README was generated from the [share-artifact skill](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/SKILL.md) and [README template](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/readme/template.md)._
