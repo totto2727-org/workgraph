@@ -12,17 +12,14 @@ import {
 }
 ```
 
-Run the optional read-only example with a locally authenticated Codex CLI.
-
-```bash
-moon run --target native package/workgraph-codex-cli/src/examples/basic
-```
+Use `codex_agent` to configure the coding-agent node with Codex-native options.
 
 ## Key features
 
 - Preserves Codex-native options at the `codex_agent` composition root
 - Reuses the shared coding-agent node for session acquisition, prompt serialization, and continuation selection
 - Propagates provider errors and cancellation while the provider owns prompt cleanup
+- Supports Wasm/WASI and native targets; JavaScript is not supported
 
 ## Prerequisites
 

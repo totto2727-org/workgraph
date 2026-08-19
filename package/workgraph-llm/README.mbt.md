@@ -12,17 +12,14 @@ import {
 }
 ```
 
-Run the deterministic example, which uses `mizchi/llm.MockProvider` and needs no credentials.
-
-```bash
-moon run package/workgraph-llm/src/examples/basic
-```
+Use `LlmNodeSpec` to adapt application state into a provider request and decode the collected result into a graph patch.
 
 ## Key features
 
 - Converts typed state into `mizchi/llm` requests, including tools
 - Collects streamed text, tool calls, finish reason, and usage into an LLM response
 - Returns standard Workgraph node patches and optional values without choosing a provider
+- Supports JavaScript and native targets; Wasm targets are not supported
 
 ## Prerequisites
 

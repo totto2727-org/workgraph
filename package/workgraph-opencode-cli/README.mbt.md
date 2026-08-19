@@ -12,17 +12,14 @@ import {
 }
 ```
 
-Run the optional example with a locally configured OpenCode CLI.
-
-```bash
-moon run --target native package/workgraph-opencode-cli/src/examples/basic
-```
+Use `opencode_agent` to configure the coding-agent node with OpenCode-native options.
 
 ## Key features
 
 - Preserves OpenCode-native options at the `opencode_agent` composition root
 - Reuses the shared coding-agent node for session acquisition, prompt serialization, and continuation selection
 - Propagates provider errors and cancellation while the provider owns prompt cleanup
+- Supports Wasm/WASI and native targets; JavaScript is not supported
 
 ## Prerequisites
 

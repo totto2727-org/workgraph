@@ -12,17 +12,14 @@ import {
 }
 ```
 
-Run the included graph-to-Mermaid example from the workspace root.
-
-```bash
-moon run package/workgraph-visualization/src/examples/basic
-```
+Use `to_mermaid` to turn a compiled graph snapshot into Mermaid flowchart text.
 
 ## Key features
 
 - Renders compiled graph snapshots without serializing node callbacks
 - Includes node identity, metadata, declared routes, entry point, and router labels
 - Escapes Mermaid-special metadata deterministically
+- Supports JavaScript, native, and Wasm/WASI targets
 
 ## Prerequisites
 

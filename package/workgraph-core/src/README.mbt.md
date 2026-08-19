@@ -2,7 +2,7 @@
 
 `workgraph-core` provides the typed graph definitions, compiler, sequential runtime, reducers, events, identifiers, and scoped `ResourceStore` used by the Workgraph package family.
 
-This document is canonical `README.mbt.md` for the source package; the module-level README is maintained at [../README.md](../README.md).
+For installation and the module overview, see the [workgraph-core README](../README.md).
 
 ## Usage
 
@@ -16,17 +16,12 @@ test "README NodeId usage" {
 }
 ```
 
-Run the complete basic graph example from the repository root.
-
-```bash
-moon run package/workgraph-core/src/examples/basic
-```
-
 ## Key features
 
 - Validates graph routes, destinations, entry points, and reachability before execution
 - Runs typed nodes sequentially and applies state only through reducers
 - Exposes lifecycle events and typed, invocation-scoped resources
+- Supports JavaScript, native, and Wasm/WASI targets
 
 ## Prerequisites
 
@@ -46,7 +41,7 @@ moon add totto2727/workgraph-core
 
 [Mooncakes API reference](https://mooncakes.io/docs/totto2727/workgraph-core)
 
-For graph construction and runtime behavior, see the [architecture guide](../docs/architecture.md), [Core Types and Execution Guide](../docs/core-guide.md), [Workgraph Runtime Interfaces guide](../docs/interfaces.md), and [testing guide](../docs/testing.md).
+For graph construction and runtime behavior, see the [Core Types and Execution Guide](../docs/core-guide.md) and [Workgraph Runtime Interfaces guide](../docs/interfaces.md).
 
 ## Development
 

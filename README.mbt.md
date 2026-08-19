@@ -6,20 +6,15 @@ This document is canonical `README.mbt.md`; maintain `README.md` as the relative
 
 ## Usage
 
-Run one of the included examples from the repository root after installing the MoonBit toolchain:
+Choose the module that provides the capability you need. Most graphs start with `workgraph-core`:
 
-```bash
-moon run package/workgraph-core/src/examples/basic
-moon run package/workgraph-llm/src/examples/basic
-moon run package/workgraph-visualization/src/examples/basic
+```moonbit
+import {
+  "totto2727/workgraph-core"
+}
 ```
 
-The Codex and OpenCode adapters have optional native examples that use the corresponding locally authenticated CLI:
-
-```bash
-moon run --target native package/workgraph-codex-cli/src/examples/basic
-moon run --target native package/workgraph-opencode-cli/src/examples/basic
-```
+Add the LLM, visualization, or coding-agent adapter modules only when the graph needs those capabilities.
 
 ## Key features
 
@@ -32,28 +27,21 @@ moon run --target native package/workgraph-opencode-cli/src/examples/basic
 ## Prerequisites
 
 - **MoonBit**: Install a current MoonBit toolchain.
-- **Nix**: Optional, for the pinned development shell and reproducible CLI integration environment.
-- **Codex and OpenCode CLIs**: Optional, only for the corresponding credentialed adapter examples.
+- **Codex and OpenCode CLIs**: Optional, only when using the corresponding coding-agent adapter.
 
 ## Setup
 
-1. Clone the repository.
+1. Add the core runtime to your MoonBit project.
 
 ```bash
-git clone https://github.com/totto2727-org/workgraph.git
-cd workgraph
+moon add totto2727/workgraph-core
 ```
 
-2. Enter the pinned shell when using Nix.
+2. Add only the optional modules your graph uses. For example:
 
 ```bash
-nix develop
-```
-
-3. Resolve the workspace dependencies.
-
-```bash
-moon update
+moon add totto2727/workgraph-llm
+moon add totto2727/workgraph-visualization
 ```
 
 ## API
@@ -62,14 +50,14 @@ The complete public API contract for the Workgraph modules is maintained in the 
 
 ## Modules
 
-| Module | Purpose | Preferred target |
+| Module | Purpose | Supported targets |
 | --- | --- | --- |
-| [`totto2727/workgraph-core`](package/workgraph-core/README.md) | Graph compiler, runtime, state, events, and resources | Wasm |
-| [`totto2727/workgraph-agent-cli`](package/workgraph-agent-cli/README.md) | Provider-neutral coding-agent nodes | Wasm |
-| [`totto2727/workgraph-llm`](package/workgraph-llm/README.md) | Provider-neutral LLM nodes | JavaScript |
-| [`totto2727/workgraph-visualization`](package/workgraph-visualization/README.md) | Mermaid rendering | Wasm |
-| [`totto2727/workgraph-codex-cli`](package/workgraph-codex-cli/README.md) | Codex CLI adapter | Wasm |
-| [`totto2727/workgraph-opencode-cli`](package/workgraph-opencode-cli/README.md) | OpenCode CLI adapter | Wasm |
+| [`totto2727/workgraph-core`](package/workgraph-core/README.md) | Graph compiler, runtime, state, events, and resources | JavaScript, native, and Wasm/WASI (preferred) |
+| [`totto2727/workgraph-agent-cli`](package/workgraph-agent-cli/README.md) | Provider-neutral coding-agent nodes | Wasm/WASI (preferred) and native |
+| [`totto2727/workgraph-llm`](package/workgraph-llm/README.md) | Provider-neutral LLM nodes | JavaScript (preferred) and native |
+| [`totto2727/workgraph-visualization`](package/workgraph-visualization/README.md) | Mermaid rendering | JavaScript, native, and Wasm/WASI (preferred) |
+| [`totto2727/workgraph-codex-cli`](package/workgraph-codex-cli/README.md) | Codex CLI adapter | Wasm/WASI (preferred) and native |
+| [`totto2727/workgraph-opencode-cli`](package/workgraph-opencode-cli/README.md) | OpenCode CLI adapter | Wasm/WASI (preferred) and native |
 
 ## Development
 

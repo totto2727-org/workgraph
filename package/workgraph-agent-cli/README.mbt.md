@@ -12,17 +12,14 @@ import {
 }
 ```
 
-Use the concrete Codex or OpenCode adapter examples to run a configured coding-agent node.
-
-```bash
-moon run --target native package/workgraph-codex-cli/src/examples/basic
-```
+Compose this module with `workgraph-codex-cli` or `workgraph-opencode-cli` to provide a concrete `CodingAgent`.
 
 ## Key features
 
 - Defines provider-neutral `CodingAgent` contracts and a node that composes directly with `totto2727/agent-sdk/cli`
 - Keeps continuations opaque, in-process, and bound to the configured `CodingAgentId`
 - Serializes prompts per agent resource and resolves relative context files against the configured workspace
+- Supports Wasm/WASI and native targets; JavaScript is not supported
 
 ## Prerequisites
 

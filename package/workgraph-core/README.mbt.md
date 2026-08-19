@@ -12,17 +12,14 @@ import {
 }
 ```
 
-Run the included basic graph example from the workspace root.
-
-```bash
-moon run package/workgraph-core/src/examples/basic
-```
+Use `GraphDefinition` to declare nodes and routes, compile the definition, and invoke it with `GraphRuntime`.
 
 ## Key features
 
 - Validates graph routes, destinations, entry points, and reachability before execution
 - Runs typed nodes sequentially and applies state only through reducers
 - Exposes lifecycle events and typed, invocation-scoped resources
+- Supports JavaScript, native, and Wasm/WASI targets
 
 ## Prerequisites
 
@@ -48,7 +45,7 @@ import {
 
 [Mooncakes API reference](https://mooncakes.io/docs/totto2727/workgraph-core)
 
-For graph construction and runtime behavior, see the [architecture guide](docs/architecture.md), [Core Types and Execution Guide](docs/core-guide.md), [Workgraph Runtime Interfaces guide](docs/interfaces.md), and [testing guide](docs/testing.md).
+For graph construction and runtime behavior, see the [Core Types and Execution Guide](docs/core-guide.md) and [Workgraph Runtime Interfaces guide](docs/interfaces.md).
 
 ## Development
 

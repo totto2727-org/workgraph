@@ -33,6 +33,14 @@ package/workgraph-core/docs/     Runtime API, architecture, testing, and migrati
 - `moon build` — Build all workspace packages for their preferred targets.
 - `moon package --list` — List the module packages selected for publication.
 
+### Repository examples
+
+- `moon run package/workgraph-core/src/examples/basic` — Run the basic typed graph.
+- `moon run package/workgraph-llm/src/examples/basic` — Run the deterministic mock-provider graph.
+- `moon run package/workgraph-visualization/src/examples/basic` — Render a compiled graph as Mermaid.
+- `moon run --target native package/workgraph-codex-cli/src/examples/basic` — Run the optional credentialed Codex adapter example.
+- `moon run --target native package/workgraph-opencode-cli/src/examples/basic` — Run the optional configured OpenCode adapter example.
+
 ## Architecture
 
 ### Workspace boundaries
