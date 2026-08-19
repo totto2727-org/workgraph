@@ -24,7 +24,7 @@ Use `opencode_agent` to configure the coding-agent node with OpenCode-native opt
 ## Prerequisites
 
 - **MoonBit**: Install a current MoonBit toolchain.
-- **OpenCode CLI**: Install and configure the OpenCode CLI before running the optional example.
+- **OpenCode CLI**: Install and configure the OpenCode CLI before using this adapter.
 
 ## Setup
 

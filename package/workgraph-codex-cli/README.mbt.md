@@ -24,7 +24,7 @@ Use `codex_agent` to configure the coding-agent node with Codex-native options.
 ## Prerequisites
 
 - **MoonBit**: Install a current MoonBit toolchain.
-- **Codex CLI**: Install and authenticate the Codex CLI before running the optional example.
+- **Codex CLI**: Install and authenticate the Codex CLI before using this adapter.
 
 ## Setup
 
