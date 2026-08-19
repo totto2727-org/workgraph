@@ -11,6 +11,7 @@ src/  Provider-neutral coding-agent contracts, node composition, and tests
 ### Execution rules
 
 - Run commands from this module root.
+- Keep `README.mbt.md` as the module README and `README.md` as its relative symlink.
 
 ### Standard tasks
 

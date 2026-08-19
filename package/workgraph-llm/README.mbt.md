@@ -3,6 +3,10 @@ moonbit:
   import:
     - path: mizchi/llm@0.3.1
       alias: llm
+    - path: moonbitlang/async@0.20.3
+      alias: async
+    - path: totto2727/workgraph-core@0.1.3
+      alias: core
     - path: totto2727/workgraph-llm@0.1.3
       alias: workgraph_llm
   backend:
@@ -13,17 +17,51 @@ moonbit:
 
 `workgraph-llm` adapts `mizchi/llm` messages, tools, streamed events, and collected results into typed `workgraph-core` nodes without selecting a provider or runtime.
 
-This document is canonical `README.mbt.md`; maintain `README.md` as the relative symlink `README.md -> README.mbt.md`.
-
 ## Usage
 
 ```mbt check
 ///|
-test "workgraph-llm request usage" {
-  let request = @workgraph_llm.LlmRequest::LlmRequest([
-    @llm.Message::user("Plan the next step"),
-  ])
-  inspect(request.messages[0].get_text(), content="Plan the next step")
+async test "workgraph-llm node usage" {
+  let entry = @core.NodeId::NodeId("llm")
+  let provider = @llm.MockProvider::new([
+    [
+      @llm.MessageStart,
+      @llm.TextDelta("Use a typed node"),
+      @llm.MessageEnd(finish_reason=@llm.Stop, usage=None),
+    ],
+  ]).boxed()
+  let node = @workgraph_llm.llm_node(
+    entry,
+    @core.NodeMetadata::NodeMetadata(
+      name="LLM",
+      description=None,
+      kind=@core.Llm,
+      tags=[],
+    ),
+    @workgraph_llm.LlmNodeSpec::LlmNodeSpec(
+      provider,
+      fn(_context, prompt : String) {
+        @workgraph_llm.LlmRequest::LlmRequest([@llm.Message::user(prompt)])
+      },
+      fn(_state, response) {
+        @core.NodeOutput::NodeOutput(Some(response.text), None)
+      },
+    ),
+  )
+  let definition = @core.GraphDefinition::GraphDefinition(
+    @core.Reducer::Reducer(fn(_state : String, patch : String) { patch }),
+  )
+  definition.add_node(node)
+  definition.set_router(
+    entry,
+    @core.router([], fn(_state, _completion) { @core.End }),
+  )
+  definition.set_entry(entry)
+  let result = @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(
+    "Plan the next step",
+  )
+  inspect(result.final_state, content="Use a typed node")
+  inspect(result.steps, content="1")
 }
 ```
 
@@ -40,10 +78,12 @@ test "workgraph-llm request usage" {
 
 ## Setup
 
-1. Add the LLM message types and Workgraph integration to a MoonBit project.
+1. Add the LLM, async, core, and Workgraph integration modules to a MoonBit project.
 
 ```bash
 moon add mizchi/llm@0.3.1
+moon add moonbitlang/async@0.20.3
+moon add totto2727/workgraph-core
 moon add totto2727/workgraph-llm
 ```
 
@@ -52,6 +92,8 @@ moon add totto2727/workgraph-llm
 ```moonbit
 import {
   "mizchi/llm",
+  "moonbitlang/async",
+  "totto2727/workgraph-core" @core,
   "totto2727/workgraph-llm" @workgraph_llm,
 }
 ```

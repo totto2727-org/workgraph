@@ -4,14 +4,36 @@ This package-local literate document keeps checked source examples close to `wor
 
 ## Checked examples
 
-### `NodeId`
+### One-node graph
 
-Create a validated node identifier and render its string value.
+Compile and invoke a node, then observe the reduced state and executed step count.
 
 ```mbt check
 ///|
-test "README NodeId usage" {
-  let node_id = NodeId::NodeId("plan")
-  inspect(node_id.to_string(), content="plan")
+async test "README graph runtime usage" {
+  let entry = NodeId::NodeId("increment")
+  let definition = GraphDefinition::GraphDefinition(
+    Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+  )
+  definition.add_node(
+    Node::Node(
+      entry,
+      NodeMetadata::NodeMetadata(
+        name="Increment",
+        description=None,
+        kind=Function,
+        tags=[],
+      ),
+      async fn(_context, _state) {
+        @async.pause()
+        NodeOutput::NodeOutput(Some(2), None)
+      },
+    ),
+  )
+  definition.set_router(entry, router([], fn(_state, _completion) { End }))
+  definition.set_entry(entry)
+  let result = GraphRuntime::GraphRuntime(definition.compile()).invoke(40)
+  inspect(result.final_state, content="42")
+  inspect(result.steps, content="1")
 }
 ```

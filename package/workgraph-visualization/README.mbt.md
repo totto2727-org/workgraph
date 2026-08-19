@@ -15,8 +15,6 @@ moonbit:
 
 `workgraph-visualization` renders callback-free `workgraph-core` compiled graph snapshots as deterministic Mermaid flowcharts.
 
-This document is canonical `README.mbt.md`; maintain `README.md` as the relative symlink `README.md -> README.mbt.md`.
-
 ## Usage
 
 ```mbt check

@@ -1,6 +1,8 @@
 ---
 moonbit:
   import:
+    - path: moonbitlang/async@0.20.3
+      alias: async
     - path: totto2727/workgraph-core@0.1.3
       alias: core
   backend:
@@ -11,19 +13,40 @@ moonbit:
 
 Workgraph is a standalone MoonBit workspace for building typed graphs with state reducers, lifecycle events, scoped resources, provider-neutral LLM and coding-agent nodes, CLI adapters, and Mermaid visualization.
 
-This document is canonical `README.mbt.md`; maintain `README.md` as the relative symlink `README.md -> README.mbt.md`.
-
 ## Usage
 
-Use a typed reducer to apply node patches to graph state:
+Run a typed graph node and observe its reduced final state:
 
 ```mbt check
 ///|
-test "Workgraph reducer usage" {
-  let reducer = @core.Reducer::Reducer(fn(state : Int, patch : Int) {
-    state + patch
-  })
-  inspect((reducer.apply)(40, 2), content="42")
+async test "Workgraph runtime usage" {
+  let entry = @core.NodeId::NodeId("increment")
+  let definition = @core.GraphDefinition::GraphDefinition(
+    @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+  )
+  definition.add_node(
+    @core.Node::Node(
+      entry,
+      @core.NodeMetadata::NodeMetadata(
+        name="Increment",
+        description=None,
+        kind=@core.Function,
+        tags=[],
+      ),
+      async fn(_context, _state) {
+        @async.pause()
+        @core.NodeOutput::NodeOutput(Some(2), None)
+      },
+    ),
+  )
+  definition.set_router(
+    entry,
+    @core.router([], fn(_state, _completion) { @core.End }),
+  )
+  definition.set_entry(entry)
+  let result = @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(40)
+  inspect(result.final_state, content="42")
+  inspect(result.steps, content="1")
 }
 ```
 
@@ -44,9 +67,10 @@ See the module-specific examples for [coding-agent nodes](package/workgraph-agen
 
 ## Setup
 
-1. Add the core runtime to your MoonBit project.
+1. Add the async runtime and core module to your MoonBit project.
 
 ```bash
+moon add moonbitlang/async@0.20.3
 moon add totto2727/workgraph-core
 ```
 
@@ -61,6 +85,7 @@ moon add totto2727/workgraph-visualization
 
 ```moonbit
 import {
+  "moonbitlang/async",
   "totto2727/workgraph-core" @core,
 }
 ```

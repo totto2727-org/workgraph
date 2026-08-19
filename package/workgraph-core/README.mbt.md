@@ -1,6 +1,8 @@
 ---
 moonbit:
   import:
+    - path: moonbitlang/async@0.20.3
+      alias: async
     - path: totto2727/workgraph-core@0.1.3
       alias: core
   backend:
@@ -11,17 +13,38 @@ moonbit:
 
 `workgraph-core` provides the typed graph definitions, compiler, sequential runtime, reducers, events, identifiers, and scoped `ResourceStore` used by the Workgraph package family.
 
-This document is canonical `README.mbt.md`; maintain `README.md` as the relative symlink `README.md -> README.mbt.md`.
-
 ## Usage
 
 ```mbt check
 ///|
-test "workgraph-core reducer usage" {
-  let reducer = @core.Reducer::Reducer(fn(state : Int, patch : Int) {
-    state + patch
-  })
-  inspect((reducer.apply)(40, 2), content="42")
+async test "workgraph-core runtime usage" {
+  let entry = @core.NodeId::NodeId("increment")
+  let definition = @core.GraphDefinition::GraphDefinition(
+    @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+  )
+  definition.add_node(
+    @core.Node::Node(
+      entry,
+      @core.NodeMetadata::NodeMetadata(
+        name="Increment",
+        description=None,
+        kind=@core.Function,
+        tags=[],
+      ),
+      async fn(_context, _state) {
+        @async.pause()
+        @core.NodeOutput::NodeOutput(Some(2), None)
+      },
+    ),
+  )
+  definition.set_router(
+    entry,
+    @core.router([], fn(_state, _completion) { @core.End }),
+  )
+  definition.set_entry(entry)
+  let result = @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(40)
+  inspect(result.final_state, content="42")
+  inspect(result.steps, content="1")
 }
 ```
 
@@ -38,9 +61,10 @@ test "workgraph-core reducer usage" {
 
 ## Setup
 
-1. Add the package to a MoonBit project.
+1. Add the async runtime and core module to a MoonBit project.
 
 ```bash
+moon add moonbitlang/async@0.20.3
 moon add totto2727/workgraph-core
 ```
 
@@ -48,6 +72,7 @@ moon add totto2727/workgraph-core
 
 ```moonbit
 import {
+  "moonbitlang/async",
   "totto2727/workgraph-core" @core,
 }
 ```

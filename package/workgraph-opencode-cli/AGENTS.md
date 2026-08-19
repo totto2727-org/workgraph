@@ -11,6 +11,7 @@ src/  OpenCode adapter implementation, native example, and integration tests
 ### Execution rules
 
 - Run commands from this module root.
+- Keep `README.mbt.md` as the module README and `README.md` as its relative symlink.
 - Use the native target for process-backed OpenCode integration tests.
 
 ### Standard tasks

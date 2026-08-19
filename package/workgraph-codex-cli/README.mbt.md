@@ -1,10 +1,18 @@
 ---
 moonbit:
   import:
+    - path: moonbitlang/core/immut/hashmap
+      alias: immut_hashmap
+    - path: moonbitlang/x@0.4.47/path
+      alias: path
+    - path: totto2727/agent-sdk@0.2.0/cli
+      alias: cli
     - path: totto2727/workgraph-agent-cli@0.2.0
       alias: coding
     - path: totto2727/workgraph-codex-cli@0.2.0
       alias: codex
+    - path: totto2727/workgraph-core@0.1.3
+      alias: core
   backend:
     native
 ---
@@ -13,20 +21,64 @@ moonbit:
 
 `workgraph-codex-cli` implements the Workgraph coding-agent contract through `totto2727/agent-sdk/cli/codex` and exposes `CodexAgentOptions` plus `codex_agent` as the Codex-native composition root.
 
-This document is canonical `README.mbt.md`; maintain `README.md` as the relative symlink `README.md -> README.mbt.md`.
-
 ## Usage
+
+Compose the Codex adapter into a typed graph without starting a provider process. Compiling the graph confirms that the adapter-backed node is the coding-agent entry point:
 
 ```mbt check
 ///|
-test "workgraph-codex-cli adapter usage" {
+test "Codex adapter graph composition" {
+  let entry = @core.NodeId::NodeId("codex")
   let agent = @codex.codex_agent(
-    @coding.CodingAgentId::CodingAgentId("codex"),
+    @coding.CodingAgentId::CodingAgentId("codex-cli"),
     @codex.CodexAgentOptions::CodexAgentOptions(),
   )
-  inspect(agent.id.to_string(), content="codex")
+  let node = @coding.coding_agent_node(
+    entry,
+    @core.NodeMetadata::NodeMetadata(
+      name="Codex",
+      description=None,
+      kind=@core.CodingAgent,
+      tags=[],
+    ),
+    @coding.CodingAgentNodeSpec::CodingAgentNodeSpec(
+      agent~,
+      resource_key=@core.ResourceKey::ResourceKey("codex-session"),
+      resource_scope=@core.Run,
+      open_context=fn(context, _state) {
+        @coding.CodingAgentOpenContext::CodingAgentOpenContext(
+          run_id=context.run_id,
+          task_group=context.task_group,
+          workspace=@coding.WorkspaceRef::WorkspaceRef(@path.Path("."), []),
+          approval=@coding.Never,
+          network=@coding.Disabled,
+          environment=@immut_hashmap.new(),
+          events=context.events,
+        )
+      },
+      build_prompt=fn(_context, state : String) { @cli.Prompt::Prompt(state) },
+      select_continuation=fn(_context, _state) { None },
+      decode_response=fn(_state, response, _continuation) {
+        @core.NodeOutput::NodeOutput(Some(response.text), None)
+      },
+    ),
+  )
+  let definition = @core.GraphDefinition::GraphDefinition(
+    @core.Reducer::Reducer(fn(_state : String, patch : String) { patch }),
+  )
+  definition.add_node(node)
+  definition.set_router(
+    entry,
+    @core.router([], fn(_state, _completion) { @core.End }),
+  )
+  definition.set_entry(entry)
+  let snapshot = definition.compile().snapshot()
+  inspect(snapshot.nodes[0].metadata.kind == @core.CodingAgent, content="true")
+  inspect(snapshot.entry.to_string(), content="codex")
 }
 ```
+
+The [complete runnable example](src/examples/basic/main.mbt) invokes the compiled graph with an authenticated Codex CLI and prints the returned response from graph state.
 
 ## Key features
 
@@ -42,9 +94,12 @@ test "workgraph-codex-cli adapter usage" {
 
 ## Setup
 
-1. Add the provider-neutral contract and Codex adapter to a MoonBit project.
+1. Add the graph, agent SDK, provider-neutral contract, and Codex adapter to a MoonBit project.
 
 ```bash
+moon add moonbitlang/x@0.4.47
+moon add totto2727/agent-sdk@0.2.0
+moon add totto2727/workgraph-core
 moon add totto2727/workgraph-agent-cli
 moon add totto2727/workgraph-codex-cli
 ```
@@ -53,8 +108,12 @@ moon add totto2727/workgraph-codex-cli
 
 ```moonbit
 import {
+  "moonbitlang/core/immut/hashmap" @immut_hashmap,
+  "moonbitlang/x/path",
+  "totto2727/agent-sdk/cli",
   "totto2727/workgraph-agent-cli" @coding,
   "totto2727/workgraph-codex-cli" @codex,
+  "totto2727/workgraph-core" @core,
 }
 ```
 

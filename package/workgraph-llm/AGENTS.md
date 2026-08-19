@@ -11,6 +11,7 @@ src/  Provider-neutral LLM node adapter and tests
 ### Execution rules
 
 - Run commands from this module root.
+- Keep `README.mbt.md` as the module README and `README.md` as its relative symlink.
 - Keep provider selection in the `mizchi/llm` provider boundary.
 
 ### Standard tasks

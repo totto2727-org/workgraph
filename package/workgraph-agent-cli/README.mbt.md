@@ -1,6 +1,8 @@
 ---
 moonbit:
   import:
+    - path: totto2727/agent-sdk@0.2.0/cli
+      alias: cli
     - path: totto2727/workgraph-agent-cli@0.2.0
       alias: coding
   backend:
@@ -9,19 +11,26 @@ moonbit:
 
 # workgraph-agent-cli
 
-`workgraph-agent-cli` provides Workgraph's provider-neutral coding-agent concepts, including workspace and policy types, agent identity, opaque in-process continuations, node specifications, and `coding_agent_node`.
-
-This document is canonical `README.mbt.md`; maintain `README.md` as the relative symlink `README.md -> README.mbt.md`.
+`workgraph-agent-cli` is the provider-neutral extension interface for authors of Workgraph coding-agent adapters. It defines the `CodingAgent` contract, workspace and policy types, opaque in-process continuations, node specifications, and `coding_agent_node`; applications normally consume it through an adapter such as `workgraph-codex-cli` or `workgraph-opencode-cli`.
 
 ## Usage
 
+Implement the extension contract by supplying an `agent-sdk` session factory. The returned `CodingAgent` is then accepted by `CodingAgentNodeSpec` and `coding_agent_node`:
+
 ```mbt check
 ///|
-test "workgraph-agent-cli identity usage" {
-  let agent_id = @coding.CodingAgentId::CodingAgentId("reviewer")
-  inspect(agent_id.to_string(), content="reviewer")
+pub fn make_coding_agent(
+  id : String,
+  open : async (@coding.CodingAgentOpenContext) -> @cli.Cli,
+) -> @coding.CodingAgent raise {
+  @coding.CodingAgent::CodingAgent(
+    @coding.CodingAgentId::CodingAgentId(id),
+    open,
+  )
 }
 ```
+
+For complete adapter implementations and graph invocations, see the [Codex adapter usage](../workgraph-codex-cli/README.md#usage) and [OpenCode adapter usage](../workgraph-opencode-cli/README.md#usage).
 
 ## Key features
 
@@ -37,9 +46,10 @@ test "workgraph-agent-cli identity usage" {
 
 ## Setup
 
-1. Add the package to a MoonBit project.
+1. Add the agent SDK and extension interface to an adapter project.
 
 ```bash
+moon add totto2727/agent-sdk@0.2.0
 moon add totto2727/workgraph-agent-cli
 ```
 
@@ -47,6 +57,7 @@ moon add totto2727/workgraph-agent-cli
 
 ```moonbit
 import {
+  "totto2727/agent-sdk/cli",
   "totto2727/workgraph-agent-cli" @coding,
 }
 ```
