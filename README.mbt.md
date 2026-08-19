@@ -1,3 +1,12 @@
+---
+moonbit:
+  import:
+    - path: totto2727/workgraph-core@0.1.3
+      alias: core
+  backend:
+    native
+---
+
 # Workgraph
 
 Workgraph is a standalone MoonBit workspace for building typed graphs with state reducers, lifecycle events, scoped resources, provider-neutral LLM and coding-agent nodes, CLI adapters, and Mermaid visualization.
@@ -6,15 +15,19 @@ This document is canonical `README.mbt.md`; maintain `README.md` as the relative
 
 ## Usage
 
-Choose the module that provides the capability you need. Most graphs start with `workgraph-core`:
+Use a typed reducer to apply node patches to graph state:
 
-```moonbit
-import {
-  "totto2727/workgraph-core"
+```mbt check
+///|
+test "Workgraph reducer usage" {
+  let reducer = @core.Reducer::Reducer(fn(state : Int, patch : Int) {
+    state + patch
+  })
+  inspect((reducer.apply)(40, 2), content="42")
 }
 ```
 
-Add the LLM, visualization, or coding-agent adapter modules only when the graph needs those capabilities.
+See the module-specific examples for [coding-agent nodes](package/workgraph-agent-cli/README.md#usage), [LLM nodes](package/workgraph-llm/README.md#usage), [Mermaid visualization](package/workgraph-visualization/README.md#usage), [Codex](package/workgraph-codex-cli/README.md#usage), and [OpenCode](package/workgraph-opencode-cli/README.md#usage).
 
 ## Key features
 
@@ -42,6 +55,14 @@ moon add totto2727/workgraph-core
 ```bash
 moon add totto2727/workgraph-llm
 moon add totto2727/workgraph-visualization
+```
+
+3. Import the core module with an alias in the consumer package's `moon.pkg`.
+
+```moonbit
+import {
+  "totto2727/workgraph-core" @core,
+}
 ```
 
 ## API

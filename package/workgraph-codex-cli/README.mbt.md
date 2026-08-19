@@ -1,3 +1,14 @@
+---
+moonbit:
+  import:
+    - path: totto2727/workgraph-agent-cli@0.2.0
+      alias: coding
+    - path: totto2727/workgraph-codex-cli@0.2.0
+      alias: codex
+  backend:
+    native
+---
+
 # workgraph-codex-cli
 
 `workgraph-codex-cli` implements the Workgraph coding-agent contract through `totto2727/agent-sdk/cli/codex` and exposes `CodexAgentOptions` plus `codex_agent` as the Codex-native composition root.
@@ -6,13 +17,16 @@ This document is canonical `README.mbt.md`; maintain `README.md` as the relative
 
 ## Usage
 
-```moonbit
-import {
-  "totto2727/workgraph-codex-cli"
+```mbt check
+///|
+test "workgraph-codex-cli adapter usage" {
+  let agent = @codex.codex_agent(
+    @coding.CodingAgentId::CodingAgentId("codex"),
+    @codex.CodexAgentOptions::CodexAgentOptions(),
+  )
+  inspect(agent.id.to_string(), content="codex")
 }
 ```
-
-Use `codex_agent` to configure the coding-agent node with Codex-native options.
 
 ## Key features
 
@@ -28,9 +42,10 @@ Use `codex_agent` to configure the coding-agent node with Codex-native options.
 
 ## Setup
 
-1. Add the package to a MoonBit project.
+1. Add the provider-neutral contract and Codex adapter to a MoonBit project.
 
 ```bash
+moon add totto2727/workgraph-agent-cli
 moon add totto2727/workgraph-codex-cli
 ```
 
@@ -38,7 +53,8 @@ moon add totto2727/workgraph-codex-cli
 
 ```moonbit
 import {
-  "totto2727/workgraph-codex-cli"
+  "totto2727/workgraph-agent-cli" @coding,
+  "totto2727/workgraph-codex-cli" @codex,
 }
 ```
 

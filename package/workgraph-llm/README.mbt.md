@@ -1,3 +1,14 @@
+---
+moonbit:
+  import:
+    - path: mizchi/llm@0.3.1
+      alias: llm
+    - path: totto2727/workgraph-llm@0.1.3
+      alias: workgraph_llm
+  backend:
+    native
+---
+
 # workgraph-llm
 
 `workgraph-llm` adapts `mizchi/llm` messages, tools, streamed events, and collected results into typed `workgraph-core` nodes without selecting a provider or runtime.
@@ -6,13 +17,15 @@ This document is canonical `README.mbt.md`; maintain `README.md` as the relative
 
 ## Usage
 
-```moonbit
-import {
-  "totto2727/workgraph-llm"
+```mbt check
+///|
+test "workgraph-llm request usage" {
+  let request = @workgraph_llm.LlmRequest::LlmRequest([
+    @llm.Message::user("Plan the next step"),
+  ])
+  inspect(request.messages[0].get_text(), content="Plan the next step")
 }
 ```
-
-Use `LlmNodeSpec` to adapt application state into a provider request and decode the collected result into a graph patch.
 
 ## Key features
 
@@ -27,9 +40,10 @@ Use `LlmNodeSpec` to adapt application state into a provider request and decode 
 
 ## Setup
 
-1. Add the package to a MoonBit project.
+1. Add the LLM message types and Workgraph integration to a MoonBit project.
 
 ```bash
+moon add mizchi/llm@0.3.1
 moon add totto2727/workgraph-llm
 ```
 
@@ -37,7 +51,8 @@ moon add totto2727/workgraph-llm
 
 ```moonbit
 import {
-  "totto2727/workgraph-llm"
+  "mizchi/llm",
+  "totto2727/workgraph-llm" @workgraph_llm,
 }
 ```
 

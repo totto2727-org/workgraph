@@ -1,3 +1,16 @@
+---
+moonbit:
+  import:
+    - path: moonbitlang/async@0.20.3
+      alias: async
+    - path: totto2727/workgraph-core@0.1.3
+      alias: core
+    - path: totto2727/workgraph-visualization@0.1.3
+      alias: renderer
+  backend:
+    native
+---
+
 # workgraph-visualization
 
 `workgraph-visualization` renders callback-free `workgraph-core` compiled graph snapshots as deterministic Mermaid flowcharts.
@@ -6,13 +19,39 @@ This document is canonical `README.mbt.md`; maintain `README.md` as the relative
 
 ## Usage
 
-```moonbit
-import {
-  "totto2727/workgraph-visualization"
+```mbt check
+///|
+test "workgraph-visualization Mermaid usage" {
+  let entry = @core.NodeId::NodeId("render")
+  let definition = @core.GraphDefinition::GraphDefinition(
+    @core.Reducer::Reducer(fn(state : Int, _patch : Unit) { state }),
+  )
+  definition.add_node(
+    @core.Node::Node(
+      entry,
+      @core.NodeMetadata::NodeMetadata(
+        name="Render",
+        description=None,
+        kind=@core.Function,
+        tags=[],
+      ),
+      async fn(_context, _state) {
+        @async.pause()
+        @core.NodeOutput::NodeOutput(None, None)
+      },
+    ),
+  )
+  definition.set_router(
+    entry,
+    @core.router([], fn(_state, _completion) { @core.End }),
+  )
+  definition.set_entry(entry)
+  inspect(
+    @renderer.to_mermaid(definition.compile()).has_prefix("flowchart TD"),
+    content="true",
+  )
 }
 ```
-
-Use `to_mermaid` to turn a compiled graph snapshot into Mermaid flowchart text.
 
 ## Key features
 
@@ -27,9 +66,11 @@ Use `to_mermaid` to turn a compiled graph snapshot into Mermaid flowchart text.
 
 ## Setup
 
-1. Add the package to a MoonBit project.
+1. Add the runtime dependencies and visualization module to a MoonBit project.
 
 ```bash
+moon add moonbitlang/async@0.20.3
+moon add totto2727/workgraph-core
 moon add totto2727/workgraph-visualization
 ```
 
@@ -37,7 +78,9 @@ moon add totto2727/workgraph-visualization
 
 ```moonbit
 import {
-  "totto2727/workgraph-visualization"
+  "moonbitlang/async",
+  "totto2727/workgraph-core" @core,
+  "totto2727/workgraph-visualization" @renderer,
 }
 ```
 

@@ -1,3 +1,12 @@
+---
+moonbit:
+  import:
+    - path: totto2727/workgraph-agent-cli@0.2.0
+      alias: coding
+  backend:
+    native
+---
+
 # workgraph-agent-cli
 
 `workgraph-agent-cli` provides Workgraph's provider-neutral coding-agent concepts, including workspace and policy types, agent identity, opaque in-process continuations, node specifications, and `coding_agent_node`.
@@ -6,13 +15,13 @@ This document is canonical `README.mbt.md`; maintain `README.md` as the relative
 
 ## Usage
 
-```moonbit
-import {
-  "totto2727/workgraph-agent-cli"
+```mbt check
+///|
+test "workgraph-agent-cli identity usage" {
+  let agent_id = @coding.CodingAgentId::CodingAgentId("reviewer")
+  inspect(agent_id.to_string(), content="reviewer")
 }
 ```
-
-Compose this module with `workgraph-codex-cli` or `workgraph-opencode-cli` to provide a concrete `CodingAgent`.
 
 ## Key features
 
@@ -38,7 +47,7 @@ moon add totto2727/workgraph-agent-cli
 
 ```moonbit
 import {
-  "totto2727/workgraph-agent-cli"
+  "totto2727/workgraph-agent-cli" @coding,
 }
 ```
 

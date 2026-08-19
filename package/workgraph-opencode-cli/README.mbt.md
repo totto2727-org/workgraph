@@ -1,3 +1,14 @@
+---
+moonbit:
+  import:
+    - path: totto2727/workgraph-agent-cli@0.2.0
+      alias: coding
+    - path: totto2727/workgraph-opencode-cli@0.2.0
+      alias: opencode
+  backend:
+    native
+---
+
 # workgraph-opencode-cli
 
 `workgraph-opencode-cli` implements the Workgraph coding-agent contract through `totto2727/agent-sdk/cli/opencode` and exposes `OpenCodeAgentOptions` plus `opencode_agent` as the OpenCode-native composition root.
@@ -6,13 +17,16 @@ This document is canonical `README.mbt.md`; maintain `README.md` as the relative
 
 ## Usage
 
-```moonbit
-import {
-  "totto2727/workgraph-opencode-cli"
+```mbt check
+///|
+test "workgraph-opencode-cli adapter usage" {
+  let agent = @opencode.opencode_agent(
+    @coding.CodingAgentId::CodingAgentId("opencode"),
+    @opencode.OpenCodeAgentOptions::OpenCodeAgentOptions(),
+  )
+  inspect(agent.id.to_string(), content="opencode")
 }
 ```
-
-Use `opencode_agent` to configure the coding-agent node with OpenCode-native options.
 
 ## Key features
 
@@ -28,9 +42,10 @@ Use `opencode_agent` to configure the coding-agent node with OpenCode-native opt
 
 ## Setup
 
-1. Add the package to a MoonBit project.
+1. Add the provider-neutral contract and OpenCode adapter to a MoonBit project.
 
 ```bash
+moon add totto2727/workgraph-agent-cli
 moon add totto2727/workgraph-opencode-cli
 ```
 
@@ -38,7 +53,8 @@ moon add totto2727/workgraph-opencode-cli
 
 ```moonbit
 import {
-  "totto2727/workgraph-opencode-cli"
+  "totto2727/workgraph-agent-cli" @coding,
+  "totto2727/workgraph-opencode-cli" @opencode,
 }
 ```
 

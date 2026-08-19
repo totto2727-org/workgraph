@@ -1,3 +1,12 @@
+---
+moonbit:
+  import:
+    - path: totto2727/workgraph-core@0.1.3
+      alias: core
+  backend:
+    native
+---
+
 # workgraph-core
 
 `workgraph-core` provides the typed graph definitions, compiler, sequential runtime, reducers, events, identifiers, and scoped `ResourceStore` used by the Workgraph package family.
@@ -6,13 +15,15 @@ This document is canonical `README.mbt.md`; maintain `README.md` as the relative
 
 ## Usage
 
-```moonbit
-import {
-  "totto2727/workgraph-core"
+```mbt check
+///|
+test "workgraph-core reducer usage" {
+  let reducer = @core.Reducer::Reducer(fn(state : Int, patch : Int) {
+    state + patch
+  })
+  inspect((reducer.apply)(40, 2), content="42")
 }
 ```
-
-Use `GraphDefinition` to declare nodes and routes, compile the definition, and invoke it with `GraphRuntime`.
 
 ## Key features
 
@@ -37,7 +48,7 @@ moon add totto2727/workgraph-core
 
 ```moonbit
 import {
-  "totto2727/workgraph-core"
+  "totto2727/workgraph-core" @core,
 }
 ```
 
