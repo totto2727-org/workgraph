@@ -1,6 +1,8 @@
 ---
 moonbit:
   import:
+    - path: moonbitlang/async@0.20.3
+      alias: async
     - path: moonbitlang/core/immut/hashmap
       alias: immut_hashmap
     - path: moonbitlang/x@0.4.47/path
@@ -23,11 +25,11 @@ moonbit:
 
 ## Usage
 
-Compose the Codex adapter into a typed graph without starting a provider process. Compiling the graph confirms that the adapter-backed node is the coding-agent entry point:
+Compose the Codex adapter into a one-node graph, turn the graph state into a prompt, and reduce the final CLI response back into state:
 
 ```mbt check
 ///|
-test "Codex adapter graph composition" {
+pub async fn run_codex_graph() -> String raise {
   let entry = @core.NodeId::NodeId("codex")
   let agent = @codex.codex_agent(
     @coding.CodingAgentId::CodingAgentId("codex-cli"),
@@ -72,13 +74,14 @@ test "Codex adapter graph composition" {
     @core.router([], fn(_state, _completion) { @core.End }),
   )
   definition.set_entry(entry)
-  let snapshot = definition.compile().snapshot()
-  inspect(snapshot.nodes[0].metadata.kind == @core.CodingAgent, content="true")
-  inspect(snapshot.entry.to_string(), content="codex")
+  let result = @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(
+    "Reply with WORKGRAPH_CODEX_OK only. Do not modify files or use tools.",
+  )
+  result.final_state
 }
 ```
 
-The [complete runnable example](src/examples/basic/main.mbt) invokes the compiled graph with an authenticated Codex CLI and prints the returned response from graph state.
+With an installed and authenticated Codex CLI, the expected returned state is `WORKGRAPH_CODEX_OK`. The [complete runnable example](src/examples/basic/main.mbt) uses the same prompt-to-result flow and prints the response from graph state. The literate block is type-checked without executing the credentialed provider call.
 
 ## Key features
 
@@ -97,6 +100,7 @@ The [complete runnable example](src/examples/basic/main.mbt) invokes the compile
 1. Add the graph, agent SDK, provider-neutral contract, and Codex adapter to a MoonBit project.
 
 ```bash
+moon add moonbitlang/async@0.20.3
 moon add moonbitlang/x@0.4.47
 moon add totto2727/agent-sdk@0.2.0
 moon add totto2727/workgraph-core
@@ -108,6 +112,7 @@ moon add totto2727/workgraph-codex-cli
 
 ```moonbit
 import {
+  "moonbitlang/async",
   "moonbitlang/core/immut/hashmap" @immut_hashmap,
   "moonbitlang/x/path",
   "totto2727/agent-sdk/cli",

@@ -15,7 +15,7 @@ moonbit:
 
 ## Usage
 
-Implement the extension contract by supplying an `agent-sdk` session factory. The returned `CodingAgent` is then accepted by `CodingAgentNodeSpec` and `coding_agent_node`:
+Implement the extension contract by supplying an `agent-sdk` session factory. The returned `CodingAgent` is accepted by `CodingAgentNodeSpec`, whose callbacks map graph state to `Prompt` and `FinalResponse` to `NodeOutput`; `coding_agent_node` then owns session acquisition, prompt serialization, and continuation handling:
 
 ```mbt check
 ///|
@@ -30,7 +30,7 @@ pub fn make_coding_agent(
 }
 ```
 
-For complete adapter implementations and graph invocations, see the [Codex adapter usage](../workgraph-codex-cli/README.md#usage) and [OpenCode adapter usage](../workgraph-opencode-cli/README.md#usage).
+For complete prompt-to-result reference implementations, see the [Codex adapter usage](../workgraph-codex-cli/README.md#usage) and [OpenCode adapter usage](../workgraph-opencode-cli/README.md#usage). Both construct a one-node graph, invoke it with a representative prompt, and return the provider's final response from graph state.
 
 ## Key features
 
