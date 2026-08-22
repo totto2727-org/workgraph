@@ -1,6 +1,6 @@
 # workgraph-visualization
 
-`workgraph-visualization` owns deterministic Mermaid rendering for callback-free `workgraph-core` compiled graph snapshots. For shared installation and graph construction, see the root [Setup](https://github.com/totto2727-org/workgraph#setup) and [Usage](https://github.com/totto2727-org/workgraph#usage).
+`workgraph-visualization` owns deterministic Mermaid rendering for callback-free `workgraph-core` compiled graph snapshots. For shared installation and graph construction, see the root [Setup](../../README.md#setup) and [Usage](../../README.md#usage).
 
 ## Example
 

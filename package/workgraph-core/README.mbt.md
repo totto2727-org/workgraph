@@ -1,6 +1,6 @@
 # workgraph-core
 
-`workgraph-core` owns Workgraph's typed graph definitions, validation, sequential runtime, reducers, lifecycle events, identifiers, and scoped resources. For shared installation and the minimal graph invocation, see the root [Setup](https://github.com/totto2727-org/workgraph#setup) and [Usage](https://github.com/totto2727-org/workgraph#usage).
+`workgraph-core` owns Workgraph's typed graph definitions, validation, sequential runtime, reducers, lifecycle events, identifiers, and scoped resources. For shared installation and the minimal graph invocation, see the root [Setup](../../README.md#setup) and [Usage](../../README.md#usage).
 
 ## Example
 

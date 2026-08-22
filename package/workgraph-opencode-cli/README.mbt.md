@@ -1,6 +1,6 @@
 # workgraph-opencode-cli
 
-`workgraph-opencode-cli` owns the OpenCode-native `OpenCodeAgentOptions` and `opencode_agent` composition root for the provider-neutral Workgraph coding-agent contract. For shared installation and graph construction, see the root [Setup](https://github.com/totto2727-org/workgraph#setup) and [Usage](https://github.com/totto2727-org/workgraph#usage).
+`workgraph-opencode-cli` owns the OpenCode-native `OpenCodeAgentOptions` and `opencode_agent` composition root for the provider-neutral Workgraph coding-agent contract. For shared installation and graph construction, see the root [Setup](../../README.md#setup) and [Usage](../../README.md#usage).
 
 ## Example
 
