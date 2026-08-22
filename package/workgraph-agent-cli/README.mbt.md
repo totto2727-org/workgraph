@@ -1,77 +1,14 @@
----
-moonbit:
-  import:
-    - path: totto2727/agent-sdk@0.2.0/cli
-      alias: cli
-    - path: totto2727/workgraph-agent-cli@0.2.0
-      alias: coding
-  backend:
-    native
----
-
 # workgraph-agent-cli
 
-`workgraph-agent-cli` is the provider-neutral extension interface for authors of Workgraph coding-agent adapters. It defines the `CodingAgent` contract, workspace and policy types, opaque in-process continuations, node specifications, and `coding_agent_node`; applications normally consume it through an adapter such as `workgraph-codex-cli` or `workgraph-opencode-cli`.
+`workgraph-agent-cli` owns the provider-neutral extension contract for coding-agent adapters: `CodingAgent`, workspace and policy types, opaque continuations, `CodingAgentNodeSpec`, and `coding_agent_node`. For shared installation and graph construction, see the root [Setup](https://github.com/totto2727-org/workgraph#setup) and [Usage](https://github.com/totto2727-org/workgraph#usage).
 
-## Usage
+## Examples
 
-Implement the extension contract by supplying an `agent-sdk` session factory. The returned `CodingAgent` is accepted by `CodingAgentNodeSpec`, whose callbacks map graph state to `Prompt` and `FinalResponse` to `NodeOutput`; `coding_agent_node` then owns session acquisition, prompt serialization, and continuation handling:
+These concrete adapters show how an implementation opens an `agent-sdk` session, builds a prompt from graph state, and decodes the final response into `NodeOutput`:
 
-```mbt check
-///|
-pub fn make_coding_agent(
-  id : String,
-  open : async (@coding.CodingAgentOpenContext) -> @cli.Cli,
-) -> @coding.CodingAgent raise {
-  @coding.CodingAgent::CodingAgent(
-    @coding.CodingAgentId::CodingAgentId(id),
-    open,
-  )
-}
-```
-
-For complete prompt-to-result reference implementations, see the [Codex adapter usage](../workgraph-codex-cli/README.md#usage) and [OpenCode adapter usage](../workgraph-opencode-cli/README.md#usage). Both construct a one-node graph, invoke it with a representative prompt, and return the provider's final response from graph state.
-
-## Key features
-
-- Defines provider-neutral `CodingAgent` contracts and a node that composes directly with `totto2727/agent-sdk/cli`
-- Keeps continuations opaque, in-process, and bound to the configured `CodingAgentId`
-- Serializes prompts per agent resource and resolves relative context files against the configured workspace
-- Supports Wasm/WASI and native targets; JavaScript is not supported
-
-## Prerequisites
-
-- **MoonBit**: Install a current MoonBit toolchain.
-- **A coding-agent adapter**: Add `workgraph-codex-cli` or `workgraph-opencode-cli` to run a concrete provider.
-
-## Setup
-
-1. Add the agent SDK and extension interface to an adapter project.
-
-```bash
-moon add totto2727/agent-sdk@0.2.0
-moon add totto2727/workgraph-agent-cli
-```
-
-2. Import `totto2727/workgraph-agent-cli` where the graph's coding-agent node is defined.
-
-```moonbit
-import {
-  "totto2727/agent-sdk/cli",
-  "totto2727/workgraph-agent-cli" @coding,
-}
-```
+- [Codex prompt-to-result example](https://github.com/totto2727-org/workgraph/blob/main/package/workgraph-codex-cli/src/examples/basic/main.mbt)
+- [OpenCode prompt-to-result example](https://github.com/totto2727-org/workgraph/blob/main/package/workgraph-opencode-cli/src/examples/basic/main.mbt)
 
 ## API
 
 [Mooncakes API reference](https://mooncakes.io/docs/totto2727/workgraph-agent-cli)
-
-## Development
-
-For module structure and development commands, see [AGENTS.md](./AGENTS.md).
-
-## License
-
-[MIT](./LICENSE)
-
-_This README was generated from the [share-artifact skill](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/SKILL.md) and [README template](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/readme/template.md)._

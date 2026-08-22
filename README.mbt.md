@@ -50,7 +50,7 @@ async test "Workgraph runtime usage" {
 }
 ```
 
-See the module-specific examples for [coding-agent nodes](package/workgraph-agent-cli/README.md#usage), [LLM nodes](package/workgraph-llm/README.md#usage), [Mermaid visualization](package/workgraph-visualization/README.md#usage), [Codex](package/workgraph-codex-cli/README.md#usage), and [OpenCode](package/workgraph-opencode-cli/README.md#usage).
+See the module-specific examples for [core runtime behavior](package/workgraph-core/README.md#example), [coding-agent adapters](package/workgraph-agent-cli/README.md#examples), [LLM nodes](package/workgraph-llm/README.md#example), [Mermaid visualization](package/workgraph-visualization/README.md#example), [Codex](package/workgraph-codex-cli/README.md#example), and [OpenCode](package/workgraph-opencode-cli/README.md#example).
 
 ## Key features
 
@@ -79,6 +79,9 @@ moon add totto2727/workgraph-core
 ```bash
 moon add totto2727/workgraph-llm
 moon add totto2727/workgraph-visualization
+moon add totto2727/workgraph-agent-cli
+moon add totto2727/workgraph-codex-cli
+moon add totto2727/workgraph-opencode-cli
 ```
 
 3. Import the core module with an alias in the consumer package's `moon.pkg`.
