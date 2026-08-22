@@ -1,6 +1,6 @@
 name = "totto2727/workgraph-codex-cli"
 
-version = "0.2.0"
+version = "0.2.1"
 
 readme = "README.md"
 
@@ -13,12 +13,12 @@ keywords = [ "agent", "codex", "graph", "moonbit" ]
 description = "Codex CLI integration for workgraph"
 
 import {
-  "moonbitlang/async@0.20.3",
-  "moonbitlang/x@0.4.47",
-  "totto2727/agent-sdk@0.2.0",
-  "totto2727/codex-sdk@0.4.0",
-  "totto2727/workgraph-agent-cli@0.2.0",
-  "totto2727/workgraph-core@0.1.3",
+  "moonbitlang/async@0.21.0",
+  "moonbitlang/x@0.5.1",
+  "totto2727/agent-sdk@0.2.1",
+  "totto2727/codex-sdk@0.4.1",
+  "totto2727/workgraph-agent-cli@0.2.1",
+  "totto2727/workgraph-core@0.1.4",
 }
 
 preferred_target = "wasm"

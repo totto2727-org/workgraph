@@ -165,4 +165,7 @@ pub async fn ResourceStore::finalize(
       error=CleanupTimedOut(timeout_ms),
     )
   })
+  if @async.is_being_cancelled() {
+    @async.pause()
+  }
 }

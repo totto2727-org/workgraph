@@ -12,7 +12,7 @@ import {
 }
 ```
 
-Version `0.2.0` prefers Wasm/WASI and supports Wasm/WASI and native from the same production source; JavaScript is not supported. It resolves `totto2727/agent-sdk@0.2.0` and `totto2727/codex-sdk@0.4.0` from the MoonBit registry. The shared CI check follows the Wasm/WASI preferred target and loads the Codex CLI from the repository's `ci` Nix dev shell. Fake CLI process tests run only on native.
+Version `0.2.1` prefers Wasm/WASI and supports Wasm/WASI and native from the same production source; JavaScript is not supported. It resolves `totto2727/agent-sdk@0.2.1` and `totto2727/codex-sdk@0.4.1` from the MoonBit registry. The shared CI check follows the Wasm/WASI preferred target and loads the Codex CLI from the repository's `ci` Nix dev shell. Fake CLI process tests run only on native.
 
 ## Example
 

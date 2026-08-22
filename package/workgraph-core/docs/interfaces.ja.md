@@ -9,7 +9,7 @@
 実装は現在のMoonBitの規約に従います：
 
 - `moon.mod` と `moon.pkg` が設定フォーマットです。
-- core、coding-agent、Codex CLI、OpenCode CLIライブラリはWasm/WASIを優先します。coreはJavaScript、native、Wasm/WASIをサポートします。version `0.2.0`のcoding-agentとCLI統合はWasm/WASIとnativeをサポートしますが、JavaScriptはサポートしません。LLMライブラリはJavaScriptを優先し、JavaScriptとnativeをサポートします。
+- core、coding-agent、Codex CLI、OpenCode CLIライブラリはWasm/WASIを優先します。coreはJavaScript、native、Wasm/WASIをサポートします。version `0.2.1`のcoding-agentとCLI統合はWasm/WASIとnativeをサポートしますが、JavaScriptはサポートしません。LLMライブラリはJavaScriptを優先し、JavaScriptとnativeをサポートします。
 - パブリックな識別子ラッパーは `Eq`、`Hash`、`Debug` を導出します。
 - 同期バリデーションとルーティングは明示的な `raise` アノテーションを使用します。
 - 非同期関数は暗黙的に raise します。

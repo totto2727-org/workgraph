@@ -7,7 +7,7 @@ Workgraph is a family of MoonBit modules for asynchronous typed graphs, LLM node
 | Module                              | Responsibility                                                                                                | Preferred target | Supported targets |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------- | ----------------- |
 | `totto2727/workgraph-core`          | Graph definitions, compiled graphs, sequential runtime, state reducers, events, and in-memory `ResourceStore` | wasm             | js, native, wasm  |
-| `totto2727/workgraph-agent-cli`     | Coding-agent node and session resource lifecycle                                                              | wasm             | js, native, wasm  |
+| `totto2727/workgraph-agent-cli`     | Coding-agent node and session resource lifecycle                                                              | wasm             | wasm, native      |
 | `totto2727/workgraph-llm`           | Provider-neutral `mizchi/llm@0.3.1` node boundary                                                             | js               | js, native        |
 | `totto2727/workgraph-visualization` | Mermaid rendering from compiled graph snapshots                                                               | wasm             | js, native, wasm  |
 | `totto2727/workgraph-codex-cli`     | Codex CLI adapter                                                                                             | wasm             | wasm, native      |

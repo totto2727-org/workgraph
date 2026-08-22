@@ -78,7 +78,7 @@ impl @any.Anyable for CodingAgentResource with fn iso() {
     ),
     box: resource => CodingAgentResource(resource),
     unbox: payload => {
-      guard payload is CodingAgentResource(resource)
+      guard! payload is CodingAgentResource(resource)
       resource
     },
   }

@@ -18,4 +18,4 @@ import {
 }
 ```
 
-Version `0.2.0` prefers the Wasm/WASI target and supports Wasm/WASI and native. JavaScript is not supported. The module resolves `totto2727/agent-sdk@0.2.0` from the MoonBit registry. Wasm GC is excluded because `moonbitlang/async` does not support it.
+Version `0.2.1` prefers the Wasm/WASI target and supports Wasm/WASI and native. JavaScript is not supported. The module resolves `totto2727/agent-sdk@0.2.1` from the MoonBit registry. Wasm GC is excluded because `moonbitlang/async` does not support it.

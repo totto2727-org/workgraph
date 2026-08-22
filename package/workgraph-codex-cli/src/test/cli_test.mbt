@@ -56,15 +56,10 @@ async fn with_codex_integration_fixture(
   run : async (CodexIntegrationFixture) -> Unit,
 ) -> String {
   let fixture = codex_integration_fixture()
-  run(fixture) catch {
-    error => {
-      @async.protect_from_cancel(async fn() {
-        @fs.rmdir(fixture.root, recursive=true)
-      })
-      raise error
-    }
-  }
-  @fs.rmdir(fixture.root, recursive=true)
+  defer @async.protect_from_cancel(async fn() {
+    @fs.rmdir(fixture.root, recursive=true)
+  })
+  run(fixture)
   fixture.root
 }
 
@@ -185,64 +180,62 @@ fn codex_integration_node(
 ///|
 async test "codex_agent integration 1 - decodes final responses from node callbacks" {
   let root = with_codex_integration_fixture(async fn(fixture) {
-    @async.with_task_group() <| _group => {
-      let observations : Array[String] = []
-      let node = codex_integration_node(fixture, "success", observations)
-      let definition = @core.GraphDefinition::GraphDefinition(
-        @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
-      )
-      definition.add_node(node)
-      let node_id = @core.NodeId::NodeId("codex-integration")
-      definition.set_router(
-        node_id,
-        @core.router([@core.DeclaredRoute::DeclaredRoute(node_id)], fn(
-          state,
-          _completion,
-        ) {
-          if state < 2 {
-            @core.To(node_id)
-          } else {
-            @core.End
-          }
-        }),
-      )
-      definition.set_entry(node_id)
-      let result = @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(
-        0,
-      )
-      inspect(result.final_state, content="2")
-      inspect(
-        observations.join("|"),
-        content="summary-1:thread-1:src/success.mbt:present|summary-2:thread-1:src/success.mbt:present",
-      )
-      let first_args = codex_integration_text("\{fixture.records}/args.1")
-      let second_args = codex_integration_text("\{fixture.records}/args.2")
-      assert_false(first_args.contains("\nresume\n"))
-      assert_true(second_args.contains("\nresume\nthread-1\n"))
-      assert_true(first_args.contains("\n--model\ncodex-test\n"))
-      assert_true(first_args.contains("\n--sandbox\nworkspace-write\n"))
-      assert_true(first_args.contains("\n--cd\n\{fixture.root}\n"))
-      assert_true(first_args.contains("\n--add-dir\n\{fixture.root}/extra\n"))
-      assert_true(first_args.contains("\n--skip-git-repo-check\n"))
-      assert_true(
-        first_args.contains("\n--config\napproval_policy=\"on-request\"\n"),
-      )
-      assert_true(
-        first_args.contains(
-          "\n--config\nsandbox_workspace_write.network_access=true\n",
-        ),
-      )
-      assert_true(
-        codex_integration_text("\{fixture.records}/env.1").contains(
-          "MAPPED_ENV=present",
-        ),
-      )
-      assert_true(
-        codex_integration_text("\{fixture.records}/input.1").contains(
-          "Context files supplied by the caller:\n\{fixture.root}/README.md",
-        ),
-      )
-    }
+    let observations : Array[String] = []
+    let node = codex_integration_node(fixture, "success", observations)
+    let definition = @core.GraphDefinition::GraphDefinition(
+      @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+    )
+    definition.add_node(node)
+    let node_id = @core.NodeId::NodeId("codex-integration")
+    definition.set_router(
+      node_id,
+      @core.router([@core.DeclaredRoute::DeclaredRoute(node_id)], fn(
+        state,
+        _completion,
+      ) {
+        if state < 2 {
+          @core.To(node_id)
+        } else {
+          @core.End
+        }
+      }),
+    )
+    definition.set_entry(node_id)
+    let result = @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(
+      0,
+    )
+    inspect(result.final_state, content="2")
+    inspect(
+      observations.join("|"),
+      content="summary-1:thread-1:src/success.mbt:present|summary-2:thread-1:src/success.mbt:present",
+    )
+    let first_args = codex_integration_text("\{fixture.records}/args.1")
+    let second_args = codex_integration_text("\{fixture.records}/args.2")
+    assert_false(first_args.contains("\nresume\n"))
+    assert_true(second_args.contains("\nresume\nthread-1\n"))
+    assert_true(first_args.contains("\n--model\ncodex-test\n"))
+    assert_true(first_args.contains("\n--sandbox\nworkspace-write\n"))
+    assert_true(first_args.contains("\n--cd\n\{fixture.root}\n"))
+    assert_true(first_args.contains("\n--add-dir\n\{fixture.root}/extra\n"))
+    assert_true(first_args.contains("\n--skip-git-repo-check\n"))
+    assert_true(
+      first_args.contains("\n--config\napproval_policy=\"on-request\"\n"),
+    )
+    assert_true(
+      first_args.contains(
+        "\n--config\nsandbox_workspace_write.network_access=true\n",
+      ),
+    )
+    assert_true(
+      codex_integration_text("\{fixture.records}/env.1").contains(
+        "MAPPED_ENV=present",
+      ),
+    )
+    assert_true(
+      codex_integration_text("\{fixture.records}/input.1").contains(
+        "Context files supplied by the caller:\n\{fixture.root}/README.md",
+      ),
+    )
   })
   assert_false(@fs.exists(root))
 }
@@ -250,36 +243,34 @@ async test "codex_agent integration 1 - decodes final responses from node callba
 ///|
 async test "codex_agent integration 2 - starts configured resumed thread through node callback" {
   let root = with_codex_integration_fixture(async fn(fixture) {
-    @async.with_task_group() <| _group => {
-      let observations : Array[String] = []
-      let node = codex_integration_node(
-        fixture,
-        "success",
-        observations,
-        resume_thread_id="thread-existing",
-        thread_id="thread-existing",
-      )
-      let node_id = @core.NodeId::NodeId("codex-integration")
-      let definition = @core.GraphDefinition::GraphDefinition(
-        @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
-      )
-      definition.add_node(node)
-      definition.set_router(
-        node_id,
-        @core.router([], fn(_state, _completion) { @core.End }),
-      )
-      definition.set_entry(node_id)
-      @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(0) |> ignore
-      inspect(
-        observations.join("|"),
-        content="summary-1:thread-existing:src/success.mbt:present",
-      )
-      assert_true(
-        codex_integration_text("\{fixture.records}/args.1").contains(
-          "\nresume\nthread-existing\n",
-        ),
-      )
-    }
+    let observations : Array[String] = []
+    let node = codex_integration_node(
+      fixture,
+      "success",
+      observations,
+      resume_thread_id="thread-existing",
+      thread_id="thread-existing",
+    )
+    let node_id = @core.NodeId::NodeId("codex-integration")
+    let definition = @core.GraphDefinition::GraphDefinition(
+      @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+    )
+    definition.add_node(node)
+    definition.set_router(
+      node_id,
+      @core.router([], fn(_state, _completion) { @core.End }),
+    )
+    definition.set_entry(node_id)
+    @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(0) |> ignore
+    inspect(
+      observations.join("|"),
+      content="summary-1:thread-existing:src/success.mbt:present",
+    )
+    assert_true(
+      codex_integration_text("\{fixture.records}/args.1").contains(
+        "\nresume\nthread-existing\n",
+      ),
+    )
   })
   assert_false(@fs.exists(root))
 }

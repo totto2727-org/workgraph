@@ -19,7 +19,7 @@ impl @any.Anyable for ResourceStoreTestValue with fn iso() {
     ),
     box: resource => ResourceStoreTestValue(resource),
     unbox: payload => {
-      guard payload is ResourceStoreTestValue(resource)
+      guard! payload is ResourceStoreTestValue(resource)
       resource
     },
   }
@@ -163,7 +163,7 @@ impl @any.Anyable for LifecycleResource with fn iso() {
     id: @any.TypeId::TypeId("totto2727/workgraph-core", "LifecycleResource", []),
     box: resource => LifecycleResource(resource),
     unbox: payload => {
-      guard payload is LifecycleResource(resource)
+      guard! payload is LifecycleResource(resource)
       resource
     },
   }
