@@ -9,7 +9,7 @@ The snippets record the implemented and verified public contract for the asynchr
 The implementation uses current MoonBit conventions:
 
 - `moon.mod` and `moon.pkg` are the configuration formats.
-- Core, coding-agent, Codex CLI, and OpenCode CLI libraries prefer Wasm/WASI; core supports JavaScript, native, and Wasm/WASI, while version `0.2.0` of coding-agent and the CLI integrations support Wasm/WASI and native, but not JavaScript. The LLM library prefers JavaScript and supports JavaScript and native.
+- Core, coding-agent, Codex CLI, and OpenCode CLI libraries prefer Wasm/WASI; core supports JavaScript, native, and Wasm/WASI, while version `0.2.1` of coding-agent and the CLI integrations support Wasm/WASI and native, but not JavaScript. The LLM library prefers JavaScript and supports JavaScript and native.
 - Public identifier wrappers derive `Eq`, `Hash`, and `Debug`.
 - Synchronous validation and routing use explicit `raise` annotations.
 - Async functions raise implicitly.

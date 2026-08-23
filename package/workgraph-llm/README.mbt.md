@@ -3,11 +3,11 @@ moonbit:
   import:
     - path: mizchi/llm@0.3.1
       alias: llm
-    - path: moonbitlang/async@0.20.3
+    - path: moonbitlang/async@0.21.0
       alias: async
-    - path: totto2727/workgraph-core@0.1.3
+    - path: totto2727/workgraph-core@0.1.4
       alias: core
-    - path: totto2727/workgraph-llm@0.1.3
+    - path: totto2727/workgraph-llm@0.1.4
       alias: workgraph_llm
   backend:
     native

@@ -1,9 +1,9 @@
 ---
 moonbit:
   import:
-    - path: moonbitlang/async@0.20.3
+    - path: moonbitlang/async@0.21.0
       alias: async
-    - path: totto2727/workgraph-core@0.1.3
+    - path: totto2727/workgraph-core@0.1.4
       alias: core
   backend:
     native
@@ -70,7 +70,7 @@ See the package-specific Usage sections for [core compilation](package/workgraph
 1. Add the async runtime and core module to your MoonBit project.
 
 ```bash
-moon add moonbitlang/async@0.20.3
+moon add moonbitlang/async@0.21.0
 moon add totto2727/workgraph-core
 ```
 

@@ -4,7 +4,7 @@
 
 このドキュメントは、Workgraphモジュール群の現在のアーキテクチャを記録します。
 
-実装ベースラインでは、型付きLLMメッセージ、ツール、プロバイダー結果、テストプロバイダーに `mizchi/llm@0.3.1` を使用します。coding-agent nodeはregistry解決の`agent-sdk@0.2.0`を使用し、CodexとOpenCodeのprovider optionはそれぞれ`0.4.0` SDKを使用します。CLI integrationはWasm/WASIとnativeで同じproduction sourceを使用し、fake process testはnativeに限定し、実credentialのsmoke testは任意です。
+実装ベースラインでは、型付きLLMメッセージ、ツール、プロバイダー結果、テストプロバイダーに `mizchi/llm@0.3.1` を使用します。coding-agent nodeはregistry解決の`agent-sdk@0.2.1`を使用し、CodexとOpenCodeのprovider optionはそれぞれ`0.4.1` SDKを使用します。CLI integrationはWasm/WASIとnativeで同じproduction sourceを使用し、fake process testはnativeに限定し、実credentialのsmoke testは任意です。
 
 core runtime、coding-agent、visualization、Codex CLI、OpenCode CLIモジュールはWasm/WASIを優先します。coreとvisualizationはJavaScript、native、Wasm/WASIをサポートし、coding-agent、Codex CLI、OpenCode CLIはWasm/WASIとnativeをサポートしますが、JavaScriptはサポートしません。LLMモジュールは`mizchi/llm`のWasm実装がabortするstubのため、JavaScriptを優先し、JavaScriptとnativeをサポートします。
 

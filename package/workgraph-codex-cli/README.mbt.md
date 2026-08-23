@@ -1,19 +1,19 @@
 ---
 moonbit:
   import:
-    - path: moonbitlang/async@0.20.3
+    - path: moonbitlang/async@0.21.0
       alias: async
     - path: moonbitlang/core/immut/hashmap
       alias: immut_hashmap
-    - path: moonbitlang/x@0.4.47/path
+    - path: moonbitlang/x@0.5.1/path
       alias: path
-    - path: totto2727/agent-sdk@0.2.0/cli
+    - path: totto2727/agent-sdk@0.2.1/cli
       alias: cli
-    - path: totto2727/workgraph-agent-cli@0.2.0
+    - path: totto2727/workgraph-agent-cli@0.2.1
       alias: coding
-    - path: totto2727/workgraph-codex-cli@0.2.0
+    - path: totto2727/workgraph-codex-cli@0.2.1
       alias: codex
-    - path: totto2727/workgraph-core@0.1.3
+    - path: totto2727/workgraph-core@0.1.4
       alias: core
   backend:
     native
@@ -80,6 +80,8 @@ pub async fn run_codex_graph() -> String raise {
   result.final_state
 }
 ```
+
+Version `0.2.1` prefers Wasm/WASI and supports Wasm/WASI and native from the same production source; JavaScript is not supported. It resolves `totto2727/agent-sdk@0.2.1` and `totto2727/codex-sdk@0.4.1` from the MoonBit registry. The shared CI check follows the Wasm/WASI preferred target and loads the Codex CLI from the repository's `ci` Nix dev shell. Fake CLI process tests run only on native.
 
 With an installed and authenticated Codex CLI, the expected result is `WORKGRAPH_CODEX_OK`. The literate function is type-checked without executing credentials; the [runnable Codex example](src/examples/basic/main.mbt) executes the same prompt-to-result flow.
 

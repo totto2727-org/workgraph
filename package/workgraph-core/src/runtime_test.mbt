@@ -31,7 +31,7 @@ impl @any.Anyable for RuntimeTestResource with fn iso() {
     ),
     box: resource => RuntimeTestResource(resource),
     unbox: payload => {
-      guard payload is RuntimeTestResource(resource)
+      guard! payload is RuntimeTestResource(resource)
       resource
     },
   }
@@ -558,7 +558,7 @@ impl @any.Anyable for W4LifecycleResource with fn iso() {
     ),
     box: resource => W4LifecycleResource(resource),
     unbox: payload => {
-      guard payload is W4LifecycleResource(resource)
+      guard! payload is W4LifecycleResource(resource)
       resource
     },
   }

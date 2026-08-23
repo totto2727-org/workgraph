@@ -39,15 +39,10 @@ async fn with_opencode_cli_fixture(
   run : async (OpenCodeCliFixture) -> Unit,
 ) -> Unit {
   let fixture = create_opencode_cli_fixture()
-  run(fixture) catch {
-    error => {
-      @async.protect_from_cancel(async fn() {
-        @fs.rmdir(fixture.root, recursive=true)
-      })
-      raise error
-    }
-  }
-  @fs.rmdir(fixture.root, recursive=true)
+  defer @async.protect_from_cancel(async fn() {
+    @fs.rmdir(fixture.root, recursive=true)
+  })
+  run(fixture)
 }
 
 ///|

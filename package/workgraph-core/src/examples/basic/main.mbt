@@ -23,7 +23,7 @@ impl @any.Anyable for ExampleRuntimeResource with fn iso() {
     ),
     box: resource => ExampleRuntimeResource(resource),
     unbox: payload => {
-      guard payload is ExampleRuntimeResource(resource)
+      guard! payload is ExampleRuntimeResource(resource)
       resource
     },
   }
@@ -109,7 +109,7 @@ async fn main {
   definition.set_entry(plan)
   let runtime = @core.GraphRuntime::GraphRuntime(definition.compile())
   let result = runtime.invoke({ labels: [] })
-  let snapshot = result.final_state.to_json()
+  let snapshot = ToJson::to_json(result.final_state)
   let restored : ExampleState = @json.from_json(snapshot)
   println("labels=\{restored.labels.join(",")}")
   println("snapshot=\{snapshot.stringify()}")
