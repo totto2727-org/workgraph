@@ -50,7 +50,7 @@ async test "Workgraph runtime usage" {
 }
 ```
 
-See the module-specific examples for [core runtime behavior](package/workgraph-core/README.md#example), [coding-agent adapters](package/workgraph-agent-cli/README.md#examples), [LLM nodes](package/workgraph-llm/README.md#example), [Mermaid visualization](package/workgraph-visualization/README.md#example), [Codex](package/workgraph-codex-cli/README.md#example), and [OpenCode](package/workgraph-opencode-cli/README.md#example).
+See the package-specific Usage sections for [core compilation](package/workgraph-core/README.md#usage), [coding-agent adapters](package/workgraph-agent-cli/README.md#usage), [LLM nodes](package/workgraph-llm/README.md#usage), [Mermaid visualization](package/workgraph-visualization/README.md#usage), [Codex](package/workgraph-codex-cli/README.md#usage), and [OpenCode](package/workgraph-opencode-cli/README.md#usage).
 
 ## Key features
 
