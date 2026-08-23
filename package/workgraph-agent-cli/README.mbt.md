@@ -1,21 +1,18 @@
 # workgraph-agent-cli
 
-`workgraph-agent-cli` provides the Workgraph-owned coding-agent concepts: `WorkspaceRef`, approval and network policies, `CodingAgentOpenContext`, `CodingAgentId`, `CodingAgent`, `CodingAgentNodeSpec`, and `coding_agent_node`. The core package remains provider-neutral and exposes only node patches and optional values.
+`workgraph-agent-cli` owns the provider-neutral extension contract for coding-agent adapters: `CodingAgent`, workspace and policy types, opaque continuations, `CodingAgentNodeSpec`, and `coding_agent_node`. For shared installation and graph construction, see the root [Setup](../../README.md#setup) and [Usage](../../README.md#usage).
 
-The breaking API delegates execution directly to `totto2727/agent-sdk/cli`: `CodingAgent.open` returns a configured `Cli`; a node creates a `Prompt`, selects an optional opaque `Continuation`, and decodes a `FinalResponse`. Workgraph no longer exposes mirror `SessionId`, `CodingAgentRequest`, `CodingAgentStatus`, `CodingAgentResponse`, or `CodingAgentSession` types.
+## Usage
 
-Each node acquires one `CliSession` per agent identity and caller resource scope, starting a session when no continuation is selected or resuming one when a `CodingAgentContinuation` is supplied. Only the node can construct this opaque token from a successful `FinalResponse`; it binds the raw continuation to the configured `CodingAgentId` and raises `CodingAgentContinuationError::AgentMismatch` before provider open when another agent selects it. The node resolves relative prompt context files against `CodingAgentOpenContext.workspace.root` and leaves absolute `Path` values unchanged. A node-owned mutex serializes `prompt` calls. Resource finalization is intentionally a no-op because `CliSession` has no idle close operation; cancellation cleanup is owned by the provider call and cancellation is re-raised after that cleanup. A continuation is an in-process handle, not a serializable or durable checkpoint.
+Implement this interface when adding a coding-agent provider: open an `agent-sdk` session, map graph state to `Prompt`, and decode `FinalResponse` into `NodeOutput`. These concrete package Usage sections show the complete adapter-owned prompt-to-result flow:
 
-Graph execution is sequential. Multiple agents remain isolated even when callers reuse a visible resource key: Workgraph includes the agent ID in its internal key, so sessions, state slots, and continuations never cross agent boundaries.
+- [Codex adapter Usage](../workgraph-codex-cli/README.md#usage)
+- [OpenCode adapter Usage](../workgraph-opencode-cli/README.md#usage)
 
-The package intentionally has no standalone example. Use the runnable `workgraph-codex-cli` and `workgraph-opencode-cli` examples to see this node with concrete coding-agent implementations.
+## API
 
-## Package
-
-```moonbit
-import {
-  "totto2727/workgraph-agent-cli"
-}
-```
+[Mooncakes API reference](https://mooncakes.io/docs/totto2727/workgraph-agent-cli)
 
 Version `0.2.1` prefers the Wasm/WASI target and supports Wasm/WASI and native. JavaScript is not supported. The module resolves `totto2727/agent-sdk@0.2.1` from the MoonBit registry. Wasm GC is excluded because `moonbitlang/async` does not support it.
+
+_This README was generated from the [share-artifact skill](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/SKILL.md) and [README template](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/readme/template.md)._
