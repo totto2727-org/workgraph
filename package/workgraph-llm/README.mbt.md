@@ -1,19 +1,11 @@
 # workgraph-llm
 
-`workgraph-llm` adapts `mizchi/llm` messages, tools, and collected results to `workgraph-core` nodes without selecting a provider or runtime.
-
-## Package
-
-```moonbit
-import {
-  "totto2727/workgraph-llm"
-}
-```
-
-The module prefers JavaScript and supports JavaScript and native targets. Wasm targets are excluded because `mizchi/llm` exposes aborting Wasm stubs for required runtime operations.
+`workgraph-llm` owns the provider-neutral adapter from `mizchi/llm` messages, tools, streamed events, and collected results to typed Workgraph nodes. For shared installation and graph construction, see the root [Setup](../../README.md#setup) and [Usage](../../README.md#usage).
 
 ## Example
 
-```bash
-moon run package/workgraph-llm/src/examples/basic
-```
+The [checked LLM example](src/examples/basic/main.mbt) invokes `llm_node` with a deterministic `MockProvider`, reduces the collected response into graph state, and prints the answer, token count, and step count.
+
+## API
+
+[Mooncakes API reference](https://mooncakes.io/docs/totto2727/workgraph-llm)

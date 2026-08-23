@@ -1,19 +1,11 @@
 # workgraph-visualization
 
-`workgraph-visualization` renders the runtime-independent snapshots produced by `workgraph-core` as Mermaid diagrams.
-
-## Package
-
-```moonbit
-import {
-  "totto2727/workgraph-visualization"
-}
-```
-
-The module prefers the Wasm/WASI target and supports JavaScript, native, and Wasm/WASI targets. Wasm GC is excluded because `moonbitlang/async` does not support it.
+`workgraph-visualization` owns deterministic Mermaid rendering for callback-free `workgraph-core` compiled graph snapshots. For shared installation and graph construction, see the root [Setup](../../README.md#setup) and [Usage](../../README.md#usage).
 
 ## Example
 
-```bash
-moon run package/workgraph-visualization/src/examples/basic
-```
+The [checked visualization example](src/examples/basic/main.mbt) compiles a routed workflow and prints its node metadata, route labels, and entry point as a Mermaid flowchart.
+
+## API
+
+[Mooncakes API reference](https://mooncakes.io/docs/totto2727/workgraph-visualization)

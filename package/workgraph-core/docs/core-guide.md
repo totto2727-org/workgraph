@@ -50,9 +50,15 @@ This is similar to a fold over a sequence, except that the router dynamically se
 The package does not pass every identifier as an undifferentiated `String`.
 
 ```moonbit
-pub struct NodeId(String) derive(Eq, Hash, Debug)
-pub struct RunId(String) derive(Eq, Hash, Debug)
-pub struct ResourceKey(String) derive(Eq, Hash, Debug)
+pub struct NodeId {
+  value : String
+} derive(Eq, Hash)
+pub struct RunId {
+  value : String
+} derive(Eq, Hash)
+pub struct ResourceKey {
+  value : String
+} derive(Eq, Hash)
 ```
 
 Source: `src/identifiers.mbt`
@@ -69,8 +75,16 @@ fn parse_id(value : String, kind : String) -> String raise IdError {
   value
 }
 
-pub fn NodeId::parse(value : String) -> NodeId raise IdError {
-  NodeId(parse_id(value, "NodeId"))
+pub fn NodeId::NodeId(value : String) -> NodeId raise IdError {
+  NodeId::{ value: parse_id(value, "NodeId") }
+}
+```
+
+Callers construct an identifier with the public constructor and handle its raised validation error.
+
+```moonbit
+let node_id = NodeId::NodeId("entry") catch {
+  _ => abort("node ID must be valid")
 }
 ```
 
