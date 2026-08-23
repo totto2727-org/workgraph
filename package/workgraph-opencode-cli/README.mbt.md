@@ -81,7 +81,7 @@ pub async fn run_opencode_graph() -> String raise {
 }
 ```
 
-Version `0.2.1` prefers Wasm/WASI and supports Wasm/WASI and native from the same production source; JavaScript is not supported. It resolves `totto2727/agent-sdk@0.2.1` and `totto2727/opencode-sdk@0.4.1` from the MoonBit registry. The shared CI check follows the Wasm/WASI preferred target and loads the OpenCode CLI from the repository's `ci` Nix dev shell. Fake CLI process tests run only on native.
+Version `0.2.1` prefers Wasm/WASI and supports Wasm/WASI and native from the same production source; JavaScript is not supported. It resolves `totto2727/agent-sdk@0.2.1` and `totto2727/opencode-sdk@0.4.1` from the MoonBit registry.
 
 With an installed and configured OpenCode CLI, the expected result is `WORKGRAPH_OPENCODE_OK`. The literate function is type-checked without executing credentials; the [runnable OpenCode example](src/examples/basic/main.mbt) executes the same prompt-to-result flow.
 
