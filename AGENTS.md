@@ -82,6 +82,6 @@ package/workgraph-core/docs/     Runtime API, architecture, testing, and migrati
 - Keep public provider-neutral contracts in `workgraph-agent-cli`; provider-specific options belong only in the Codex or OpenCode adapter packages.
 - Preserve the published dependency versions and preferred-target declarations in each package's `moon.mod` unless the corresponding module migration is intentional.
 - When changing public MoonBit symbols, update the API guide and run `moon info`, `moon check`, and `moon test` before handoff.
-- Read [RELEASING.md](./RELEASING.md) for the split-repository dependency contract and publication order before changing release automation.
+- Treat [`.github/workflows/publish.yml`](./.github/workflows/publish.yml) as the publication source of truth: pushes to `main` publish modules in the declared workflow order through the shared `publish-moonbit` action. Do not publish from a local checkout.
 
 _This AGENTS.md was generated from the [share-artifact skill](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/SKILL.md) and [AGENTS template](https://raw.githubusercontent.com/totto2727-org/agent/refs/heads/main/plugins/totto2727-coding/skills/share-artifact/agents/template.md)._
