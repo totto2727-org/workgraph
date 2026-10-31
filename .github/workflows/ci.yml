@@ -16,8 +16,9 @@ jobs:
       NIX_DEV_SHELL: ci
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: totto2727-org/monorepo/.github/actions/setup-typescript@main
       - uses: totto2727-org/monorepo/.github/actions/setup-nix@main
+        with:
+          dev-shell: ci
       - uses: totto2727-org/monorepo/.github/actions/setup-moonbit@main
         with:
           dev-shell: ${{ env.NIX_DEV_SHELL }}
