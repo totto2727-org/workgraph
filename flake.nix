@@ -14,24 +14,34 @@
     };
   };
 
-  outputs = { nixpkgs, moonbit-overlay, codex, opencode, ... }:
+  outputs =
+    {
+      nixpkgs,
+      moonbit-overlay,
+      codex,
+      opencode,
+      ...
+    }:
     let
       supportedSystems = [
         "aarch64-darwin"
         "x86_64-linux"
       ];
       forEachSystem = nixpkgs.lib.genAttrs supportedSystems;
-      mkPkgs = system: import nixpkgs {
-        inherit system;
-        overlays = [
-          moonbit-overlay.overlays.default
-          codex.overlays.default
-          opencode.overlays.default
-        ];
-      };
+      mkPkgs =
+        system:
+        import nixpkgs {
+          inherit system;
+          overlays = [
+            moonbit-overlay.overlays.default
+            codex.overlays.default
+            opencode.overlays.default
+          ];
+        };
     in
     {
-      devShells = forEachSystem (system:
+      devShells = forEachSystem (
+        system:
         let
           pkgs = mkPkgs system;
         in
@@ -40,9 +50,11 @@
             packages = [
               # One MoonBit toolchain checks and builds both declared CLI adapter targets.
               pkgs.moonbit-bin.moonbit.latest
-              # Retained for the workspace modules that also declare JavaScript support.
-              pkgs.nodejs_24
             ];
+            shellHook = ''
+              # Enable Git Hook
+              vp config
+            '';
           };
           ci = pkgs.mkShell {
             inputsFrom = [ default ];
@@ -51,6 +63,7 @@
               pkgs.opencode
             ];
           };
-        });
+        }
+      );
     };
 }
