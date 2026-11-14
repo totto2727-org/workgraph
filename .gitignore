@@ -6,3 +6,4 @@ trace.json
 .direnv/
 .omo/
 result
+/tmp/
