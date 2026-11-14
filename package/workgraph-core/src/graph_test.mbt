@@ -1,10 +1,10 @@
 ///|
-fn test_reducer() -> Reducer[Int, Int] {
+fn test_reducer() -> Reducer[Int32, Int32] {
   Reducer::Reducer(fn(state, patch) { state + patch })
 }
 
 ///|
-fn test_node(id : NodeId, tags : ReadOnlyArray[String]) -> Node[Int, Int] {
+fn test_node(id : NodeId, tags : ReadOnlyArray[String]) -> Node[Int32, Int32] {
   Node::Node(
     id,
     NodeMetadata::NodeMetadata(
@@ -21,12 +21,12 @@ fn test_node(id : NodeId, tags : ReadOnlyArray[String]) -> Node[Int, Int] {
 }
 
 ///|
-fn end_router() -> Router[Int] {
+fn end_router() -> Router[Int32] {
   router([], fn(_state, _completion) { End })
 }
 
 ///|
-fn to_router(target : NodeId) -> Router[Int] {
+fn to_router(target : NodeId) -> Router[Int32] {
   router([DeclaredRoute::DeclaredRoute(target)], fn(_state, _completion) {
     To(target)
   })

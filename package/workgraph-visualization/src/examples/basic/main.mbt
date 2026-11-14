@@ -4,7 +4,7 @@ fn example_node(
   name : String,
   kind : @core.NodeKind,
   description : String,
-) -> @core.Node[Int, Unit] {
+) -> @core.Node[Int32, Unit] {
   @core.Node::Node(
     id,
     @core.NodeMetadata::NodeMetadata(

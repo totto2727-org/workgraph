@@ -1,12 +1,14 @@
 ///|
+#derive(Eq, Hash, Debug)
 pub struct CodingAgentId {
   value : String
-} derive(Eq, Hash, Debug)
+}
 
 ///|
+#derive(Debug)
 pub suberror IdError {
   EmptyId(kind~ : String)
-} derive(Debug)
+}
 
 ///|
 fn parse_id(value : String, kind : String) -> String raise IdError {
@@ -18,7 +20,7 @@ fn parse_id(value : String, kind : String) -> String raise IdError {
 pub fn CodingAgentId::CodingAgentId(
   value : String,
 ) -> CodingAgentId raise IdError {
-  CodingAgentId::{ value: parse_id(value, "CodingAgentId") }
+  CodingAgentId::{ value: parse_id(value, "CodingAgentId"), }
 }
 
 ///|

@@ -1,16 +1,18 @@
 ///|
+#derive(Debug, Eq)
 pub(all) enum ResourceScope {
   Node
   Run
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug)
 pub suberror ResourceStoreError {
   NodeOwnerRequired(ResourceKey)
-  InvalidCleanupTimeout(Int)
-  CleanupTimedOut(Int)
+  InvalidCleanupTimeout(Int32)
+  CleanupTimedOut(Int32)
   CloseFailed(errors~ : ReadOnlyArray[Error])
-} derive(Debug)
+}
 
 ///|
 struct StoredResourceCleanup {
@@ -100,7 +102,7 @@ pub async fn[T] ResourceStore::acquire_resource(
 ///|
 async fn ResourceStore::close_resource(
   self : ResourceStore,
-  index : Int,
+  index : Int32,
   errors : Array[Error],
 ) -> Unit {
   if self.cleanups[index].closed {
@@ -153,7 +155,7 @@ pub async fn ResourceStore::close_all(self : ResourceStore) -> Unit {
 ///|
 pub async fn ResourceStore::finalize(
   self : ResourceStore,
-  timeout_ms : Int,
+  timeout_ms : Int32,
 ) -> Unit {
   if timeout_ms <= 0 {
     raise InvalidCleanupTimeout(timeout_ms)

@@ -60,7 +60,7 @@ pub fn[S, P] to_mermaid(graph : @core.CompiledGraph[S, P]) -> String {
   for index, node in snapshot.nodes {
     mermaid_ids[node.id] = "node_\{index}"
   }
-  let output = StringBuilder::new()
+  let output = StringBuilder()
   output.write_string("flowchart TD\n")
   for node in snapshot.nodes {
     output.write_string("  \{mermaid_ids[node.id]}[\"\{node_label(node)}\"]\n")

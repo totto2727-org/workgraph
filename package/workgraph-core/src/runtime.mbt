@@ -20,7 +20,7 @@ fn attach_cleanup(primary : Error, cleanup : Error) -> Error {
         cleanup: ReadOnlyArray::from_array([..failure.cleanup, cleanup]),
       })
     _ =>
-      ResourceCleanupFailed(failure=RunFailure::{ primary, cleanup: [cleanup] })
+      ResourceCleanupFailed(failure=RunFailure::{ primary, cleanup: [cleanup], })
   }
 }
 
@@ -29,7 +29,7 @@ async fn[S, P] execute_node(
   node : Node[S, P],
   context : NodeContext,
   state : S,
-  timeout_ms : Int?,
+  timeout_ms : Int32?,
 ) -> NodeOutput[P] {
   let execute = async fn() {
     (node.execute)(context, state) catch {
@@ -121,7 +121,7 @@ async fn[S, P] run_sequential(
       Some(output) => output
       None => abort("node attempt completed without output or error")
     }
-    let completion = NodeCompletion::{ node_id: current, value: output.value }
+    let completion = NodeCompletion::{ node_id: current, value: output.value, }
     runtime.events.try_emit(
       NodeCompleted(run_id~, node_id=current, step=steps, completion~),
     )
@@ -148,7 +148,7 @@ async fn[S, P] run_sequential(
         }
         current = target
       }
-      End => return RunResult::{ run_id, final_state: state, steps }
+      End => return RunResult::{ run_id, final_state: state, steps, }
       Fail(message) => raise ExplicitFailure(node_id=current, message~)
     }
   } nobreak {
@@ -160,7 +160,7 @@ async fn[S, P] run_sequential(
 pub async fn[S, P] GraphRuntime::invoke(
   self : GraphRuntime[S, P],
   initial_state : S,
-  options? : RunOptions = RunOptions(),
+  options~ : RunOptions = RunOptions(),
 ) -> RunResult[S] {
   let run_id = self.fresh_run_id()
   let stored_result : Ref[RunResult[S]?] = Ref(None)

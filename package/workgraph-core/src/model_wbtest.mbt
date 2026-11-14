@@ -1,7 +1,11 @@
 ///|
+#derive(Debug)
 suberror NodeTestError {
   CallbackFailed(String)
-} derive(Debug)
+}
+
+///|
+pub extend NodeTestError with @debug.Debug::{to_repr}
 
 ///|
 /// White-box coverage may construct runtime-owned events directly.
@@ -63,7 +67,9 @@ async test "Node::Node 1 - receives state and complete context" {
 
 ///|
 test "Reducer apply 1 - returns the updated state" {
-  let reducer = Reducer::Reducer(fn(state : Int, patch : Int) { state + patch })
+  let reducer = Reducer::Reducer(fn(state : Int32, patch : Int32) {
+    state + patch
+  })
   inspect((reducer.apply)(10, 5), content="15")
 }
 
@@ -72,9 +78,9 @@ async test "Node::Node 2 - propagates the callback suberror unchanged" {
   @async.with_task_group() <| group => {
     let run_id = RunId::RunId("run-2")
     let node_id = NodeId::NodeId("failure")
-    let node : Node[Int, Unit] = Node::Node(node_id, node_metadata(), async fn(
+    let node : Node[Int32, Unit] = Node::Node(node_id, node_metadata(), async fn(
       _context,
-      _state : Int,
+      _state : Int32,
     ) {
       @async.pause()
       raise CallbackFailed("detail")
@@ -96,9 +102,9 @@ async test "Node::Node 3 - cancellation preserves the cancellation error" {
     let run_id = RunId::RunId("run-3")
     let node_id = NodeId::NodeId("pause")
     let mut tokens = 0
-    let node : Node[Int, Unit] = Node::Node(node_id, node_metadata(), async fn(
+    let node : Node[Int32, Unit] = Node::Node(node_id, node_metadata(), async fn(
       _context,
-      _state : Int,
+      _state : Int32,
     ) {
       tokens = tokens + 1
       @async.pause()
@@ -150,7 +156,7 @@ test "EventSink emits synchronous events in declaration order W2-C003" {
 
 ///|
 test "EventSink safely ignores a raising observer W2-C003" {
-  let attempts : Array[Int] = []
+  let attempts : Array[Int32] = []
   let sink = EventSink::EventSink(fn(_) raise {
     attempts.push(1)
     raise TestObserverError
@@ -169,7 +175,7 @@ test "EventSink discard is a no-op W2-C003" {
 
 ///|
 test "NodeOutput contains patch and value W2-C003" {
-  let output : NodeOutput[Int] = NodeOutput::NodeOutput(
+  let output : NodeOutput[Int32] = NodeOutput::NodeOutput(
     Some(42),
     Some(Json::string("done")),
   )

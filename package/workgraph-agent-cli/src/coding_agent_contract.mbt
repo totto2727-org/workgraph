@@ -1,8 +1,9 @@
 ///|
+#derive(Debug, Eq)
 pub struct WorkspaceRef {
   root : @path.Path
   additional_writable_roots : ReadOnlyArray[@path.Path]
-} derive(Debug, Eq)
+}
 
 ///|
 /// Creates a writable workspace description for a coding agent.
@@ -10,22 +11,24 @@ pub fn WorkspaceRef::WorkspaceRef(
   root : @path.Path,
   additional_writable_roots : ReadOnlyArray[@path.Path],
 ) -> WorkspaceRef {
-  WorkspaceRef::{ root, additional_writable_roots }
+  WorkspaceRef::{ root, additional_writable_roots, }
 }
 
 ///|
+#derive(Debug, Eq)
 pub(all) enum ApprovalPolicy {
   Never
   OnRequest
   OnFailure
   Untrusted
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) enum NetworkPolicy {
   Disabled
   Enabled
-} derive(Debug, Eq)
+}
 
 ///|
 pub struct CodingAgentOpenContext {
@@ -72,7 +75,7 @@ pub fn CodingAgent::CodingAgent(
   id : CodingAgentId,
   open : async (CodingAgentOpenContext) -> @cli.Cli,
 ) -> CodingAgent {
-  CodingAgent::{ id, open }
+  CodingAgent::{ id, open, }
 }
 
 ///|
@@ -89,11 +92,12 @@ fn CodingAgentContinuation::CodingAgentContinuation(
   owner : CodingAgentId,
   raw : @cli.Continuation,
 ) -> CodingAgentContinuation {
-  CodingAgentContinuation::{ owner, raw }
+  CodingAgentContinuation::{ owner, raw, }
 }
 
 ///|
 /// Raised when a continuation is supplied to a different coding agent.
+#derive(Debug)
 pub suberror CodingAgentContinuationError {
   AgentMismatch(expected~ : CodingAgentId, actual~ : CodingAgentId)
-} derive(Debug)
+}

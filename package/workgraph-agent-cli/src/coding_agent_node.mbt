@@ -118,7 +118,7 @@ pub fn[S, P] coding_agent_node(
         Some(continuation) => cli.continue_session(continuation.raw)
         None => cli.start()
       }
-      CodingAgentResource::{ session, mutex: @async.Mutex::Mutex() }
+      CodingAgentResource::{ session, mutex: @async.Mutex::Mutex(), }
     }
     let resource = match spec.resource_scope {
       @core.Node =>

@@ -22,8 +22,8 @@ pub fn OpenCodeAgentOptions::OpenCodeAgentOptions(
   agent? : String,
   variant? : String,
   title? : String,
-  thinking? : Bool = false,
-  extra_env? : Map[String, String] = Map([]),
+  thinking~ : Bool = false,
+  extra_env~ : Map[String, String] = Map([]),
 ) -> OpenCodeAgentOptions {
   {
     opencode_path_override,

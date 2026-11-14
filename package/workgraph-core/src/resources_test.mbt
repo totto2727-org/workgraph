@@ -1,8 +1,9 @@
 ///|
+#derive(Debug)
 struct ResourceStoreTestValue {
   label : String
-  counter : Ref[Int]
-} derive(Debug)
+  counter : Ref[Int32]
+}
 
 ///|
 extenum @any.Payload += {
@@ -36,7 +37,7 @@ test "ResourceStore values 1 - stores and removes a typed in-memory value" {
     key,
   )
   let counter = Ref(1)
-  store.set(resource_ref, ResourceStoreTestValue::{ label: "counter", counter })
+  store.set(resource_ref, ResourceStoreTestValue::{ label: "counter", counter, })
   guard store.get(resource_ref) is Some(stored) else {
     fail("expected the typed runtime value")
   }
@@ -77,7 +78,7 @@ async test "ResourceStore acquire_resource 1 - reuses run resources and closes n
     async fn() {
       @async.pause()
       opened.push("run")
-      ResourceStoreTestValue::{ label: "run", counter: Ref(1) }
+      ResourceStoreTestValue::{ label: "run", counter: Ref(1), }
     },
     close,
   )
@@ -87,7 +88,7 @@ async test "ResourceStore acquire_resource 1 - reuses run resources and closes n
     async fn() {
       @async.pause()
       opened.push("unexpected")
-      ResourceStoreTestValue::{ label: "unexpected", counter: Ref(2) }
+      ResourceStoreTestValue::{ label: "unexpected", counter: Ref(2), }
     },
     close,
   )
@@ -97,7 +98,7 @@ async test "ResourceStore acquire_resource 1 - reuses run resources and closes n
     async fn() {
       @async.pause()
       opened.push("node-first")
-      ResourceStoreTestValue::{ label: "node-first", counter: Ref(3) }
+      ResourceStoreTestValue::{ label: "node-first", counter: Ref(3), }
     },
     close,
     owner=first_node,
@@ -109,7 +110,7 @@ async test "ResourceStore acquire_resource 1 - reuses run resources and closes n
     async fn() {
       @async.pause()
       opened.push("node-second")
-      ResourceStoreTestValue::{ label: "node-second", counter: Ref(4) }
+      ResourceStoreTestValue::{ label: "node-second", counter: Ref(4), }
     },
     close,
     owner=second_node,
@@ -133,24 +134,27 @@ async test "ResourceStore acquire_resource 1 - reuses run resources and closes n
 }
 
 ///|
+#derive(Debug)
 suberror LifecycleTestError {
   LifecycleOpenFailed(String)
   LifecycleCloseFailed(String)
-} derive(Debug)
+}
 
 ///|
+#derive(Debug)
 enum LifecycleClosePlan {
   Succeeds
   Fails(String)
-  Sleeps(Int)
-} derive(Debug)
+  Sleeps(Int32)
+}
 
 ///|
+#derive(Debug)
 struct LifecycleResource {
   label : String
   closed : Array[String]
   plan : LifecycleClosePlan
-} derive(Debug)
+}
 
 ///|
 extenum @any.Payload += {
@@ -191,7 +195,7 @@ fn lifecycle_resource(
   closed : Array[String],
   plan : LifecycleClosePlan,
 ) -> LifecycleResource {
-  LifecycleResource::{ label, closed, plan }
+  LifecycleResource::{ label, closed, plan, }
 }
 
 ///|

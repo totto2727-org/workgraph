@@ -1,25 +1,28 @@
 ///|
+#derive(Debug)
 pub(all) enum Route {
   To(NodeId)
   End
   Fail(String)
-} derive(Debug)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) enum NodeKind {
   Function
   Llm
   CodingAgent
   Custom(String)
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug)
 pub struct NodeMetadata {
   name : String
   description : String?
   kind : NodeKind
   tags : ReadOnlyArray[String]
-} derive(Debug)
+}
 
 ///|
 /// Creates metadata describing a graph node.
@@ -29,26 +32,28 @@ pub fn NodeMetadata::NodeMetadata(
   kind~ : NodeKind,
   tags~ : ReadOnlyArray[String],
 ) -> NodeMetadata {
-  NodeMetadata::{ name, description, kind, tags }
+  NodeMetadata::{ name, description, kind, tags, }
 }
 
 ///|
+#derive(Debug)
 pub struct NodeOutput[P] {
   patch : P?
   value : Json?
-} derive(Debug)
+}
 
 ///|
 /// Creates the output produced by a graph node.
 pub fn[P] NodeOutput::NodeOutput(patch : P?, value : Json?) -> NodeOutput[P] {
-  NodeOutput::{ patch, value }
+  NodeOutput::{ patch, value, }
 }
 
 ///|
+#derive(Debug)
 pub struct NodeCompletion {
   node_id : NodeId
   value : Json?
-} derive(Debug)
+}
 
 ///|
 /// Creates the completion value passed to a router.
@@ -56,29 +61,30 @@ pub fn NodeCompletion::NodeCompletion(
   node_id : NodeId,
   value : Json?,
 ) -> NodeCompletion {
-  NodeCompletion::{ node_id, value }
+  NodeCompletion::{ node_id, value, }
 }
 
 ///|
+#derive(Debug)
 pub enum GraphEvent {
   RunStarted(RunId)
-  RunCompleted(run_id~ : RunId, steps~ : Int)
+  RunCompleted(run_id~ : RunId, steps~ : Int32)
   RunFailed(run_id~ : RunId, cause~ : Error)
   RunCancelled(RunId)
-  NodeStarted(run_id~ : RunId, node_id~ : NodeId, step~ : Int)
+  NodeStarted(run_id~ : RunId, node_id~ : NodeId, step~ : Int32)
   NodeCompleted(
     run_id~ : RunId,
     node_id~ : NodeId,
-    step~ : Int,
+    step~ : Int32,
     completion~ : NodeCompletion
   )
-  NodeFailed(run_id~ : RunId, node_id~ : NodeId, step~ : Int, cause~ : Error)
-  StateUpdated(run_id~ : RunId, node_id~ : NodeId, step~ : Int)
+  NodeFailed(run_id~ : RunId, node_id~ : NodeId, step~ : Int32, cause~ : Error)
+  StateUpdated(run_id~ : RunId, node_id~ : NodeId, step~ : Int32)
   RouteSelected(run_id~ : RunId, from~ : NodeId, route~ : Route)
   ResourceOpening(run_id~ : RunId, key~ : ResourceKey)
   ResourceOpened(run_id~ : RunId, key~ : ResourceKey)
   ResourceClosed(run_id~ : RunId, key~ : ResourceKey)
-} derive(Debug)
+}
 
 ///|
 /// Creates the event emitted when a run starts.
@@ -88,7 +94,7 @@ pub fn run_started_event(run_id : RunId) -> GraphEvent {
 
 ///|
 /// Creates the event emitted when a run completes.
-pub fn run_completed_event(run_id : RunId, steps : Int) -> GraphEvent {
+pub fn run_completed_event(run_id : RunId, steps : Int32) -> GraphEvent {
   RunCompleted(run_id~, steps~)
 }
 
@@ -136,7 +142,7 @@ pub fn EventSink::try_emit(self : EventSink, event : GraphEvent) -> Unit {
 pub struct NodeContext {
   run_id : RunId
   node_id : NodeId
-  step : Int
+  step : Int32
   deadline_ms : Int64?
   task_group : @async.TaskGroup[Unit]
   events : EventSink
@@ -147,10 +153,10 @@ pub struct NodeContext {
 pub fn NodeContext::NodeContext(
   run_id : RunId,
   node_id : NodeId,
-  step : Int,
+  step : Int32,
   task_group : @async.TaskGroup[Unit],
-  events? : EventSink = EventSink::discard(),
-  resources? : ResourceStore = ResourceStore(),
+  events~ : EventSink = EventSink::discard(),
+  resources~ : ResourceStore = ResourceStore(),
   deadline_ms? : Int64,
 ) -> NodeContext {
   NodeContext::{
@@ -177,14 +183,15 @@ pub fn[S, P] Node::Node(
   metadata : NodeMetadata,
   execute : async (NodeContext, S) -> NodeOutput[P],
 ) -> Node[S, P] {
-  Node::{ id, metadata, execute }
+  Node::{ id, metadata, execute, }
 }
 
 ///|
 /// Contains optional display metadata for one statically declared route.
+#derive(Debug)
 pub struct DeclaredRouteMetadata {
   label : String?
-} derive(Debug)
+}
 
 ///|
 /// Creates display metadata for a statically declared route.
@@ -196,25 +203,27 @@ pub fn DeclaredRouteMetadata::DeclaredRouteMetadata(
 
 ///|
 /// Declares one possible runtime destination and its optional metadata.
+#derive(Debug)
 pub struct DeclaredRoute {
   target : NodeId
   metadata : DeclaredRouteMetadata
-} derive(Debug)
+}
 
 ///|
 /// Declares a possible runtime destination.
 pub fn DeclaredRoute::DeclaredRoute(
   target : NodeId,
-  metadata? : DeclaredRouteMetadata = DeclaredRouteMetadata::DeclaredRouteMetadata(),
+  metadata~ : DeclaredRouteMetadata = DeclaredRouteMetadata::DeclaredRouteMetadata(),
 ) -> DeclaredRoute {
-  DeclaredRoute::{ target, metadata }
+  DeclaredRoute::{ target, metadata, }
 }
 
 ///|
 /// Contains optional display metadata for a router.
+#derive(Debug)
 pub struct RouterMetadata {
   description : String?
-} derive(Debug)
+}
 
 ///|
 /// Creates display metadata for a router.
@@ -233,9 +242,9 @@ pub struct Router[S] {
 pub fn[S] router(
   declared_routes : ReadOnlyArray[DeclaredRoute],
   evaluate : (S, NodeCompletion) -> Route raise,
-  metadata? : RouterMetadata = RouterMetadata::RouterMetadata(),
+  metadata~ : RouterMetadata = RouterMetadata::RouterMetadata(),
 ) -> Router[S] {
-  Router::{ metadata, declared_routes, evaluate }
+  Router::{ metadata, declared_routes, evaluate, }
 }
 
 ///|

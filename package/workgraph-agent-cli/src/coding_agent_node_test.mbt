@@ -1,20 +1,22 @@
 ///|
+#derive(Debug)
 suberror CodingAgentNodeTestError {
   OpenContextFailed
   OpenFailed
   PromptBuildFailed
   PromptFailed
   DecodeFailed
-} derive(Debug)
+}
 
 ///|
+#derive(Eq)
 enum CodingAgentNodeFailurePhase {
   OpenContext
   Open
   PromptBuild
   Prompt
   Decode
-} derive(Eq)
+}
 
 ///|
 struct CodingAgentNodeFakeSession {
@@ -28,8 +30,8 @@ struct CodingAgentNodeFakeSession {
 
 ///|
 struct CodingAgentNodeSerialSession {
-  mut active : Int
-  mut max_active : Int
+  mut active : Int32
+  mut max_active : Int32
 }
 
 ///|
@@ -150,7 +152,7 @@ fn coding_agent_open_context(
 fn lifecycle_runtime(
   scope : @core.ResourceScope,
   calls : Array[String],
-) -> @core.GraphRuntime[Int, Int] raise {
+) -> @core.GraphRuntime[Int32, Int32] raise {
   let node_id = @core.NodeId::NodeId("coding-agent-lifecycle")
   let mut opened = 0
   let agent = CodingAgent::CodingAgent(
@@ -175,7 +177,7 @@ fn lifecycle_runtime(
     },
   )
   let definition = @core.GraphDefinition::GraphDefinition(
-    @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+    @core.Reducer::Reducer(fn(state : Int32, patch : Int32) { state + patch }),
   )
   definition.add_node(
     coding_agent_node(
@@ -188,7 +190,7 @@ fn lifecycle_runtime(
         open_context=fn(context, _state) {
           coding_agent_open_context(context.task_group)
         },
-        build_prompt=fn(_context, state : Int) {
+        build_prompt=fn(_context, state : Int32) {
           @cli.Prompt::Prompt("state=\{state}")
         },
         select_continuation=fn(_context, _state) { None },
@@ -284,7 +286,7 @@ async test "coding_agent_node continuation 1 - selects start or opaque continuat
       node_id : @core.NodeId,
       select : () -> CodingAgentContinuation?,
       prompt_text : String,
-    ) -> @core.Node[Int, Int] raise {
+    ) -> @core.Node[Int32, Int32] raise {
       coding_agent_node(
         node_id,
         coding_agent_node_metadata(node_id.to_string()),
@@ -328,7 +330,7 @@ async test "coding_agent_node isolation 1 - different agents cannot share a call
     let calls : Array[String] = []
     let resources = @core.ResourceStore::ResourceStore()
     let shared_key = @core.ResourceKey::ResourceKey("shared")
-    let make_node = fn(agent_name : String) -> @core.Node[Int, Int] raise {
+    let make_node = fn(agent_name : String) -> @core.Node[Int32, Int32] raise {
       let agent = CodingAgent::CodingAgent(
         coding_agent_node_test_agent_id(agent_name),
         async fn(_context) {
@@ -390,7 +392,7 @@ async test "coding_agent_node isolation 2 - sequential graph keeps configured ag
   let make_node = fn(
     agent_name : String,
     prompt_text : String,
-  ) -> @core.Node[Int, Int] raise {
+  ) -> @core.Node[Int32, Int32] raise {
     let agent = CodingAgent::CodingAgent(
       coding_agent_node_test_agent_id(agent_name),
       async fn(_context) {
@@ -437,7 +439,7 @@ async test "coding_agent_node isolation 2 - sequential graph keeps configured ag
   let node_a = make_node("agent-a", "prompt-a")
   let node_b = make_node("agent-b", "prompt-b")
   let definition = @core.GraphDefinition::GraphDefinition(
-    @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+    @core.Reducer::Reducer(fn(state : Int32, patch : Int32) { state + patch }),
   )
   definition.add_node(node_a)
   definition.add_node(node_b)
@@ -543,7 +545,7 @@ async test "coding_agent_node continuation 2 - selected opaque continuation resu
     agent : CodingAgent,
     prompt_text : String,
     select : () -> CodingAgentContinuation?,
-  ) -> @core.Node[Int, Int] {
+  ) -> @core.Node[Int32, Int32] {
     coding_agent_node(
       node_id,
       coding_agent_node_metadata(node_id.to_string()),
@@ -587,7 +589,7 @@ async test "coding_agent_node continuation 2 - selected opaque continuation resu
     fn() { selected_continuation },
   )
   let definition = @core.GraphDefinition::GraphDefinition(
-    @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+    @core.Reducer::Reducer(fn(state : Int32, patch : Int32) { state + patch }),
   )
   definition.add_node(first_a)
   definition.add_node(middle_b)
@@ -673,7 +675,7 @@ async test "coding_agent_node continuation 3 - rejects another agent continuatio
     )
     let resources = @core.ResourceStore::ResourceStore()
     let first_id = @core.NodeId::NodeId("continuation-owner-source")
-    let first : @core.Node[Int, Int] = coding_agent_node(
+    let first : @core.Node[Int32, Int32] = coding_agent_node(
       first_id,
       coding_agent_node_metadata("continuation-owner-source"),
       CodingAgentNodeSpec::CodingAgentNodeSpec(
@@ -699,7 +701,7 @@ async test "coding_agent_node continuation 3 - rejects another agent continuatio
     }
     let calls_before_mismatch = calls.join(",")
     let mismatch_id = @core.NodeId::NodeId("continuation-owner-mismatch")
-    let mismatch : @core.Node[Int, Int] = coding_agent_node(
+    let mismatch : @core.Node[Int32, Int32] = coding_agent_node(
       mismatch_id,
       coding_agent_node_metadata("continuation-owner-mismatch"),
       CodingAgentNodeSpec::CodingAgentNodeSpec(
@@ -768,7 +770,7 @@ async test "coding_agent_node mutex 1 - provider error releases the retained ses
         })
       },
     )
-    let node : @core.Node[Int, Int] = coding_agent_node(
+    let node : @core.Node[Int32, Int32] = coding_agent_node(
       node_id,
       coding_agent_node_metadata("mutex-retry"),
       CodingAgentNodeSpec::CodingAgentNodeSpec(
@@ -814,7 +816,7 @@ async test "coding_agent_node mutex 2 - concurrent callers serialize one retaine
   @async.with_task_group() <| group => {
     let resources = @core.ResourceStore::ResourceStore()
     let node_id = @core.NodeId::NodeId("mutex-serialization")
-    let session = CodingAgentNodeSerialSession::{ active: 0, max_active: 0 }
+    let session = CodingAgentNodeSerialSession::{ active: 0, max_active: 0, }
     let agent = CodingAgent::CodingAgent(
       coding_agent_node_test_agent_id("serial-agent"),
       async fn(_context) {
@@ -822,7 +824,7 @@ async test "coding_agent_node mutex 2 - concurrent callers serialize one retaine
         @cli.Cli::Cli(fn() { (session : &@cli.CliSession) })
       },
     )
-    let node : @core.Node[Int, Int] = coding_agent_node(
+    let node : @core.Node[Int32, Int32] = coding_agent_node(
       node_id,
       coding_agent_node_metadata("mutex-serialization"),
       CodingAgentNodeSpec::CodingAgentNodeSpec(
@@ -881,7 +883,7 @@ async test "coding_agent_node cancellation 1 - cleanup and cancellation propagat
         @cli.Cli::Cli(fn() { (session : &@cli.CliSession) })
       },
     )
-    let node : @core.Node[Int, Int] = coding_agent_node(
+    let node : @core.Node[Int32, Int32] = coding_agent_node(
       node_id,
       coding_agent_node_metadata("cancellation"),
       CodingAgentNodeSpec::CodingAgentNodeSpec(
@@ -949,7 +951,7 @@ async fn coding_agent_node_assert_phase(
       cleanup: [],
       continuation_value: None,
     }
-    let node : @core.Node[Int, Int] = coding_agent_node(
+    let node : @core.Node[Int32, Int32] = coding_agent_node(
       node_id,
       coding_agent_node_metadata("coding-agent-phase"),
       CodingAgentNodeSpec::CodingAgentNodeSpec(
@@ -1044,7 +1046,7 @@ async test "coding_agent_node errors 2 - retries an open failure without caching
       cleanup: [],
       continuation_value: None,
     }
-    let node : @core.Node[Int, Int] = coding_agent_node(
+    let node : @core.Node[Int32, Int32] = coding_agent_node(
       node_id,
       coding_agent_node_metadata("coding-agent-open-retry"),
       CodingAgentNodeSpec::CodingAgentNodeSpec(

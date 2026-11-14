@@ -2,13 +2,13 @@
 struct LlmExampleState {
   prompt : String
   answer : String
-  total_tokens : Int
+  total_tokens : Int32
 }
 
 ///|
 struct LlmExamplePatch {
   answer : String
-  total_tokens : Int
+  total_tokens : Int32
 }
 
 ///|
@@ -19,7 +19,7 @@ async fn main {
       @llm.TextDelta("WORKGRAPH_LLM_OK"),
       @llm.MessageEnd(
         finish_reason=@llm.Stop,
-        usage=Some(@llm.Usage::{ input_tokens: 4, output_tokens: 2 }),
+        usage=Some(@llm.Usage::{ input_tokens: 4, output_tokens: 2, }),
       ),
     ],
   ]).boxed()
@@ -48,7 +48,7 @@ async fn main {
           None => 0
         }
         @core.NodeOutput::NodeOutput(
-          Some(LlmExamplePatch::{ answer: response.text, total_tokens }),
+          Some(LlmExamplePatch::{ answer: response.text, total_tokens, }),
           None,
         )
       },

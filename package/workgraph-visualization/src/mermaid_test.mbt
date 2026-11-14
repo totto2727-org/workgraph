@@ -4,7 +4,7 @@ fn test_node(
   name : String,
   kind : @core.NodeKind,
   description? : String,
-) -> @core.Node[Int, Unit] {
+) -> @core.Node[Int32, Unit] {
   @core.Node::Node(
     id,
     @core.NodeMetadata::NodeMetadata(name~, description~, kind~, tags=[]),
@@ -53,7 +53,7 @@ test "to_mermaid - renders escaped metadata and declared routes deterministicall
   )
   definition.set_entry(first)
   inspect(
-    to_mermaid(definition.compile()),
+    @workgraph-visualization.to_mermaid(definition.compile()),
     content=(
       #|flowchart TD
       #|  node_0["Plan #quot;safe#quot; [a#35;node] / Function<br/>Prepare #60;inputs#62;"]
@@ -109,7 +109,7 @@ test "to_mermaid - renders a multi-target router as a branch" {
   )
   definition.set_entry(first)
   inspect(
-    to_mermaid(definition.compile()),
+    @workgraph-visualization.to_mermaid(definition.compile()),
     content=(
       #|flowchart TD
       #|  node_0["First [a] / LLM"]

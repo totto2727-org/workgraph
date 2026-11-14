@@ -10,3 +10,7 @@ import {
   "totto2727/agent-sdk/cli",
   "totto2727/workgraph-core" @core,
 }
+
+import {
+  "totto2727/workgraph-agent-cli" @agent,
+} for "test"

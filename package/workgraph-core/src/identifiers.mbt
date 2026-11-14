@@ -1,22 +1,26 @@
 ///|
+#derive(Eq, Hash)
 pub struct NodeId {
   value : String
-} derive(Eq, Hash)
+}
 
 ///|
+#derive(Eq, Hash)
 pub struct RunId {
   value : String
-} derive(Eq, Hash)
+}
 
 ///|
+#derive(Eq, Hash)
 pub struct ResourceKey {
   value : String
-} derive(Eq, Hash)
+}
 
 ///|
+#derive(Debug)
 pub suberror IdError {
   EmptyId(kind~ : String)
-} derive(Debug)
+}
 
 ///|
 fn parse_id(value : String, kind : String) -> String raise IdError {
@@ -26,7 +30,7 @@ fn parse_id(value : String, kind : String) -> String raise IdError {
 
 ///|
 pub fn NodeId::NodeId(value : String) -> NodeId raise IdError {
-  NodeId::{ value: parse_id(value, "NodeId") }
+  NodeId::{ value: parse_id(value, "NodeId"), }
 }
 
 ///|
@@ -36,7 +40,7 @@ pub fn NodeId::to_string(self : NodeId) -> String {
 
 ///|
 pub fn RunId::RunId(value : String) -> RunId raise IdError {
-  RunId::{ value: parse_id(value, "RunId") }
+  RunId::{ value: parse_id(value, "RunId"), }
 }
 
 ///|
@@ -46,7 +50,7 @@ pub fn RunId::to_string(self : RunId) -> String {
 
 ///|
 pub fn ResourceKey::ResourceKey(value : String) -> ResourceKey raise IdError {
-  ResourceKey::{ value: parse_id(value, "ResourceKey") }
+  ResourceKey::{ value: parse_id(value, "ResourceKey"), }
 }
 
 ///|

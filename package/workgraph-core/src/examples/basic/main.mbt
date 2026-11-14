@@ -1,12 +1,14 @@
 ///|
+#derive(Debug, Eq, FromJson, ToJson)
 struct ExampleState {
   labels : Array[String]
-} derive(Debug, Eq, FromJson, ToJson)
+}
 
 ///|
+#derive(Debug)
 struct ExampleRuntimeResource {
-  visits : Ref[Int]
-} derive(Debug)
+  visits : Ref[Int32]
+}
 
 ///|
 extenum @any.Payload += {
@@ -44,7 +46,7 @@ fn example_runtime_resource_ref() -> @any_collection.AnyRef[
 ///|
 fn example_reducer() -> @core.Reducer[ExampleState, String] {
   @core.Reducer::Reducer(fn(state, patch) {
-    { labels: [..state.labels, patch] }
+    { labels: [..state.labels, patch], }
   })
 }
 
@@ -76,7 +78,7 @@ fn example_node(
     let resource = match context.resources.get(reference) {
       Some(resource) => resource
       None => {
-        let resource = ExampleRuntimeResource::{ visits: Ref(0) }
+        let resource = ExampleRuntimeResource::{ visits: Ref(0), }
         context.resources.set(reference, resource)
         resource
       }
@@ -108,7 +110,7 @@ async fn main {
   )
   definition.set_entry(plan)
   let runtime = @core.GraphRuntime::GraphRuntime(definition.compile())
-  let result = runtime.invoke({ labels: [] })
+  let result = runtime.invoke({ labels: [], })
   let snapshot = ToJson::to_json(result.final_state)
   let restored : ExampleState = @json.from_json(snapshot)
   println("labels=\{restored.labels.join(",")}")

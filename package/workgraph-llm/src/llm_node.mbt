@@ -9,9 +9,9 @@ pub(all) struct LlmRequest {
 /// Creates one LLM invocation request.
 pub fn LlmRequest::LlmRequest(
   messages : Array[@llm.Message],
-  tools? : Array[@llm.ToolDef] = [],
+  tools~ : Array[@llm.ToolDef] = [],
 ) -> LlmRequest {
-  LlmRequest::{ messages, tools }
+  LlmRequest::{ messages, tools, }
 }
 
 ///|
@@ -23,16 +23,20 @@ pub struct LlmNodeSpec[S, P] {
 
 ///|
 /// Raised when an LLM provider reports a stream failure.
+#derive(Debug)
 pub suberror LlmNodeError {
   ProviderFailed(String)
-} derive(Debug)
+}
+
+///|
+pub extend LlmNodeError with Debug::{to_repr}
 
 ///|
 fn collect_response(
   provider : @llm.BoxedProvider,
   request : LlmRequest,
 ) -> @llm.CollectResult raise LlmNodeError {
-  let text = StringBuilder::new()
+  let text = StringBuilder()
   let tool_calls : Array[@llm.ToolCall] = []
   let finish_reason : Ref[@llm.FinishReason] = Ref(@llm.Stop)
   let usage : Ref[@llm.Usage?] = Ref(None)
@@ -42,7 +46,7 @@ fn collect_response(
       match event {
         @llm.TextDelta(value) => text.write_string(value)
         @llm.ToolCallEnd(id~, name~, input~) =>
-          tool_calls.push(@llm.ToolCall::{ id, name, input })
+          tool_calls.push(@llm.ToolCall::{ id, name, input, })
         @llm.MessageEnd(finish_reason=reason, usage=reported_usage) => {
           finish_reason.val = reason
           usage.val = reported_usage
@@ -71,7 +75,7 @@ pub fn[S, P] LlmNodeSpec::LlmNodeSpec(
   build_request : (@core.NodeContext, S) -> LlmRequest raise,
   decode_response : (S, @llm.CollectResult) -> @core.NodeOutput[P] raise,
 ) -> LlmNodeSpec[S, P] {
-  LlmNodeSpec::{ provider, build_request, decode_response }
+  LlmNodeSpec::{ provider, build_request, decode_response, }
 }
 
 ///|
