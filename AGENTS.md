@@ -74,8 +74,8 @@ package/workgraph-core/docs/     Runtime API, architecture, testing, and migrati
 ## Development tools
 
 - **MoonBit**: Resolves dependencies, checks, tests, builds, and packages all workspace modules.
-- **Nix flakes**: Provide the pinned default MoonBit/Node.js shell and the CI shell with Codex and OpenCode CLIs.
-- **GitHub Actions**: Run the shared Nix and MoonBit setup/check actions on pushes to `main` and pull requests.
+- **Nix flakes**: Provide MoonBit in the default and local `ci` shells. The `ci-tools` shell provides Codex and OpenCode only.
+- **GitHub Actions**: Use `ci-tools` for provider CLIs and the shared actions for stable MoonBit. Publishing uses stable MoonBit without Nix.
 
 ## Package-specific rules
 

@@ -56,11 +56,16 @@
               vp config
             '';
           };
-          ci = pkgs.mkShell {
-            inputsFrom = [ (default.overrideAttrs (_: { shellHook = ""; })) ];
+          ci-tools = pkgs.mkShell {
             packages = [
               pkgs.codex
               pkgs.opencode
+            ];
+          };
+          ci = pkgs.mkShell {
+            inputsFrom = [
+              (default.overrideAttrs (_: { shellHook = ""; }))
+              ci-tools
             ];
           };
         }

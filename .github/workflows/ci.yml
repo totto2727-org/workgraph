@@ -12,16 +12,20 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      NIX_DEV_SHELL: ci
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - uses: totto2727-org/monorepo/.github/actions/setup-nix@main
         with:
-          dev-shell: ci
-      - uses: totto2727-org/monorepo/.github/actions/setup-moonbit@main
-        with:
-          dev-shell: ${{ env.NIX_DEV_SHELL }}
-      - uses: totto2727-org/monorepo/.github/actions/check-moonbit@main
-        with:
-          dev-shell: ${{ env.NIX_DEV_SHELL }}
+          dev-shell: ci-tools
+      - name: Add provider CLIs to PATH
+        run: |
+          # shellcheck disable=SC2016
+          nix develop .#ci-tools --command bash -euc '
+            for cli; do
+              path=$(command -v "$cli")
+              "$path" --version
+              dirname "$path" >> "$GITHUB_PATH"
+            done
+          ' -- codex opencode
+      - uses: totto2727-org/monorepo/.github/actions/setup-moonbit@4d9519caedd113884fbb2f2c8d84f2728984ec8c
+      - uses: totto2727-org/monorepo/.github/actions/check-moonbit@4d9519caedd113884fbb2f2c8d84f2728984ec8c
