@@ -19,7 +19,7 @@ supported_targets = "js+native"
 import {
   "mizchi/llm@0.3.2",
   "moonbitlang/regexp@0.3.7",
-  "moonbitlang/async@0.21.0",
+  "moonbitlang/async@0.21.3",
   "totto2727/workgraph-core@0.1.4",
 }
 

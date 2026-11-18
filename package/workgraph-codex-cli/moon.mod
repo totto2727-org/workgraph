@@ -13,7 +13,7 @@ keywords = [ "agent", "codex", "graph", "moonbit" ]
 description = "Codex CLI integration for workgraph"
 
 import {
-  "moonbitlang/async@0.21.0",
+  "moonbitlang/async@0.21.3",
   "moonbitlang/x@0.5.1",
   "totto2727/agent-sdk@0.2.1",
   "totto2727/codex-sdk@0.4.1",

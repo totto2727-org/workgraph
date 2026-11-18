@@ -17,7 +17,7 @@ preferred_target = "wasm"
 supported_targets = "js+native+wasm"
 
 import {
-  "moonbitlang/async@0.21.0",
+  "moonbitlang/async@0.21.3",
   "totto2727/workgraph-core@0.1.4",
 }
 
