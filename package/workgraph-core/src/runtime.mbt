@@ -83,7 +83,7 @@ async fn[S, P] run_sequential(
       group,
       events=runtime.events,
       resources~,
-      deadline_ms?=options.node_timeout_ms.map(Int64::from_int),
+      deadline_ms?=options.node_timeout_ms.map(Int::to_int64),
     )
     runtime.events.try_emit(NodeStarted(run_id~, node_id=current, step=steps))
     let mut output : NodeOutput[P]? = None
