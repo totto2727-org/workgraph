@@ -18,7 +18,7 @@ package/workgraph-core/docs/     Runtime API, architecture, testing, and migrati
 
 - Run commands from the repository root.
 - Enter `nix develop` before MoonBit commands when using the pinned toolchain.
-- Use `nix develop .#ci` when validating Codex or OpenCode CLI integration; the default shell does not add those CLIs.
+- From the default development shell, run `nix develop .#ci --command moon test` to add Codex and OpenCode for integration tests.
 - Keep dependencies registry-resolved in CI; do not rewrite `moon.work` with local SDK checkouts.
 - Treat process-backed fake CLI tests as native-only; credentialed provider examples are optional smoke checks, not required gates.
 - Preserve the repository-root `README.mbt.md` as the canonical workspace overview and `README.md` as its relative symlink.
@@ -74,8 +74,8 @@ package/workgraph-core/docs/     Runtime API, architecture, testing, and migrati
 ## Development tools
 
 - **MoonBit**: Resolves dependencies, checks, tests, builds, and packages all workspace modules.
-- **Nix flakes**: Provide MoonBit in the default and local `ci` shells. The `ci-tools` shell provides Codex and OpenCode only.
-- **GitHub Actions**: Use `ci-tools` for provider CLIs and the shared actions for stable MoonBit. Publishing uses stable MoonBit without Nix.
+- **Nix flakes**: The default shell provides MoonBit for local development. The `ci` shell provides only Codex and OpenCode.
+- **GitHub Actions**: Use the `ci` shell for provider CLIs and the shared actions for stable MoonBit. Publishing uses stable MoonBit without Nix.
 
 ## Package-specific rules
 
