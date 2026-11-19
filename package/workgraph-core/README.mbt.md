@@ -13,13 +13,6 @@ moonbit:
 
 `workgraph-core` owns Workgraph's typed graph definitions, validation, sequential runtime, reducers, lifecycle events, identifiers, and scoped resources. For shared installation and the overall runtime flow, see the root [Setup](../../README.md#setup) and [Usage](../../README.md#usage).
 
-## Migrate resource references to 0.2
-
-`ResourceStore` accepts `AnyRef` from `totto2727/x/any_collection` starting with `workgraph-core` 0.2.0.
-If your code creates resource references, add `"totto2727/x@0.9.0"` in `moon.mod` and import `"totto2727/x/any_collection" @any_collection` in `moon.pkg`.
-The existing alias and call sites can stay the same, but references constructed with `totto2727/any-collection` are not compatible with the new `ResourceStore`.
-Update dependent Workgraph modules together so that they use the same core version.
-
 ## Usage
 
 Compile a graph and inspect its callback-free structure before execution:

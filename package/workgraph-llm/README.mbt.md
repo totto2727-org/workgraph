@@ -15,7 +15,7 @@ moonbit:
 
 # workgraph-llm
 
-`workgraph-llm` adapts messages, tools, streamed events, and collected results from `totto2727/llm` to typed Workgraph nodes without selecting a provider. This dependency is the MoonBit compatibility fork of `mizchi/llm`. For shared installation and graph construction, see the root [Setup](../../README.md#setup) and [Usage](../../README.md#usage).
+`workgraph-llm` adapts messages, tools, streamed events, and collected results from `totto2727/llm` to typed Workgraph nodes without selecting a provider. For shared installation and graph construction, see the root [Setup](../../README.md#setup) and [Usage](../../README.md#usage).
 
 The node awaits the provider on JavaScript, native, and Wasm1, and cancellation propagates to the provider before response decoding.
 Use a Wasm1 host with MoonBit's async socket support for HTTP providers.
