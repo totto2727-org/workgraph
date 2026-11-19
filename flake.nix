@@ -45,9 +45,10 @@
         let
           pkgs = mkPkgs system;
         in
-        {
+        rec {
           default = pkgs.mkShell {
             packages = [
+              # One MoonBit toolchain checks and builds both declared CLI adapter targets.
               pkgs.moonbit-bin.latest
             ];
             shellHook = ''
@@ -56,6 +57,7 @@
             '';
           };
           ci = pkgs.mkShell {
+            inputsFrom = [ (default.overrideAttrs (_: { shellHook = ""; })) ];
             packages = [
               pkgs.codex
               pkgs.opencode
