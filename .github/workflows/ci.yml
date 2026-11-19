@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: totto2727-org/monorepo/.github/actions/setup-nix@main
+      - uses: totto2727-org/monorepo/.github/actions/setup-nix@1e96bd0df4241d3b5981cc508d74543db54c6c29
         with:
           dev-shell: ci
       - name: Add provider CLIs to PATH

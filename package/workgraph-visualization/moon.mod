@@ -1,6 +1,6 @@
 name = "totto2727/workgraph-visualization"
 
-version = "0.1.4"
+version = "0.1.5"
 
 readme = "README.md"
 
@@ -17,8 +17,8 @@ preferred_target = "wasm"
 supported_targets = "js+native+wasm"
 
 import {
-  "moonbitlang/async@0.21.3",
-  "totto2727/workgraph-core@0.1.4",
+  "moonbitlang/async@0.22.9",
+  "totto2727/workgraph-core@0.1.5",
 }
 
 source = "src"

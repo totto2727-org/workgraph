@@ -15,6 +15,14 @@ The public versions are `totto2727/agent-sdk@0.2.1`, `totto2727/codex-sdk@0.4.1`
 
 The retained Workgraph concepts are workspace and policy context, `CodingAgentId`, `CodingAgent`, `CodingAgentNodeSpec`, resource scopes, and sequential graph composition. The removed mirror types are `SessionId`, `CodingAgentRequest`, `CodingAgentStatus`, `CodingAgentResponse`, and `CodingAgentSession`, including logical close and post-close errors. Agent identity participates in the internal resource key, so sequential nodes using different agents cannot share sessions, state slots, or continuations accidentally. This migration intentionally changes the Workgraph coding-agent public interface; only Server dependency, source, and transport changes are out of scope. The module family prefers Wasm/WASI and supports Wasm/WASI and native; agent-cli and provider adapters no longer support JavaScript. Process-backed fake tests and optional real CLI examples remain native-only.
 
+## Stable MoonBit release blocker
+
+The `workgraph-llm` module depends on [`mizchi/llm@0.3.2`](https://mooncakes.io/docs/mizchi/llm), the latest Mooncakes release checked for this migration.
+With the November 2026 MoonBit compiler, `moon check --deny-warn` reports error 4015 at `mizchi/llm/src/tools/tool.mbt:48`: `String` has no method `to_json`.
+The error originates in the registry dependency, not the Workgraph adapter.
+Workspace CI and the Workgraph release remain blocked until a compatible upstream release is available.
+Do not substitute a local checkout or skip the LLM checks to release this migration.
+
 ## References
 
 - [agent-sdk 0.2.0 source](https://github.com/totto2727-org/agent-sdk/tree/9abf45ee53a543149ce19e0542733ec86d055488)

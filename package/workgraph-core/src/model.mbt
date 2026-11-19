@@ -76,7 +76,7 @@ pub enum GraphEvent {
     run_id~ : RunId,
     node_id~ : NodeId,
     step~ : Int32,
-    completion~ : NodeCompletion
+    completion~ : NodeCompletion,
   )
   NodeFailed(run_id~ : RunId, node_id~ : NodeId, step~ : Int32, cause~ : Error)
   StateUpdated(run_id~ : RunId, node_id~ : NodeId, step~ : Int32)
