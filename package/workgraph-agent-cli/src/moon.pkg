@@ -6,7 +6,7 @@ import {
   "moonbitlang/core/debug",
   "moonbitlang/core/immut/hashmap" @immut_hashmap,
   "moonbitlang/x/path",
-  "totto2727/x/any_collection" @any_collection,
+  "totto2727/x/any_collection",
   "totto2727/agent-sdk/cli",
   "totto2727/workgraph-core" @core,
 }
