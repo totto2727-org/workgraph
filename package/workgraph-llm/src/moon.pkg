@@ -1,5 +1,9 @@
 import {
-  "mizchi/llm",
+  "totto2727/llm",
   "moonbitlang/async",
   "totto2727/workgraph-core" @core,
 }
+
+import {
+  "totto2727/workgraph-llm" @workgraph_llm,
+} for "test"

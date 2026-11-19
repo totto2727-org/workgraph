@@ -31,7 +31,7 @@ async fn create_opencode_cli_fixture() -> OpenCodeCliFixture {
     .to_string()
   @fs.mkdir(record_directory, recursive=true)
   write_opencode_cli_executable(executable, opencode_cli_fixture_script())
-  { root, executable, record_directory }
+  { root, executable, record_directory, }
 }
 
 ///|
@@ -65,7 +65,7 @@ fn OpenCodeCliFixture::environment(
 async fn OpenCodeCliFixture::recorded_lines(
   self : OpenCodeCliFixture,
   name : String,
-  call : Int,
+  call : Int32,
 ) -> Array[String] {
   @fs.read_file("\{self.record_directory}/\{name}.\{call}")
   .text()
@@ -78,7 +78,7 @@ async fn OpenCodeCliFixture::recorded_lines(
 async fn OpenCodeCliFixture::recorded_text(
   self : OpenCodeCliFixture,
   name : String,
-  call : Int,
+  call : Int32,
 ) -> String {
   @fs.read_file("\{self.record_directory}/\{name}.\{call}").text()
 }
@@ -147,7 +147,7 @@ fn opencode_cli_contains_pair(
 fn opencode_cli_context(
   fixture : OpenCodeCliFixture,
   group : @async.TaskGroup[Unit],
-  environment? : Map[String, String] = Map([]),
+  environment~ : Map[String, String] = Map([]),
 ) -> @coding_agent.CodingAgentOpenContext {
   @coding_agent.CodingAgentOpenContext::CodingAgentOpenContext(
     run_id=@core.RunId::RunId("opencode-cli-integration") catch {
@@ -198,7 +198,7 @@ async fn opencode_cli_wait_for_file(path : String) -> Unit {
 }
 
 ///|
-async fn opencode_cli_process_is_running(pid : Int) -> Bool {
+async fn opencode_cli_process_is_running(pid : Int32) -> Bool {
   let (code, _, _) = @process.collect_output("kill", ["-0", pid.to_string()])
   code == 0
 }
@@ -234,7 +234,7 @@ async test "opencode_agent 3 - resolves relative context files through the publi
       opencode_cli_completed_events("session-files", "Files"),
     ])
     let node_id = @core.NodeId::NodeId("opencode-relative-context")
-    let node : @core.Node[Int, Int] = @coding_agent.coding_agent_node(
+    let node : @core.Node[Int32, Int32] = @coding_agent.coding_agent_node(
       node_id,
       @core.NodeMetadata::NodeMetadata(
         name="opencode-relative-context",
@@ -262,7 +262,7 @@ async test "opencode_agent 3 - resolves relative context files through the publi
       ),
     )
     let definition = @core.GraphDefinition::GraphDefinition(
-      @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+      @core.Reducer::Reducer(fn(state : Int32, patch : Int32) { state + patch }),
     )
     definition.add_node(node)
     definition.set_router(
@@ -444,7 +444,7 @@ async test "opencode_agent CLI integration 5 - cancellation stops the child proc
       opencode_cli_wait_for_file(pid_path)
       let pid = @string.parse_int(
         @fs.read_file(pid_path).text().trim(),
-        base=10,
+        radix=10,
       )
       assert_true(opencode_cli_process_is_running(pid))
       task.cancel()
@@ -452,7 +452,8 @@ async test "opencode_agent CLI integration 5 - cancellation stops the child proc
         task.wait()
         false
       } catch {
-        error => @async.is_cancellation_error(error)
+        @async.WaitedTaskAlreadyCancelled => true
+        error => raise error
       }
       assert_true(cancelled)
       assert_false(opencode_cli_process_is_running(pid))

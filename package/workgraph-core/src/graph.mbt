@@ -1,11 +1,16 @@
 ///|
+#derive(Debug)
 pub suberror GraphBuildError {
   DuplicateNode(NodeId)
   DuplicateRouter(NodeId)
   InvalidId(String)
-} derive(Debug)
+}
 
 ///|
+pub extend GraphBuildError with @debug.Debug::{to_repr}
+
+///|
+#derive(Debug)
 pub suberror GraphValidationError {
   MissingEntry
   UnknownEntry(NodeId)
@@ -13,27 +18,38 @@ pub suberror GraphValidationError {
   UnknownRouterSource(NodeId)
   UnknownDestination(from~ : NodeId, to~ : NodeId)
   UnreachableNode(NodeId)
-} derive(Debug)
+}
 
 ///|
+pub extend GraphValidationError with @debug.Debug::{to_repr}
+
+///|
+#derive(Debug)
 pub struct RunFailure {
   primary : Error
   cleanup : ReadOnlyArray[Error]
-} derive(Debug)
+}
 
 ///|
+pub extend RunFailure with @debug.Debug::{to_repr}
+
+///|
+#derive(Debug)
 pub suberror GraphRuntimeError {
-  NodeTimedOut(node_id~ : NodeId, step~ : Int, timeout_ms~ : Int)
-  NodeFailed(node_id~ : NodeId, step~ : Int, cause~ : Error)
-  ReduceFailed(node_id~ : NodeId, step~ : Int, cause~ : Error)
-  RouteFailed(node_id~ : NodeId, step~ : Int, cause~ : Error)
+  NodeTimedOut(node_id~ : NodeId, step~ : Int32, timeout_ms~ : Int32)
+  NodeFailed(node_id~ : NodeId, step~ : Int32, cause~ : Error)
+  ReduceFailed(node_id~ : NodeId, step~ : Int32, cause~ : Error)
+  RouteFailed(node_id~ : NodeId, step~ : Int32, cause~ : Error)
   RouteContractViolated(from~ : NodeId, to~ : NodeId)
-  StepLimitExceeded(limit~ : Int)
+  StepLimitExceeded(limit~ : Int32)
   ExplicitFailure(node_id~ : NodeId, message~ : String)
   ResourceCleanupFailed(failure~ : RunFailure)
   NodeNotFound(NodeId)
   RouterNotFound(NodeId)
-} derive(Debug)
+}
+
+///|
+pub extend GraphRuntimeError with @debug.Debug::{to_repr}
 
 ///|
 pub struct GraphDefinition[S, P] {
@@ -47,7 +63,7 @@ pub struct GraphDefinition[S, P] {
 pub fn[S, P] GraphDefinition::GraphDefinition(
   reducer : Reducer[S, P],
 ) -> GraphDefinition[S, P] {
-  { reducer, nodes: Map([]), routers: Map([]), entry: None }
+  { reducer, nodes: Map([]), routers: Map([]), entry: None, }
 }
 
 ///|
@@ -123,7 +139,7 @@ pub fn[S, P] GraphDefinition::compile(
   validate_graph(self.nodes, self.routers, entry)
   let nodes = @immut_hashmap.from_iter(self.nodes.iter())
   let routers = @immut_hashmap.from_iter(self.routers.iter())
-  CompiledGraph::{ reducer: self.reducer, nodes, routers, entry }
+  CompiledGraph::{ reducer: self.reducer, nodes, routers, entry, }
 }
 
 ///|
@@ -136,19 +152,27 @@ pub struct CompiledGraph[S, P] {
 
 ///|
 /// Describes one node in a compiled graph without exposing its callbacks.
+#derive(Debug)
 pub struct CompiledNodeSnapshot {
   id : NodeId
   metadata : NodeMetadata
   router_metadata : RouterMetadata
   declared_routes : ReadOnlyArray[DeclaredRoute]
-} derive(Debug)
+}
+
+///|
+pub extend CompiledNodeSnapshot with @debug.Debug::{to_repr}
 
 ///|
 /// Contains the callback-free static structure of a compiled graph.
+#derive(Debug)
 pub struct CompiledGraphSnapshot {
   entry : NodeId
   nodes : ReadOnlyArray[CompiledNodeSnapshot]
-} derive(Debug)
+}
+
+///|
+pub extend CompiledGraphSnapshot with @debug.Debug::{to_repr}
 
 ///|
 pub fn[S, P] CompiledGraph::entry(self : CompiledGraph[S, P]) -> NodeId {

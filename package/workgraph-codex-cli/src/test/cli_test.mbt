@@ -48,7 +48,7 @@ async fn codex_integration_fixture() -> CodexIntegrationFixture {
     #|
   @fs.write_file(executable.to_string(), script, create_mode=CreateOrTruncate)
   @fs.chmod(executable.to_string(), 0o755)
-  { root, executable, records }
+  { root, executable, records, }
 }
 
 ///|
@@ -104,7 +104,7 @@ fn codex_integration_context(
   fixture : CodexIntegrationFixture,
   group : @async.TaskGroup[Unit],
   mode : String,
-  thread_id? : String = "thread-1",
+  thread_id~ : String = "thread-1",
 ) -> @coding_agent.CodingAgentOpenContext {
   @coding_agent.CodingAgentOpenContext::CodingAgentOpenContext(
     run_id=@core.RunId::RunId("codex-integration-run") catch {
@@ -134,8 +134,8 @@ fn codex_integration_node(
   mode : String,
   observations : Array[String],
   resume_thread_id? : String,
-  thread_id? : String = "thread-1",
-) -> @core.Node[Int, Int] raise {
+  thread_id~ : String = "thread-1",
+) -> @core.Node[Int32, Int32] raise {
   let node_id = @core.NodeId::NodeId("codex-integration")
   @coding_agent.coding_agent_node(
     node_id,
@@ -183,7 +183,7 @@ async test "codex_agent integration 1 - decodes final responses from node callba
     let observations : Array[String] = []
     let node = codex_integration_node(fixture, "success", observations)
     let definition = @core.GraphDefinition::GraphDefinition(
-      @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+      @core.Reducer::Reducer(fn(state : Int32, patch : Int32) { state + patch }),
     )
     definition.add_node(node)
     let node_id = @core.NodeId::NodeId("codex-integration")
@@ -253,7 +253,7 @@ async test "codex_agent integration 2 - starts configured resumed thread through
     )
     let node_id = @core.NodeId::NodeId("codex-integration")
     let definition = @core.GraphDefinition::GraphDefinition(
-      @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+      @core.Reducer::Reducer(fn(state : Int32, patch : Int32) { state + patch }),
     )
     definition.add_node(node)
     definition.set_router(
@@ -307,7 +307,9 @@ async test "codex_agent integration 4 - cancellation reaches provider prompt thr
       let node_id = @core.NodeId::NodeId("codex-integration")
       let events : Array[@core.GraphEvent] = []
       let definition = @core.GraphDefinition::GraphDefinition(
-        @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+        @core.Reducer::Reducer(fn(state : Int32, patch : Int32) {
+          state + patch
+        }),
       )
       definition.add_node(node)
       definition.set_router(
@@ -330,7 +332,8 @@ async test "codex_agent integration 4 - cancellation reaches provider prompt thr
         task.wait()
         false
       } catch {
-        error => @async.is_cancellation_error(error)
+        @async.WaitedTaskAlreadyCancelled => true
+        error => raise error
       }
       @async.with_timeout(2000, async fn() {
         while @process.collect_output("/bin/kill", ["-0", pid.trim().to_owned()]).0 ==

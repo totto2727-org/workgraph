@@ -2,7 +2,6 @@ import {
   "moonbitlang/async",
   "moonbitlang/core/env",
   "moonbitlang/core/immut/hashmap" @immut_hashmap,
-  "moonbitlang/core/json",
   "moonbitlang/x/path",
   "totto2727/agent-sdk/cli" @agent_cli,
   "totto2727/workgraph-agent-cli" @coding,

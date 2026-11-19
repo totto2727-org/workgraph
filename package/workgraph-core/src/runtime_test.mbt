@@ -6,15 +6,16 @@ fn success_runtime_metadata(name : String) -> NodeMetadata {
 }
 
 ///|
-fn success_end_router() -> Router[Int] {
+fn success_end_router() -> Router[Int32] {
   router([], fn(_state, _completion) { End })
 }
 
 ///|
+#derive(Debug)
 struct RuntimeTestResource {
   label : String
   closed : Array[String]
-} derive(Debug)
+}
 
 ///|
 extenum @any.Payload += {
@@ -54,12 +55,12 @@ async fn close_runtime_test_resource(resource : RuntimeTestResource) -> Unit {
 async test "GraphRuntime invoke 1 - runs one entry node through End" {
   let entry = NodeId::NodeId("entry")
   let definition = GraphDefinition::GraphDefinition(
-    Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+    Reducer::Reducer(fn(state : Int32, patch : Int32) { state + patch }),
   )
   definition.add_node(
     Node::Node(entry, success_runtime_metadata("entry"), async fn(
       _context,
-      _state : Int,
+      _state : Int32,
     ) {
       @async.pause()
       NodeOutput::NodeOutput(None, None)
@@ -79,12 +80,12 @@ async test "GraphRuntime invoke 2 - executes sequential routes in order" {
   let second = NodeId::NodeId("second")
   let calls : Array[String] = []
   let definition = GraphDefinition::GraphDefinition(
-    Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+    Reducer::Reducer(fn(state : Int32, patch : Int32) { state + patch }),
   )
   definition.add_node(
     Node::Node(first, success_runtime_metadata("first"), async fn(
       _context,
-      state : Int,
+      state : Int32,
     ) {
       calls.push("first:\{state}")
       @async.pause()
@@ -94,7 +95,7 @@ async test "GraphRuntime invoke 2 - executes sequential routes in order" {
   definition.add_node(
     Node::Node(second, success_runtime_metadata("second"), async fn(
       _context,
-      state : Int,
+      state : Int32,
     ) {
       calls.push("second:\{state}")
       @async.pause()
@@ -120,7 +121,7 @@ async test "GraphRuntime invoke 3 - reduces a patch once before routing" {
   let entry = NodeId::NodeId("entry")
   let observations : Array[String] = []
   let definition = GraphDefinition::GraphDefinition(
-    Reducer::Reducer(fn(state : Int, patch : Int) {
+    Reducer::Reducer(fn(state : Int32, patch : Int32) {
       observations.push("reduce:\{state}+\{patch}")
       state + patch
     }),
@@ -128,7 +129,7 @@ async test "GraphRuntime invoke 3 - reduces a patch once before routing" {
   definition.add_node(
     Node::Node(entry, success_runtime_metadata("entry"), async fn(
       _context,
-      _state : Int,
+      _state : Int32,
     ) {
       @async.pause()
       NodeOutput::NodeOutput(Some(2), None)
@@ -150,9 +151,9 @@ async test "GraphRuntime invoke 3 - reduces a patch once before routing" {
 ///|
 async test "GraphRuntime invoke 4 - skips the reducer when a node has no patch" {
   let entry = NodeId::NodeId("entry")
-  let reductions : Array[Int] = []
+  let reductions : Array[Int32] = []
   let definition = GraphDefinition::GraphDefinition(
-    Reducer::Reducer(fn(state : Int, patch : Int) {
+    Reducer::Reducer(fn(state : Int32, patch : Int32) {
       reductions.push(patch)
       state + patch
     }),
@@ -160,7 +161,7 @@ async test "GraphRuntime invoke 4 - skips the reducer when a node has no patch" 
   definition.add_node(
     Node::Node(entry, success_runtime_metadata("entry"), async fn(
       _context,
-      _state : Int,
+      _state : Int32,
     ) {
       @async.pause()
       NodeOutput::NodeOutput(None, None)
@@ -189,12 +190,12 @@ async test "GraphRuntime invoke 5 - emits the successful lifecycle in order" {
     }
   })
   let definition = GraphDefinition::GraphDefinition(
-    Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+    Reducer::Reducer(fn(state : Int32, patch : Int32) { state + patch }),
   )
   definition.add_node(
     Node::Node(entry, success_runtime_metadata("entry"), async fn(
       _context,
-      _state : Int,
+      _state : Int32,
     ) {
       @async.pause()
       NodeOutput::NodeOutput(Some(1), None)
@@ -213,14 +214,14 @@ async test "GraphRuntime invoke 5 - emits the successful lifecycle in order" {
 ///|
 async test "GraphRuntime invoke 6 - exits a self loop when the reduced state reaches its route condition" {
   let entry = NodeId::NodeId("loop")
-  let states : Array[Int] = []
+  let states : Array[Int32] = []
   let definition = GraphDefinition::GraphDefinition(
-    Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+    Reducer::Reducer(fn(state : Int32, patch : Int32) { state + patch }),
   )
   definition.add_node(
     Node::Node(entry, success_runtime_metadata("loop"), async fn(
       _context,
-      state : Int,
+      state : Int32,
     ) {
       states.push(state)
       @async.pause()
@@ -259,12 +260,12 @@ async test "GraphRuntime invoke 7 - isolates state resources and run IDs across 
   let closed : Array[String] = []
   let run_ids : Array[String] = []
   let definition = GraphDefinition::GraphDefinition(
-    Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+    Reducer::Reducer(fn(state : Int32, patch : Int32) { state + patch }),
   )
   definition.add_node(
     Node::Node(entry, success_runtime_metadata("entry"), async fn(
       context,
-      _state : Int,
+      _state : Int32,
     ) {
       let label = "session-\{opened.length()}"
       context.resources.acquire_resource(
@@ -273,7 +274,7 @@ async test "GraphRuntime invoke 7 - isolates state resources and run IDs across 
         async fn() {
           @async.pause()
           opened.push(label)
-          RuntimeTestResource::{ label, closed }
+          RuntimeTestResource::{ label, closed, }
         },
         close_runtime_test_resource,
       )
@@ -296,9 +297,10 @@ async test "GraphRuntime invoke 7 - isolates state resources and run IDs across 
 }
 
 ///|
+#derive(Debug)
 suberror RuntimeErrorTestError {
   Failed(String)
-} derive(Debug)
+}
 
 ///|
 fn w4_error_metadata(name : String) -> NodeMetadata {
@@ -308,17 +310,17 @@ fn w4_error_metadata(name : String) -> NodeMetadata {
 ///|
 fn w4_error_node(
   id : NodeId,
-  execute : async (NodeContext, Int) -> NodeOutput[Int],
-) -> Node[Int, Int] {
+  execute : async (NodeContext, Int32) -> NodeOutput[Int32],
+) -> Node[Int32, Int32] {
   Node::Node(id, w4_error_metadata(id.to_string()), execute)
 }
 
 ///|
 fn w4_error_runtime_for_single_node(
-  reducer : Reducer[Int, Int],
-  node : Node[Int, Int],
-  value : Router[Int],
-) -> GraphRuntime[Int, Int] raise {
+  reducer : Reducer[Int32, Int32],
+  node : Node[Int32, Int32],
+  value : Router[Int32],
+) -> GraphRuntime[Int32, Int32] raise {
   let definition = GraphDefinition::GraphDefinition(reducer)
   definition.add_node(node)
   definition.set_router(node.id, value)
@@ -519,18 +521,20 @@ async test "GraphRuntime error 7 - cancels a timed out node before its second to
 }
 
 ///|
+#derive(Debug)
 suberror W4LifecycleTestError {
   W4NodeFailed(String)
   W4ReduceFailed(String)
   W4RouteFailed(String)
   W4CloseFailed(String)
-} derive(Debug)
+}
 
 ///|
+#derive(Debug)
 enum W4ClosePlan {
   W4CloseSucceeds
   W4CloseFails(String)
-} derive(Debug)
+}
 
 ///|
 trait W4ResourceLifecycle {
@@ -538,10 +542,11 @@ trait W4ResourceLifecycle {
 }
 
 ///|
+#derive(Debug)
 struct W4LifecycleResource {
   closed : Array[String]
   plan : W4ClosePlan
-} derive(Debug)
+}
 
 ///|
 extenum @any.Payload += {
@@ -580,7 +585,7 @@ fn w4_lifecycle_resource(
   closed : Array[String],
   plan : W4ClosePlan,
 ) -> W4LifecycleResource {
-  W4LifecycleResource::{ closed, plan }
+  W4LifecycleResource::{ closed, plan, }
 }
 
 ///|
@@ -592,10 +597,10 @@ fn w4_lifecycle_resource_ref(
 
 ///|
 fn w4_lifecycle_graph(
-  execute : async (NodeContext, Int) -> NodeOutput[Int],
-  reduce : (Int, Int) -> Int raise,
-  route : (Int, NodeCompletion) -> Route raise,
-) -> CompiledGraph[Int, Int] raise {
+  execute : async (NodeContext, Int32) -> NodeOutput[Int32],
+  reduce : (Int32, Int32) -> Int32 raise,
+  route : (Int32, NodeCompletion) -> Route raise,
+) -> CompiledGraph[Int32, Int32] raise {
   let node_id = NodeId::NodeId("lifecycle")
   let definition = GraphDefinition::GraphDefinition(Reducer::Reducer(reduce))
   definition.add_node(
@@ -616,7 +621,7 @@ fn w4_lifecycle_graph(
 }
 
 ///|
-fn w4_terminal_counts(events : Array[GraphEvent]) -> (Int, Int, Int) {
+fn w4_terminal_counts(events : Array[GraphEvent]) -> (Int32, Int32, Int32) {
   let mut completed = 0
   let mut failed = 0
   let mut cancelled = 0
@@ -693,7 +698,8 @@ async test "GraphRuntime lifecycle 1 - cancellation closes resources and stops c
       task.wait()
       false
     } catch {
-      error => @async.is_cancellation_error(error)
+      @async.WaitedTaskAlreadyCancelled => true
+      error => raise error
     }
     inspect(closed.join(","), content="closed")
     inspect(child_tokens.join(","), content="started")
@@ -707,7 +713,7 @@ async test "GraphRuntime lifecycle 1 - cancellation closes resources and stops c
 
 ///|
 async fn w4_assert_one_failed_terminal(
-  graph : CompiledGraph[Int, Int],
+  graph : CompiledGraph[Int32, Int32],
   expected : String,
 ) -> Unit {
   let events : Array[GraphEvent] = []

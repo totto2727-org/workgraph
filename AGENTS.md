@@ -47,7 +47,7 @@ package/workgraph-core/docs/     Runtime API, architecture, testing, and migrati
 
 - `workgraph-core` owns graph definitions, compilation, sequential runtime execution, reducers, events, identifiers, and the typed `ResourceStore`.
 - `workgraph-agent-cli` owns `CodingAgent`, workspace and policy types, opaque continuations, and the coding-agent node that composes directly with `agent-sdk`.
-- `workgraph-llm` adapts `mizchi/llm` messages, tools, providers, and collected results into core nodes without selecting a provider.
+- `workgraph-llm` adapts `totto2727/llm` messages, tools, providers, and collected results into core nodes without selecting a provider.
 - `workgraph-visualization` renders callback-free compiled graph snapshots as Mermaid diagrams.
 - `workgraph-codex-cli` and `workgraph-opencode-cli` are separate provider adapters and retain provider-native option types at their composition roots.
 
@@ -61,7 +61,7 @@ package/workgraph-core/docs/     Runtime API, architecture, testing, and migrati
 ### Target policy
 
 - Core and visualization prefer Wasm and support JavaScript, native, and Wasm.
-- LLM nodes prefer JavaScript and support JavaScript and native.
+- LLM nodes prefer JavaScript and support JavaScript, native, and Wasm1. Wasm1 HTTP needs a host with MoonBit async sockets.
 - Coding-agent, Codex, and OpenCode modules prefer Wasm and support Wasm and native; JavaScript is not supported.
 - Each adapter uses the same production source for its declared targets.
 
@@ -74,8 +74,8 @@ package/workgraph-core/docs/     Runtime API, architecture, testing, and migrati
 ## Development tools
 
 - **MoonBit**: Resolves dependencies, checks, tests, builds, and packages all workspace modules.
-- **Nix flakes**: Provide the pinned default MoonBit/Node.js shell and the CI shell with Codex and OpenCode CLIs.
-- **GitHub Actions**: Run the shared Nix and MoonBit setup/check actions on pushes to `main` and pull requests.
+- **Nix flakes**: The default shell provides MoonBit. The `ci` shell also provides Codex and OpenCode.
+- **GitHub Actions**: Use the `ci` shell for the shared MoonBit check and publish actions.
 
 ## Package-specific rules
 

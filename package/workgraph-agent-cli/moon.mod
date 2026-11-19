@@ -1,6 +1,6 @@
 name = "totto2727/workgraph-agent-cli"
 
-version = "0.2.1"
+version = "0.3.0"
 
 readme = "README.md"
 
@@ -18,11 +18,11 @@ supported_targets = "+wasm+native"
 
 import {
   "Yoorkin/any@0.2.1",
-  "moonbitlang/async@0.21.0",
+  "moonbitlang/async@0.22.9",
   "moonbitlang/x@0.5.1",
-  "totto2727/any-collection@0.2.2",
-  "totto2727/agent-sdk@0.2.1",
-  "totto2727/workgraph-core@0.1.4",
+  "totto2727/agent-sdk@0.2.2",
+  "totto2727/workgraph-core@0.2.0",
+  "totto2727/x@0.9.0",
 }
 
 source = "src"

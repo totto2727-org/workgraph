@@ -1,12 +1,26 @@
 ///|
+#derive(Eq, Hash, Debug)
 pub struct CodingAgentId {
   value : String
-} derive(Eq, Hash, Debug)
+}
 
 ///|
+pub extend CodingAgentId with Eq::{equal, not_equal}
+
+///|
+pub extend CodingAgentId with Hash::{hash, hash_combine}
+
+///|
+pub extend CodingAgentId with Debug::{to_repr}
+
+///|
+#derive(Debug)
 pub suberror IdError {
   EmptyId(kind~ : String)
-} derive(Debug)
+}
+
+///|
+pub extend IdError with Debug::{to_repr}
 
 ///|
 fn parse_id(value : String, kind : String) -> String raise IdError {
@@ -18,7 +32,7 @@ fn parse_id(value : String, kind : String) -> String raise IdError {
 pub fn CodingAgentId::CodingAgentId(
   value : String,
 ) -> CodingAgentId raise IdError {
-  CodingAgentId::{ value: parse_id(value, "CodingAgentId") }
+  CodingAgentId::{ value: parse_id(value, "CodingAgentId"), }
 }
 
 ///|

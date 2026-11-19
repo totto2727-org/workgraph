@@ -20,7 +20,7 @@ fn attach_cleanup(primary : Error, cleanup : Error) -> Error {
         cleanup: ReadOnlyArray::from_array([..failure.cleanup, cleanup]),
       })
     _ =>
-      ResourceCleanupFailed(failure=RunFailure::{ primary, cleanup: [cleanup] })
+      ResourceCleanupFailed(failure=RunFailure::{ primary, cleanup: [cleanup], })
   }
 }
 
@@ -29,12 +29,10 @@ async fn[S, P] execute_node(
   node : Node[S, P],
   context : NodeContext,
   state : S,
-  timeout_ms : Int?,
+  timeout_ms : Int32?,
 ) -> NodeOutput[P] {
   let execute = async fn() {
     (node.execute)(context, state) catch {
-      error if @async.is_being_cancelled() ||
-        @async.is_cancellation_error(error) => raise error
       error =>
         raise GraphRuntimeError::NodeFailed(
           node_id=context.node_id,
@@ -83,7 +81,7 @@ async fn[S, P] run_sequential(
       group,
       events=runtime.events,
       resources~,
-      deadline_ms?=options.node_timeout_ms.map(Int64::from_int),
+      deadline_ms?=options.node_timeout_ms.map(Int32::to_int64),
     )
     runtime.events.try_emit(NodeStarted(run_id~, node_id=current, step=steps))
     let mut output : NodeOutput[P]? = None
@@ -91,8 +89,6 @@ async fn[S, P] run_sequential(
     try {
       output = Some(execute_node(node, context, state, options.node_timeout_ms))
     } catch {
-      error if @async.is_being_cancelled() ||
-        @async.is_cancellation_error(error) => primary = Some(error)
       error => {
         runtime.events.try_emit(
           NodeFailed(run_id~, node_id=current, step=steps, cause=error),
@@ -121,7 +117,7 @@ async fn[S, P] run_sequential(
       Some(output) => output
       None => abort("node attempt completed without output or error")
     }
-    let completion = NodeCompletion::{ node_id: current, value: output.value }
+    let completion = NodeCompletion::{ node_id: current, value: output.value, }
     runtime.events.try_emit(
       NodeCompleted(run_id~, node_id=current, step=steps, completion~),
     )
@@ -148,7 +144,7 @@ async fn[S, P] run_sequential(
         }
         current = target
       }
-      End => return RunResult::{ run_id, final_state: state, steps }
+      End => return RunResult::{ run_id, final_state: state, steps, }
       Fail(message) => raise ExplicitFailure(node_id=current, message~)
     }
   } nobreak {
@@ -160,24 +156,24 @@ async fn[S, P] run_sequential(
 pub async fn[S, P] GraphRuntime::invoke(
   self : GraphRuntime[S, P],
   initial_state : S,
-  options? : RunOptions = RunOptions(),
+  options~ : RunOptions = RunOptions(),
 ) -> RunResult[S] {
   let run_id = self.fresh_run_id()
   let stored_result : Ref[RunResult[S]?] = Ref(None)
   @async.with_task_group() <| group => {
     let resources = ResourceStore::ResourceStore()
     self.events.try_emit(RunStarted(run_id))
-    let mut result : RunResult[S]? = None
+    defer (if @async.is_being_cancelled() {
+      self.events.try_emit(RunCancelled(run_id))
+    })
     let mut primary : Error? = None
-    let mut cancelled : Error? = None
-    try {
-      result = Some(
-        run_sequential(self, initial_state, options, run_id, group, resources),
-      )
-    } catch {
-      error if @async.is_being_cancelled() ||
-        @async.is_cancellation_error(error) => cancelled = Some(error)
-      error => primary = Some(error)
+    let result = @async.handle_cancellation(() => {
+      run_sequential(self, initial_state, options, run_id, group, resources)
+    }) catch {
+      error => {
+        primary = Some(error)
+        None
+      }
     }
     let cleanup = try {
       resources.finalize(options.cleanup_timeout_ms)
@@ -185,12 +181,8 @@ pub async fn[S, P] GraphRuntime::invoke(
     } catch {
       error => Some(error)
     }
-    match cancelled {
-      Some(error) => {
-        self.events.try_emit(RunCancelled(run_id))
-        raise error
-      }
-      None => ()
+    if @async.is_being_cancelled() {
+      @async.pause()
     }
     match (primary, cleanup) {
       (Some(error), Some(cleanup_error)) => {

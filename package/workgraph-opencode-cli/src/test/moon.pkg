@@ -3,7 +3,6 @@ import {
   "moonbitlang/async/fs",
   "moonbitlang/async/process",
   "moonbitlang/core/immut/hashmap" @immut_hashmap,
-  "moonbitlang/core/json",
   "moonbitlang/core/string",
   "moonbitlang/x/path",
   "totto2727/agent-sdk/cli" @agent_cli,

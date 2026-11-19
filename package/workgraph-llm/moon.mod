@@ -1,6 +1,6 @@
 name = "totto2727/workgraph-llm"
 
-version = "0.1.4"
+version = "0.2.0"
 
 readme = "README.md"
 
@@ -14,12 +14,13 @@ description = "Runtime-independent typed LLM nodes for workgraph"
 
 preferred_target = "js"
 
-supported_targets = "js+native"
+supported_targets = "js+native+wasm"
 
 import {
-  "mizchi/llm@0.3.1",
-  "moonbitlang/async@0.21.0",
-  "totto2727/workgraph-core@0.1.4",
+  "totto2727/llm@0.3.3",
+  "moonbitlang/regexp@0.3.7",
+  "moonbitlang/async@0.22.9",
+  "totto2727/workgraph-core@0.2.0",
 }
 
 source = "src"

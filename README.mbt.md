@@ -103,7 +103,7 @@ The complete public API contract for the Workgraph modules is maintained in the 
 | --- | --- | --- |
 | [`totto2727/workgraph-core`](package/workgraph-core/README.md) | Graph compiler, runtime, state, events, and resources | JavaScript, native, and Wasm/WASI (preferred) |
 | [`totto2727/workgraph-agent-cli`](package/workgraph-agent-cli/README.md) | Provider-neutral coding-agent nodes | Wasm/WASI (preferred) and native |
-| [`totto2727/workgraph-llm`](package/workgraph-llm/README.md) | Provider-neutral LLM nodes | JavaScript (preferred) and native |
+| [`totto2727/workgraph-llm`](package/workgraph-llm/README.md) | Provider-neutral LLM nodes | JavaScript (preferred), native, and Wasm1 |
 | [`totto2727/workgraph-visualization`](package/workgraph-visualization/README.md) | Mermaid rendering | JavaScript, native, and Wasm/WASI (preferred) |
 | [`totto2727/workgraph-codex-cli`](package/workgraph-codex-cli/README.md) | Codex CLI adapter | Wasm/WASI (preferred) and native |
 | [`totto2727/workgraph-opencode-cli`](package/workgraph-opencode-cli/README.md) | OpenCode CLI adapter | Wasm/WASI (preferred) and native |

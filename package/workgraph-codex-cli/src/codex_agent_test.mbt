@@ -1,6 +1,6 @@
 ///|
 test "codex_agent 1 - retains public adapter options" {
-  let options = CodexAgentOptions::CodexAgentOptions(
+  let options = @workgraph-codex-cli.CodexAgentOptions::CodexAgentOptions(
     resume_thread_id="thread-existing",
     model="gpt-5",
     sandbox=@sdk.WorkspaceWrite,

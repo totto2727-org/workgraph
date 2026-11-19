@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
     moonbit-overlay = {
-      url = "github:totto2727-org/moonbit-overlay";
+      url = "github:moonbit-community/moonbit-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     codex.url = "github:sadjow/codex-cli-nix";
@@ -49,7 +49,7 @@
           default = pkgs.mkShell {
             packages = [
               # One MoonBit toolchain checks and builds both declared CLI adapter targets.
-              pkgs.moonbit-bin.moonbit.latest
+              pkgs.moonbit-bin.latest
             ];
             shellHook = ''
               # Enable Git Hook

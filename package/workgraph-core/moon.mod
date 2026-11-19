@@ -1,6 +1,6 @@
 name = "totto2727/workgraph-core"
 
-version = "0.1.4"
+version = "0.2.0"
 
 readme = "README.md"
 
@@ -18,8 +18,8 @@ supported_targets = "js+native+wasm"
 
 import {
   "Yoorkin/any@0.2.1",
-  "moonbitlang/async@0.21.0",
-  "totto2727/any-collection@0.2.2",
+  "moonbitlang/async@0.22.9",
+  "totto2727/x@0.9.0",
 }
 
 source = "src"

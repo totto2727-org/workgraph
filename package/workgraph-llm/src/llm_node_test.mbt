@@ -1,22 +1,28 @@
 ///|
+#derive(Debug)
 suberror LlmNodeTestError {
   RequestBuildFailed
   ResponseDecodeFailed
-} derive(Debug)
+}
+
+///|
+pub extend LlmNodeTestError with Debug::{to_repr}
 
 ///|
 struct LlmNodeTestProvider {
   events : Array[@llm.StreamEvent]
   requests : Array[String]
-  tool_counts : Array[Int]
-  mut calls : Int
+  tool_counts : Array[Int32]
+  before_events : async () -> Unit
+  mut calls : Int32
 }
 
 ///|
 fn LlmNodeTestProvider::LlmNodeTestProvider(
   events : Array[@llm.StreamEvent],
+  before_events~ : async () -> Unit = fn() { () },
 ) -> LlmNodeTestProvider {
-  { events, requests: [], tool_counts: [], calls: 0 }
+  { events, requests: [], tool_counts: [], before_events, calls: 0, }
 }
 
 ///|
@@ -33,6 +39,7 @@ impl @llm.Provider for LlmNodeTestProvider with fn stream(
   }
   self.requests.push(message_texts.join("|"))
   self.tool_counts.push(tools.length())
+  (self.before_events)()
   for event in self.events {
     (handler.on_event)(event)
   }
@@ -59,7 +66,7 @@ fn llm_node_test_provider(text : String) -> LlmNodeTestProvider {
     @llm.TextDelta(text),
     @llm.MessageEnd(
       finish_reason=@llm.Stop,
-      usage=Some(@llm.Usage::{ input_tokens: 3, output_tokens: 2 }),
+      usage=Some(@llm.Usage::{ input_tokens: 3, output_tokens: 2, }),
     ),
   ])
 }
@@ -84,12 +91,12 @@ async test "llm_node 1 - builds a typed request and decodes its response" {
   @async.with_task_group() <| group => {
     let node_id = @core.NodeId::NodeId("plan")
     let provider = llm_node_test_provider("apply-2")
-    let node : @core.Node[Int, Int] = llm_node(
+    let node : @core.Node[Int32, Int32] = llm_node(
       node_id,
       llm_node_metadata(),
       LlmNodeSpec::LlmNodeSpec(
         @llm.BoxedProvider::new(provider),
-        fn(_context, state : Int) {
+        fn(_context, state : Int32) {
           LlmRequest::LlmRequest([@llm.Message::user("state=\{state}")])
         },
         fn(_state, response) {
@@ -115,7 +122,7 @@ async test "llm_node 2 - applies a decoded patch through GraphRuntime" {
   let node_id = @core.NodeId::NodeId("plan")
   let provider = llm_node_test_provider("increment")
   let definition = @core.GraphDefinition::GraphDefinition(
-    @core.Reducer::Reducer(fn(state : Int, patch : Int) { state + patch }),
+    @core.Reducer::Reducer(fn(state : Int32, patch : Int32) { state + patch }),
   )
   definition.add_node(
     llm_node(
@@ -123,7 +130,7 @@ async test "llm_node 2 - applies a decoded patch through GraphRuntime" {
       llm_node_metadata(),
       LlmNodeSpec::LlmNodeSpec(
         @llm.BoxedProvider::new(provider),
-        fn(_context, state : Int) {
+        fn(_context, state : Int32) {
           LlmRequest::LlmRequest([@llm.Message::user("state=\{state}")])
         },
         fn(_state, _response) { @core.NodeOutput::NodeOutput(Some(3), None) },
@@ -147,12 +154,12 @@ async test "llm_node 3 - stops before invocation when request building fails" {
     let node_id = @core.NodeId::NodeId("build-failure")
     let provider = llm_node_test_provider("unreachable")
     let mut decodes = 0
-    let node : @core.Node[Int, Int] = llm_node(
+    let node : @core.Node[Int32, Int32] = llm_node(
       node_id,
       llm_node_metadata(),
       LlmNodeSpec::LlmNodeSpec(
         @llm.BoxedProvider::new(provider),
-        fn(_context, _state : Int) raise { raise RequestBuildFailed },
+        fn(_context, _state : Int32) raise { raise RequestBuildFailed },
         fn(_state, _response) {
           decodes = decodes + 1
           @core.NodeOutput::NodeOutput(None, None)
@@ -180,12 +187,12 @@ async test "llm_node 4 - preserves provider errors without decoding" {
       @llm.Error("offline"),
     ])
     let mut decodes = 0
-    let node : @core.Node[Int, Int] = llm_node(
+    let node : @core.Node[Int32, Int32] = llm_node(
       node_id,
       llm_node_metadata(),
       LlmNodeSpec::LlmNodeSpec(
         @llm.BoxedProvider::new(provider),
-        fn(_context, _state : Int) {
+        fn(_context, _state : Int32) {
           LlmRequest::LlmRequest([@llm.Message::user("go")])
         },
         fn(_state, _response) {
@@ -213,7 +220,7 @@ async test "llm_node 5 - decoder failure leaves runtime state unchanged" {
   let provider = llm_node_test_provider("invalid")
   let mut reductions = 0
   let definition = @core.GraphDefinition::GraphDefinition(
-    @core.Reducer::Reducer(fn(state : Int, patch : Int) {
+    @core.Reducer::Reducer(fn(state : Int32, patch : Int32) {
       reductions = reductions + 1
       state + patch
     }),
@@ -224,7 +231,7 @@ async test "llm_node 5 - decoder failure leaves runtime state unchanged" {
       llm_node_metadata(),
       LlmNodeSpec::LlmNodeSpec(
         @llm.BoxedProvider::new(provider),
-        fn(_context, _state : Int) {
+        fn(_context, _state : Int32) {
           LlmRequest::LlmRequest([@llm.Message::user("go")])
         },
         fn(_state, _response) raise { raise ResponseDecodeFailed },
@@ -261,12 +268,12 @@ async test "llm_node 6 - collects tools, finish reason, and missing usage" {
       ),
       @llm.MessageEnd(finish_reason=@llm.ToolUse, usage=None),
     ])
-    let node : @core.Node[Int, Int] = llm_node(
+    let node : @core.Node[Int32, Int32] = llm_node(
       node_id,
       llm_node_metadata(),
       LlmNodeSpec::LlmNodeSpec(
         @llm.BoxedProvider::new(provider),
-        fn(_context, _state : Int) {
+        fn(_context, _state : Int32) {
           LlmRequest::LlmRequest([@llm.Message::user("use a tool")], tools=[
             @llm.ToolDef::{
               name: "lookup",
@@ -306,12 +313,12 @@ async test "llm_node 7 - cancellation before provider invocation skips provider"
     let node_id = @core.NodeId::NodeId("cancel-before-provider")
     let provider = llm_node_test_provider("unreachable")
     let mut request_built = false
-    let node : @core.Node[Int, Int] = llm_node(
+    let node : @core.Node[Int32, Int32] = llm_node(
       node_id,
       llm_node_metadata(),
       LlmNodeSpec::LlmNodeSpec(
         @llm.BoxedProvider::new(provider),
-        fn(_context, _state : Int) {
+        fn(_context, _state : Int32) {
           request_built = true
           LlmRequest::LlmRequest([@llm.Message::user("go")])
         },
@@ -329,9 +336,54 @@ async test "llm_node 7 - cancellation before provider invocation skips provider"
       task.wait() |> ignore
       false
     } catch {
-      error => @async.is_cancellation_error(error)
+      @async.WaitedTaskAlreadyCancelled => true
+      error => raise error
     }
     inspect(cancelled, content="true")
     inspect(provider.calls, content="0")
+  }
+}
+
+///|
+async test "llm_node 8 - cancellation while awaiting provider skips decoding" {
+  @async.with_task_group() <| group => {
+    let id = @core.NodeId::NodeId("cancel-suspended-provider")
+    let started = @async.Semaphore::Semaphore(1, initial_value=0)
+    let waiting = @async.Semaphore::Semaphore(1, initial_value=0)
+    let provider = LlmNodeTestProvider::LlmNodeTestProvider(
+      [@llm.TextDelta("unreachable")],
+      before_events=async fn() {
+        started.release()
+        waiting.acquire()
+      },
+    )
+    let mut decoded = false
+    let node : @core.Node[Int32, Int32] = llm_node(
+      id,
+      llm_node_metadata(),
+      LlmNodeSpec::LlmNodeSpec(
+        @llm.BoxedProvider::new(provider),
+        fn(_context, _state) { LlmRequest::LlmRequest([]) },
+        fn(_state, _response) {
+          decoded = true
+          @core.NodeOutput::NodeOutput(None, None)
+        },
+      ),
+    )
+    let task = group.spawn(
+      async fn() { (node.execute)(test_context(group, id), 0) |> ignore },
+      allow_failure=true,
+    )
+    @async.with_timeout(3000, async fn() { started.acquire() })
+    task.cancel()
+    let cancelled = try {
+      task.wait()
+      false
+    } catch {
+      @async.WaitedTaskAlreadyCancelled => true
+      error => raise error
+    }
+    assert_true(cancelled)
+    assert_false(decoded)
   }
 }

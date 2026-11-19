@@ -1,18 +1,20 @@
 ///|
+#derive(Debug)
 struct LocalLlmState {
   prompt : String
   answer : String
-  total_tokens : Int
-} derive(Debug)
+  total_tokens : Int32
+}
 
 ///|
+#derive(Debug)
 struct LocalLlmPatch {
   answer : String
-  total_tokens : Int
-} derive(Debug)
+  total_tokens : Int32
+}
 
 ///|
-async test "llm_node integration 1 - maps a mizchi/llm provider result into graph state" {
+async test "llm_node integration 1 - maps an LLM provider result into graph state" {
   let completion_values : Array[String] = []
   let provider = @llm.MockProvider::new([
     [
@@ -20,7 +22,7 @@ async test "llm_node integration 1 - maps a mizchi/llm provider result into grap
       @llm.TextDelta("completed"),
       @llm.MessageEnd(
         finish_reason=@llm.Stop,
-        usage=Some(@llm.Usage::{ input_tokens: 4, output_tokens: 2 }),
+        usage=Some(@llm.Usage::{ input_tokens: 4, output_tokens: 2, }),
       ),
     ],
   ]).boxed()
@@ -29,7 +31,7 @@ async test "llm_node integration 1 - maps a mizchi/llm provider result into grap
     entry,
     @core.NodeMetadata::NodeMetadata(
       name="local-llm",
-      description=Some("Deterministic mizchi/llm integration"),
+      description=Some("Deterministic LLM integration"),
       kind=@core.Llm,
       tags=["integration"],
     ),
@@ -47,7 +49,7 @@ async test "llm_node integration 1 - maps a mizchi/llm provider result into grap
           None => 0
         }
         @core.NodeOutput::NodeOutput(
-          Some(LocalLlmPatch::{ answer: response.text, total_tokens }),
+          Some(LocalLlmPatch::{ answer: response.text, total_tokens, }),
           Some(Json::string(response.text)),
         )
       },
@@ -75,7 +77,7 @@ async test "llm_node integration 1 - maps a mizchi/llm provider result into grap
   )
   definition.set_entry(entry)
   let result = @core.GraphRuntime::GraphRuntime(definition.compile()).invoke(
-    LocalLlmState::{ prompt: "local prompt", answer: "", total_tokens: 0 },
+    LocalLlmState::{ prompt: "local prompt", answer: "", total_tokens: 0, },
     options=@core.RunOptions::RunOptions(
       max_steps=1,
       node_timeout_ms=1500,
