@@ -332,7 +332,8 @@ async test "codex_agent integration 4 - cancellation reaches provider prompt thr
         task.wait()
         false
       } catch {
-        error => @async.is_cancellation_error(error)
+        @async.WaitedTaskAlreadyCancelled => true
+        error => raise error
       }
       @async.with_timeout(2000, async fn() {
         while @process.collect_output("/bin/kill", ["-0", pid.trim().to_owned()]).0 ==

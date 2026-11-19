@@ -118,15 +118,10 @@ async fn ResourceStore::close_resource(
     return
   }
   self.cleanups[index].closed = true
+  defer self.values.map.remove(self.cleanups[index].key)
   (self.cleanups[index].cleanup)() catch {
-    error =>
-      if @async.is_cancellation_error(error) {
-        raise error
-      } else {
-        errors.push(error)
-      }
+    error => errors.push(error)
   }
-  self.values.map.remove(self.cleanups[index].key)
 }
 
 ///|

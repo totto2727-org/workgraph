@@ -17,7 +17,7 @@ preferred_target = "js"
 supported_targets = "js+native"
 
 import {
-  "mizchi/llm@0.3.2",
+  "totto2727/llm@0.3.3",
   "moonbitlang/regexp@0.3.7",
   "moonbitlang/async@0.22.9",
   "totto2727/workgraph-core@0.2.0",

@@ -444,7 +444,7 @@ async test "opencode_agent CLI integration 5 - cancellation stops the child proc
       opencode_cli_wait_for_file(pid_path)
       let pid = @string.parse_int(
         @fs.read_file(pid_path).text().trim(),
-        base=10,
+        radix=10,
       )
       assert_true(opencode_cli_process_is_running(pid))
       task.cancel()
@@ -452,7 +452,8 @@ async test "opencode_agent CLI integration 5 - cancellation stops the child proc
         task.wait()
         false
       } catch {
-        error => @async.is_cancellation_error(error)
+        @async.WaitedTaskAlreadyCancelled => true
+        error => raise error
       }
       assert_true(cancelled)
       assert_false(opencode_cli_process_is_running(pid))

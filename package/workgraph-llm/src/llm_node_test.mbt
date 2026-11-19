@@ -333,7 +333,8 @@ async test "llm_node 7 - cancellation before provider invocation skips provider"
       task.wait() |> ignore
       false
     } catch {
-      error => @async.is_cancellation_error(error)
+      @async.WaitedTaskAlreadyCancelled => true
+      error => raise error
     }
     inspect(cancelled, content="true")
     inspect(provider.calls, content="0")

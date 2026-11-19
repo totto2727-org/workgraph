@@ -47,7 +47,7 @@ package/workgraph-core/docs/     Runtime API, architecture, testing, and migrati
 
 - `workgraph-core` owns graph definitions, compilation, sequential runtime execution, reducers, events, identifiers, and the typed `ResourceStore`.
 - `workgraph-agent-cli` owns `CodingAgent`, workspace and policy types, opaque continuations, and the coding-agent node that composes directly with `agent-sdk`.
-- `workgraph-llm` adapts `mizchi/llm` messages, tools, providers, and collected results into core nodes without selecting a provider.
+- `workgraph-llm` adapts `totto2727/llm` messages, tools, providers, and collected results into core nodes without selecting a provider.
 - `workgraph-visualization` renders callback-free compiled graph snapshots as Mermaid diagrams.
 - `workgraph-codex-cli` and `workgraph-opencode-cli` are separate provider adapters and retain provider-native option types at their composition roots.
 

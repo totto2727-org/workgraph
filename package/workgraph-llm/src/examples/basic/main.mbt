@@ -30,7 +30,7 @@ async fn main {
     entry,
     @core.NodeMetadata::NodeMetadata(
       name="llm",
-      description=Some("Deterministic mizchi/llm example"),
+      description=Some("Deterministic LLM example"),
       kind=@core.Llm,
       tags=["example"],
     ),

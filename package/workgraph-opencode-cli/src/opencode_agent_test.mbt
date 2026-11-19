@@ -1,7 +1,7 @@
 ///|
 test "opencode_agent 1 - constructs CLI options" {
   let config : @sdk.ConfigObject = { "model": Json::string("test/model") }
-  let options = OpenCodeAgentOptions::OpenCodeAgentOptions(
+  let options = @workgraph-opencode-cli.OpenCodeAgentOptions::OpenCodeAgentOptions(
     opencode_path_override=@path.Path("/tools/opencode"),
     config~,
     resume_thread_id="session-7",

@@ -12,7 +12,7 @@ src/  Provider-neutral LLM node adapter and tests
 
 - Run commands from this module root.
 - Keep `README.mbt.md` as the module README and `README.md` as its relative symlink.
-- Keep provider selection in the `mizchi/llm` provider boundary.
+- Keep provider selection in the `totto2727/llm` provider boundary.
 
 ### Standard tasks
 
@@ -26,7 +26,7 @@ src/  Provider-neutral LLM node adapter and tests
 ### Module boundary
 
 - `src/` converts typed state, tools, streamed events, and collected results into `workgraph-core` nodes without choosing a provider.
-- The deterministic example and tests use `mizchi/llm.MockProvider` where a provider is needed.
+- The deterministic example and tests use `totto2727/llm.MockProvider` where a provider is needed.
 
 ## Development tools
 

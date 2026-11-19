@@ -14,7 +14,7 @@ struct LocalLlmPatch {
 }
 
 ///|
-async test "llm_node integration 1 - maps a mizchi/llm provider result into graph state" {
+async test "llm_node integration 1 - maps an LLM provider result into graph state" {
   let completion_values : Array[String] = []
   let provider = @llm.MockProvider::new([
     [
@@ -31,7 +31,7 @@ async test "llm_node integration 1 - maps a mizchi/llm provider result into grap
     entry,
     @core.NodeMetadata::NodeMetadata(
       name="local-llm",
-      description=Some("Deterministic mizchi/llm integration"),
+      description=Some("Deterministic LLM integration"),
       kind=@core.Llm,
       tags=["integration"],
     ),

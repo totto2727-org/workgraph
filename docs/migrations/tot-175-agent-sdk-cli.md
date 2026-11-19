@@ -17,11 +17,12 @@ The retained Workgraph concepts are workspace and policy context, `CodingAgentId
 
 ## Stable MoonBit release blocker
 
-The `workgraph-llm` module depends on [`mizchi/llm@0.3.2`](https://mooncakes.io/docs/mizchi/llm), the latest Mooncakes release checked for this migration.
+The `workgraph-llm` module previously depended on [`mizchi/llm@0.3.2`](https://mooncakes.io/docs/mizchi/llm), the latest Mooncakes release checked for this migration.
 With the November 2026 MoonBit compiler, `moon check --deny-warn` reports error 4015 at `mizchi/llm/src/tools/tool.mbt:48`: `String` has no method `to_json`.
 The error originates in the registry dependency, not the Workgraph adapter.
-Workspace CI and the Workgraph release remain blocked until a compatible upstream release is available.
-Do not substitute a local checkout or skip the LLM checks to release this migration.
+The current compatibility update switches `workgraph-llm` to [`totto2727/llm@0.3.3`](https://github.com/totto2727-org/llm), a fork that supports the November 2026 compiler.
+Wait for the exact Mooncakes release before running registry-based CI and merging this update.
+Do not substitute a local checkout or skip the LLM checks in CI.
 
 ## References
 

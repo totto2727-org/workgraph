@@ -698,7 +698,8 @@ async test "GraphRuntime lifecycle 1 - cancellation closes resources and stops c
       task.wait()
       false
     } catch {
-      error => @async.is_cancellation_error(error)
+      @async.WaitedTaskAlreadyCancelled => true
+      error => raise error
     }
     inspect(closed.join(","), content="closed")
     inspect(child_tokens.join(","), content="started")

@@ -97,7 +97,7 @@ async test "Node::Node 2 - propagates the callback suberror unchanged" {
 }
 
 ///|
-async test "Node::Node 3 - cancellation preserves the cancellation error" {
+async test "Node::Node 3 - cancellation stops the node without wrapping an error" {
   @async.with_task_group() <| group => {
     let run_id = RunId::RunId("run-3")
     let node_id = NodeId::NodeId("pause")
@@ -124,7 +124,8 @@ async test "Node::Node 3 - cancellation preserves the cancellation error" {
       task.wait() |> ignore
       false
     } catch {
-      error => @async.is_cancellation_error(error)
+      @async.WaitedTaskAlreadyCancelled => true
+      error => raise error
     }
     inspect(cancellation, content="true")
     inspect(tokens, content="1")

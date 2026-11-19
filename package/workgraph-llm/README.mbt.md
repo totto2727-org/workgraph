@@ -1,7 +1,7 @@
 ---
 moonbit:
   import:
-    - path: mizchi/llm@0.3.1
+    - path: totto2727/llm@0.3.3
       alias: llm
     - path: moonbitlang/async@0.21.0
       alias: async
@@ -15,7 +15,7 @@ moonbit:
 
 # workgraph-llm
 
-`workgraph-llm` owns the provider-neutral adapter from `mizchi/llm` messages, tools, streamed events, and collected results to typed Workgraph nodes. For shared installation and graph construction, see the root [Setup](../../README.md#setup) and [Usage](../../README.md#usage).
+`workgraph-llm` adapts messages, tools, streamed events, and collected results from `totto2727/llm` to typed Workgraph nodes without selecting a provider. This dependency is the MoonBit compatibility fork of `mizchi/llm`. For shared installation and graph construction, see the root [Setup](../../README.md#setup) and [Usage](../../README.md#usage).
 
 ## Usage
 

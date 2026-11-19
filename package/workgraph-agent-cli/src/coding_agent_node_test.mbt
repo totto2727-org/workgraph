@@ -919,7 +919,8 @@ async test "coding_agent_node cancellation 1 - cleanup and cancellation propagat
       task.wait()
       false
     } catch {
-      error => @async.is_cancellation_error(error)
+      @async.WaitedTaskAlreadyCancelled => true
+      error => raise error
     }
     let retried = @async.with_timeout_opt(500, async fn() {
       (node.execute)(coding_agent_node_context(group, node_id, resources), 1)

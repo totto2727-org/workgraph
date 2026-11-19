@@ -33,8 +33,6 @@ async fn[S, P] execute_node(
 ) -> NodeOutput[P] {
   let execute = async fn() {
     (node.execute)(context, state) catch {
-      error if @async.is_being_cancelled() ||
-        @async.is_cancellation_error(error) => raise error
       error =>
         raise GraphRuntimeError::NodeFailed(
           node_id=context.node_id,
@@ -91,8 +89,6 @@ async fn[S, P] run_sequential(
     try {
       output = Some(execute_node(node, context, state, options.node_timeout_ms))
     } catch {
-      error if @async.is_being_cancelled() ||
-        @async.is_cancellation_error(error) => primary = Some(error)
       error => {
         runtime.events.try_emit(
           NodeFailed(run_id~, node_id=current, step=steps, cause=error),
@@ -167,17 +163,17 @@ pub async fn[S, P] GraphRuntime::invoke(
   @async.with_task_group() <| group => {
     let resources = ResourceStore::ResourceStore()
     self.events.try_emit(RunStarted(run_id))
-    let mut result : RunResult[S]? = None
+    defer (if @async.is_being_cancelled() {
+      self.events.try_emit(RunCancelled(run_id))
+    })
     let mut primary : Error? = None
-    let mut cancelled : Error? = None
-    try {
-      result = Some(
-        run_sequential(self, initial_state, options, run_id, group, resources),
-      )
-    } catch {
-      error if @async.is_being_cancelled() ||
-        @async.is_cancellation_error(error) => cancelled = Some(error)
-      error => primary = Some(error)
+    let result = @async.handle_cancellation(() => {
+      run_sequential(self, initial_state, options, run_id, group, resources)
+    }) catch {
+      error => {
+        primary = Some(error)
+        None
+      }
     }
     let cleanup = try {
       resources.finalize(options.cleanup_timeout_ms)
@@ -185,12 +181,8 @@ pub async fn[S, P] GraphRuntime::invoke(
     } catch {
       error => Some(error)
     }
-    match cancelled {
-      Some(error) => {
-        self.events.try_emit(RunCancelled(run_id))
-        raise error
-      }
-      None => ()
+    if @async.is_being_cancelled() {
+      @async.pause()
     }
     match (primary, cleanup) {
       (Some(error), Some(cleanup_error)) => {

@@ -1,5 +1,5 @@
 ///|
-/// A provider-neutral request built from mizchi/llm message and tool types.
+/// A provider-neutral request built from totto2727/llm message and tool types.
 pub(all) struct LlmRequest {
   messages : Array[@llm.Message]
   tools : Array[@llm.ToolDef]

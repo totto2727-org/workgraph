@@ -378,7 +378,8 @@ async test "ResourceStore finalize 2 - completes a suspended close before caller
       task.wait()
       false
     } catch {
-      error => @async.is_cancellation_error(error)
+      @async.WaitedTaskAlreadyCancelled => true
+      error => raise error
     }
     inspect(cancellation, content="true")
     inspect(
