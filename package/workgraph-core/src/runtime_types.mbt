@@ -7,12 +7,18 @@ pub suberror RunConfigurationError {
 }
 
 ///|
+pub extend RunConfigurationError with @debug.Debug::{to_repr}
+
+///|
 #derive(Debug)
 pub struct RunOptions {
   max_steps : Int32
   node_timeout_ms : Int32?
   cleanup_timeout_ms : Int32
 }
+
+///|
+pub extend RunOptions with @debug.Debug::{to_repr}
 
 ///|
 pub fn RunOptions::RunOptions(
@@ -39,6 +45,9 @@ pub struct RunResult[S] {
   final_state : S
   steps : Int32
 }
+
+///|
+pub extend RunResult with @debug.Debug::{to_repr}
 
 ///|
 pub struct GraphRuntime[S, P] {

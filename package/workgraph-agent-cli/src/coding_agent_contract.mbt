@@ -6,6 +6,12 @@ pub struct WorkspaceRef {
 }
 
 ///|
+pub extend WorkspaceRef with Debug::{to_repr}
+
+///|
+pub extend WorkspaceRef with Eq::{equal, not_equal}
+
+///|
 /// Creates a writable workspace description for a coding agent.
 pub fn WorkspaceRef::WorkspaceRef(
   root : @path.Path,
@@ -24,11 +30,23 @@ pub(all) enum ApprovalPolicy {
 }
 
 ///|
+pub extend ApprovalPolicy with Debug::{to_repr}
+
+///|
+pub extend ApprovalPolicy with Eq::{equal, not_equal}
+
+///|
 #derive(Debug, Eq)
 pub(all) enum NetworkPolicy {
   Disabled
   Enabled
 }
+
+///|
+pub extend NetworkPolicy with Debug::{to_repr}
+
+///|
+pub extend NetworkPolicy with Eq::{equal, not_equal}
 
 ///|
 pub struct CodingAgentOpenContext {
@@ -101,3 +119,6 @@ fn CodingAgentContinuation::CodingAgentContinuation(
 pub suberror CodingAgentContinuationError {
   AgentMismatch(expected~ : CodingAgentId, actual~ : CodingAgentId)
 }
+
+///|
+pub extend CodingAgentContinuationError with Debug::{to_repr}

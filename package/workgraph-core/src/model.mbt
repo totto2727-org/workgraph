@@ -7,6 +7,9 @@ pub(all) enum Route {
 }
 
 ///|
+pub extend Route with @debug.Debug::{to_repr}
+
+///|
 #derive(Debug, Eq)
 pub(all) enum NodeKind {
   Function
@@ -16,6 +19,12 @@ pub(all) enum NodeKind {
 }
 
 ///|
+pub extend NodeKind with @debug.Debug::{to_repr}
+
+///|
+pub extend NodeKind with Eq::{equal, not_equal}
+
+///|
 #derive(Debug)
 pub struct NodeMetadata {
   name : String
@@ -23,6 +32,9 @@ pub struct NodeMetadata {
   kind : NodeKind
   tags : ReadOnlyArray[String]
 }
+
+///|
+pub extend NodeMetadata with @debug.Debug::{to_repr}
 
 ///|
 /// Creates metadata describing a graph node.
@@ -43,6 +55,9 @@ pub struct NodeOutput[P] {
 }
 
 ///|
+pub extend NodeOutput with @debug.Debug::{to_repr}
+
+///|
 /// Creates the output produced by a graph node.
 pub fn[P] NodeOutput::NodeOutput(patch : P?, value : Json?) -> NodeOutput[P] {
   NodeOutput::{ patch, value, }
@@ -54,6 +69,9 @@ pub struct NodeCompletion {
   node_id : NodeId
   value : Json?
 }
+
+///|
+pub extend NodeCompletion with @debug.Debug::{to_repr}
 
 ///|
 /// Creates the completion value passed to a router.
@@ -85,6 +103,9 @@ pub enum GraphEvent {
   ResourceOpened(run_id~ : RunId, key~ : ResourceKey)
   ResourceClosed(run_id~ : RunId, key~ : ResourceKey)
 }
+
+///|
+pub extend GraphEvent with @debug.Debug::{to_repr}
 
 ///|
 /// Creates the event emitted when a run starts.
@@ -194,6 +215,9 @@ pub struct DeclaredRouteMetadata {
 }
 
 ///|
+pub extend DeclaredRouteMetadata with @debug.Debug::{to_repr}
+
+///|
 /// Creates display metadata for a statically declared route.
 pub fn DeclaredRouteMetadata::DeclaredRouteMetadata(
   label? : String,
@@ -210,6 +234,9 @@ pub struct DeclaredRoute {
 }
 
 ///|
+pub extend DeclaredRoute with @debug.Debug::{to_repr}
+
+///|
 /// Declares a possible runtime destination.
 pub fn DeclaredRoute::DeclaredRoute(
   target : NodeId,
@@ -224,6 +251,9 @@ pub fn DeclaredRoute::DeclaredRoute(
 pub struct RouterMetadata {
   description : String?
 }
+
+///|
+pub extend RouterMetadata with @debug.Debug::{to_repr}
 
 ///|
 /// Creates display metadata for a router.

@@ -5,10 +5,28 @@ pub struct NodeId {
 }
 
 ///|
+pub extend NodeId with Eq::{equal, not_equal}
+
+///|
+pub extend NodeId with Hash::{hash, hash_combine}
+
+///|
+pub extend NodeId with @debug.Debug::{to_repr}
+
+///|
 #derive(Eq, Hash)
 pub struct RunId {
   value : String
 }
+
+///|
+pub extend RunId with Eq::{equal, not_equal}
+
+///|
+pub extend RunId with Hash::{hash, hash_combine}
+
+///|
+pub extend RunId with @debug.Debug::{to_repr}
 
 ///|
 #derive(Eq, Hash)
@@ -17,10 +35,22 @@ pub struct ResourceKey {
 }
 
 ///|
+pub extend ResourceKey with Eq::{equal, not_equal}
+
+///|
+pub extend ResourceKey with Hash::{hash, hash_combine}
+
+///|
+pub extend ResourceKey with @debug.Debug::{to_repr}
+
+///|
 #derive(Debug)
 pub suberror IdError {
   EmptyId(kind~ : String)
 }
+
+///|
+pub extend IdError with @debug.Debug::{to_repr}
 
 ///|
 fn parse_id(value : String, kind : String) -> String raise IdError {

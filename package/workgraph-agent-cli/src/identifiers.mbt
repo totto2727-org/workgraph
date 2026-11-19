@@ -5,10 +5,22 @@ pub struct CodingAgentId {
 }
 
 ///|
+pub extend CodingAgentId with Eq::{equal, not_equal}
+
+///|
+pub extend CodingAgentId with Hash::{hash, hash_combine}
+
+///|
+pub extend CodingAgentId with Debug::{to_repr}
+
+///|
 #derive(Debug)
 pub suberror IdError {
   EmptyId(kind~ : String)
 }
+
+///|
+pub extend IdError with Debug::{to_repr}
 
 ///|
 fn parse_id(value : String, kind : String) -> String raise IdError {

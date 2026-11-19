@@ -6,6 +6,12 @@ pub(all) enum ResourceScope {
 }
 
 ///|
+pub extend ResourceScope with @debug.Debug::{to_repr}
+
+///|
+pub extend ResourceScope with Eq::{equal, not_equal}
+
+///|
 #derive(Debug)
 pub suberror ResourceStoreError {
   NodeOwnerRequired(ResourceKey)
@@ -13,6 +19,9 @@ pub suberror ResourceStoreError {
   CleanupTimedOut(Int32)
   CloseFailed(errors~ : ReadOnlyArray[Error])
 }
+
+///|
+pub extend ResourceStoreError with @debug.Debug::{to_repr}
 
 ///|
 struct StoredResourceCleanup {

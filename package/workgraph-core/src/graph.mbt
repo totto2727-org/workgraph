@@ -7,6 +7,9 @@ pub suberror GraphBuildError {
 }
 
 ///|
+pub extend GraphBuildError with @debug.Debug::{to_repr}
+
+///|
 #derive(Debug)
 pub suberror GraphValidationError {
   MissingEntry
@@ -18,11 +21,17 @@ pub suberror GraphValidationError {
 }
 
 ///|
+pub extend GraphValidationError with @debug.Debug::{to_repr}
+
+///|
 #derive(Debug)
 pub struct RunFailure {
   primary : Error
   cleanup : ReadOnlyArray[Error]
 }
+
+///|
+pub extend RunFailure with @debug.Debug::{to_repr}
 
 ///|
 #derive(Debug)
@@ -38,6 +47,9 @@ pub suberror GraphRuntimeError {
   NodeNotFound(NodeId)
   RouterNotFound(NodeId)
 }
+
+///|
+pub extend GraphRuntimeError with @debug.Debug::{to_repr}
 
 ///|
 pub struct GraphDefinition[S, P] {
@@ -149,12 +161,18 @@ pub struct CompiledNodeSnapshot {
 }
 
 ///|
+pub extend CompiledNodeSnapshot with @debug.Debug::{to_repr}
+
+///|
 /// Contains the callback-free static structure of a compiled graph.
 #derive(Debug)
 pub struct CompiledGraphSnapshot {
   entry : NodeId
   nodes : ReadOnlyArray[CompiledNodeSnapshot]
 }
+
+///|
+pub extend CompiledGraphSnapshot with @debug.Debug::{to_repr}
 
 ///|
 pub fn[S, P] CompiledGraph::entry(self : CompiledGraph[S, P]) -> NodeId {
