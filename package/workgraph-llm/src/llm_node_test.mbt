@@ -387,3 +387,11 @@ async test "llm_node 8 - cancellation while awaiting provider skips decoding" {
     assert_false(decoded)
   }
 }
+
+///|
+using @workgraph_llm {
+  type LlmNodeError,
+  type LlmNodeSpec,
+  type LlmRequest,
+  llm_node,
+}

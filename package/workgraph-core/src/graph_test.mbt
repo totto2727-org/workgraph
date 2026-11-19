@@ -283,3 +283,27 @@ test "CompiledGraph snapshot - returns sorted callback-free structure" {
     ),
   )
 }
+
+///|
+using @core {
+  type CompiledGraph,
+  type DeclaredRoute,
+  type EventSink,
+  type GraphDefinition,
+  type GraphEvent,
+  type GraphRuntime,
+  type Node,
+  type NodeCompletion,
+  type NodeContext,
+  type NodeId,
+  type NodeMetadata,
+  type NodeOutput,
+  type Reducer,
+  type ResourceKey,
+  type ResourceStore,
+  type Route,
+  type Router,
+  type RunId,
+  type RunOptions,
+  router,
+}

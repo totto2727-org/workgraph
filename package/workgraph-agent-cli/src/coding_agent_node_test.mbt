@@ -1091,3 +1091,15 @@ async test "coding_agent_node errors 2 - retries an open failure without caching
     debug_inspect(second.patch, content="Some(1)")
   }
 }
+
+///|
+using @agent {
+  type CodingAgent,
+  type CodingAgentContinuation,
+  type CodingAgentContinuationError,
+  type CodingAgentId,
+  type CodingAgentNodeSpec,
+  type CodingAgentOpenContext,
+  type WorkspaceRef,
+  coding_agent_node,
+}
