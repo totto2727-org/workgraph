@@ -1,6 +1,6 @@
 name = "totto2727/workgraph-codex-cli"
 
-version = "0.2.2"
+version = "0.3.0"
 
 readme = "README.md"
 
@@ -17,8 +17,8 @@ import {
   "moonbitlang/x@0.5.1",
   "totto2727/agent-sdk@0.2.2",
   "totto2727/codex-sdk@0.4.2",
-  "totto2727/workgraph-agent-cli@0.2.2",
-  "totto2727/workgraph-core@0.1.5",
+  "totto2727/workgraph-agent-cli@0.3.0",
+  "totto2727/workgraph-core@0.2.0",
 }
 
 preferred_target = "wasm"

@@ -3,7 +3,7 @@ import {
   "moonbitlang/core/immut/hashmap" @immut_hashmap,
   "moonbitlang/core/random",
   "moonbitlang/async",
-  "totto2727/any-collection" @any_collection,
+  "totto2727/x/any_collection" @any_collection,
 }
 
 import {
