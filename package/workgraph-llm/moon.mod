@@ -14,7 +14,7 @@ description = "Runtime-independent typed LLM nodes for workgraph"
 
 preferred_target = "js"
 
-supported_targets = "js+native"
+supported_targets = "js+native+wasm"
 
 import {
   "totto2727/llm@0.3.3",

@@ -13,14 +13,16 @@ struct LlmNodeTestProvider {
   events : Array[@llm.StreamEvent]
   requests : Array[String]
   tool_counts : Array[Int32]
+  before_events : async () -> Unit
   mut calls : Int32
 }
 
 ///|
 fn LlmNodeTestProvider::LlmNodeTestProvider(
   events : Array[@llm.StreamEvent],
+  before_events~ : async () -> Unit = fn() { () },
 ) -> LlmNodeTestProvider {
-  { events, requests: [], tool_counts: [], calls: 0, }
+  { events, requests: [], tool_counts: [], before_events, calls: 0, }
 }
 
 ///|
@@ -37,6 +39,7 @@ impl @llm.Provider for LlmNodeTestProvider with fn stream(
   }
   self.requests.push(message_texts.join("|"))
   self.tool_counts.push(tools.length())
+  (self.before_events)()
   for event in self.events {
     (handler.on_event)(event)
   }
@@ -338,5 +341,49 @@ async test "llm_node 7 - cancellation before provider invocation skips provider"
     }
     inspect(cancelled, content="true")
     inspect(provider.calls, content="0")
+  }
+}
+
+///|
+async test "llm_node 8 - cancellation while awaiting provider skips decoding" {
+  @async.with_task_group() <| group => {
+    let id = @core.NodeId::NodeId("cancel-suspended-provider")
+    let started = @async.Semaphore::Semaphore(1, initial_value=0)
+    let waiting = @async.Semaphore::Semaphore(1, initial_value=0)
+    let provider = LlmNodeTestProvider::LlmNodeTestProvider(
+      [@llm.TextDelta("unreachable")],
+      before_events=async fn() {
+        started.release()
+        waiting.acquire()
+      },
+    )
+    let mut decoded = false
+    let node : @core.Node[Int32, Int32] = llm_node(
+      id,
+      llm_node_metadata(),
+      LlmNodeSpec::LlmNodeSpec(
+        @llm.BoxedProvider::new(provider),
+        fn(_context, _state) { LlmRequest::LlmRequest([]) },
+        fn(_state, _response) {
+          decoded = true
+          @core.NodeOutput::NodeOutput(None, None)
+        },
+      ),
+    )
+    let task = group.spawn(
+      async fn() { (node.execute)(test_context(group, id), 0) |> ignore },
+      allow_failure=true,
+    )
+    @async.with_timeout(3000, async fn() { started.acquire() })
+    task.cancel()
+    let cancelled = try {
+      task.wait()
+      false
+    } catch {
+      @async.WaitedTaskAlreadyCancelled => true
+      error => raise error
+    }
+    assert_true(cancelled)
+    assert_false(decoded)
   }
 }

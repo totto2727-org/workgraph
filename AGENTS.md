@@ -61,7 +61,7 @@ package/workgraph-core/docs/     Runtime API, architecture, testing, and migrati
 ### Target policy
 
 - Core and visualization prefer Wasm and support JavaScript, native, and Wasm.
-- LLM nodes prefer JavaScript and support JavaScript and native.
+- LLM nodes prefer JavaScript and support JavaScript, native, and Wasm1. Wasm1 HTTP needs a host with MoonBit async sockets.
 - Coding-agent, Codex, and OpenCode modules prefer Wasm and support Wasm and native; JavaScript is not supported.
 - Each adapter uses the same production source for its declared targets.
 

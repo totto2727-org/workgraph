@@ -32,10 +32,10 @@ pub suberror LlmNodeError {
 pub extend LlmNodeError with Debug::{to_repr}
 
 ///|
-fn collect_response(
+async fn collect_response(
   provider : @llm.BoxedProvider,
   request : LlmRequest,
-) -> @llm.CollectResult raise LlmNodeError {
+) -> @llm.CollectResult {
   let text = StringBuilder()
   let tool_calls : Array[@llm.ToolCall] = []
   let finish_reason : Ref[@llm.FinishReason] = Ref(@llm.Stop)
