@@ -19,7 +19,7 @@ supported_targets = "js+native+wasm"
 import {
   "totto2727/llm@0.3.3",
   "moonbitlang/regexp@0.3.7",
-  "moonbitlang/async@0.22.9",
+  "moonbitlang/async@0.22.10",
   "totto2727/workgraph-core@0.2.0",
 }
 

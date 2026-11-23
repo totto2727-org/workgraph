@@ -18,11 +18,11 @@ supported_targets = "+wasm+native"
 
 import {
   "Yoorkin/any@0.2.1",
-  "moonbitlang/async@0.22.9",
-  "moonbitlang/x@0.5.1",
+  "moonbitlang/async@0.22.10",
+  "moonbitlang/x@0.5.8",
   "totto2727/agent-sdk@0.2.2",
   "totto2727/workgraph-core@0.2.0",
-  "totto2727/x@0.9.0",
+  "totto2727/x@0.11.0",
 }
 
 source = "src"
