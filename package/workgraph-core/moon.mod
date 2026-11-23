@@ -18,8 +18,8 @@ supported_targets = "js+native+wasm"
 
 import {
   "Yoorkin/any@0.2.1",
-  "moonbitlang/async@0.22.9",
-  "totto2727/x@0.9.0",
+  "moonbitlang/async@0.22.10",
+  "totto2727/x@0.11.0",
 }
 
 source = "src"
